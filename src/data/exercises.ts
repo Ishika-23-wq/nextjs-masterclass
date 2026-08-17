@@ -3,29 +3,29 @@ import { PracticeExercise } from "@/types";
 export const allCodingChallenges: PracticeExercise[] = [
   {
     id: "ch-1-basic-page",
-    title: "1. Create a Basic Server Page",
+    title: "1. Create a Basic Server Page (JavaScript)",
     difficulty: "very-easy",
     estimatedMinutes: 5,
     prompt:
-      "Write a default-exported Next.js Server Component for `src/app/welcome/page.tsx` displaying a welcome heading and a current date string.",
-    initialCode: `// Write your Next.js Page component
+      "Write a default-exported Next.js Server Component for `app/welcome/page.js` in plain JavaScript displaying a friendly welcome heading and current year.",
+    initialCode: `// Write your Next.js Page component in plain JavaScript
 export default function WelcomePage() {
-  // TODO: Add heading and date
+  // TODO: Add heading and current year
   return (
     <div>
       {/* Your JSX */}
     </div>
   );
 }`,
-    expectedOutput: "A server page with welcome heading and current date.",
-    hints: ["Use `export default function`", "Use `new Date().toDateString()`"],
+    expectedOutput: "A server page with welcome heading and current year badge.",
+    hints: ["Use `export default function`", "Use `new Date().getFullYear()`"],
     solutionCode: `export default function WelcomePage() {
-  const today = new Date().toDateString();
+  const currentYear = new Date().getFullYear();
 
   return (
-    <div className="p-6 bg-zinc-900 border border-zinc-800 rounded-xl space-y-2">
-      <h1 className="text-2xl font-bold text-zinc-100">Welcome to INT257</h1>
-      <p className="text-emerald-400 text-sm font-mono">Today: {today}</p>
+    <div style={{ padding: "24px", background: "#18181b", color: "#fff", borderRadius: "12px" }}>
+      <h1>👋 Welcome to NextMastery!</h1>
+      <p style={{ color: "#34d399" }}>Current Year: {currentYear}</p>
     </div>
   );
 }`,
@@ -35,16 +35,13 @@ export default function WelcomePage() {
 
   {
     id: "ch-2-dynamic-slug",
-    title: "2. Dynamic Route Slug Extractor",
+    title: "2. Dynamic Route Slug Extractor (JavaScript)",
     difficulty: "easy",
     estimatedMinutes: 8,
     prompt:
-      "Create an async Server Component for `src/app/lessons/[slug]/page.tsx` that extracts `slug` from the `params` Promise and capitalizes it in a heading.",
-    initialCode: `interface LessonProps {
-  params: Promise<{ slug: string }>;
-}
-
-export default async function LessonPage({ params }: LessonProps) {
+      "Create an async Server Component for `app/lessons/[slug]/page.js` that extracts `slug` from the `params` Promise using `await params` and displays it in a heading.",
+    initialCode: `// app/lessons/[slug]/page.js (Pure JavaScript)
+export default async function LessonPage({ params }) {
   // TODO: Await params and format heading
   return (
     <div>
@@ -54,25 +51,21 @@ export default async function LessonPage({ params }: LessonProps) {
 }`,
     expectedOutput: "A lesson page displaying the formatted route parameter.",
     hints: ["Use `const { slug } = await params;`", "Use `.toUpperCase()` or replace hyphens with spaces"],
-    solutionCode: `interface LessonProps {
-  params: Promise<{ slug: string }>;
-}
-
-export default async function LessonPage({ params }: LessonProps) {
+    solutionCode: `export default async function LessonPage({ params }) {
   const { slug } = await params;
   const formattedTitle = slug.replace(/-/g, " ").toUpperCase();
 
   return (
-    <div className="p-6 bg-zinc-900 border border-zinc-800 rounded-xl space-y-2">
-      <span className="text-xs font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-400">
-        Lesson Parameter: {slug}
+    <div style={{ padding: "24px", background: "#18181b", color: "#fff", borderRadius: "12px" }}>
+      <span style={{ fontSize: "12px", background: "#fef3c7", color: "#92400e", padding: "4px 8px", borderRadius: "4px" }}>
+        Lesson Slug: {slug}
       </span>
-      <h1 className="text-xl font-bold text-zinc-100">{formattedTitle}</h1>
+      <h1 style={{ marginTop: "8px" }}>{formattedTitle}</h1>
     </div>
   );
 }`,
     solutionExplanation:
-      "In Next.js 15+, `params` is an asynchronous Promise that must be awaited inside your async page component.",
+      "In modern Next.js, `params` is an asynchronous Promise that must be awaited inside your async page component.",
   },
 
   {
@@ -82,26 +75,23 @@ export default async function LessonPage({ params }: LessonProps) {
     estimatedMinutes: 10,
     prompt:
       "Write a Server Action `createNoteAction` that extracts a `note` string from `FormData`, validates that it has at least 5 characters, and revalidates `/notes`.",
-    initialCode: `// src/actions/notes.ts
-export async function createNoteAction(formData: FormData) {
+    initialCode: `// actions/notes.js
+export async function createNoteAction(formData) {
   // TODO: Add 'use server', validate note, and revalidatePath
 }`,
     expectedOutput: "A validated Server Action returning a success status.",
-    hints: ["Add `'use server';`", "Import `revalidatePath` from `'next/cache'`"],
+    hints: ["Add `'use server';` at the top", "Import `revalidatePath` from `'next/cache'`"],
     solutionCode: `"use server";
-
 import { revalidatePath } from "next/cache";
 
-export async function createNoteAction(formData: FormData) {
-  const note = formData.get("note") as string;
+export async function createNoteAction(formData) {
+  const note = formData.get("note");
 
   if (!note || note.trim().length < 5) {
     return { success: false, error: "Note must be at least 5 characters long." };
   }
 
-  // Simulated save...
   console.log("Saved note:", note.trim());
-
   revalidatePath("/notes");
   return { success: true };
 }`,
@@ -115,12 +105,11 @@ export async function createNoteAction(formData: FormData) {
     difficulty: "hard",
     estimatedMinutes: 12,
     prompt:
-      "Build a Client Component `OptimisticLikeWidget` using `useOptimistic` and `useTransition` that increments the like counter instantly in 0ms when clicked.",
+      "Build a Client Component `OptimisticLikeWidget` in plain JavaScript using `useOptimistic` and `useTransition` that increments the like counter instantly in 0ms when clicked.",
     initialCode: `"use client";
-
 import { useOptimistic } from "react";
 
-export function OptimisticLikeWidget({ initialLikes }: { initialLikes: number }) {
+export function OptimisticLikeWidget({ initialLikes = 0 }) {
   // TODO: Implement useOptimistic with simulated transition
   return (
     <button>
@@ -131,14 +120,13 @@ export function OptimisticLikeWidget({ initialLikes }: { initialLikes: number })
     expectedOutput: "An interactive button that updates its like count instantly in 0ms.",
     hints: ["Use `useTransition` to wrap the optimistic update and async delay"],
     solutionCode: `"use client";
-
 import { useOptimistic, useTransition } from "react";
 
-export function OptimisticLikeWidget({ initialLikes = 0 }: { initialLikes?: number }) {
+export function OptimisticLikeWidget({ initialLikes = 0 }) {
   const [isPending, startTransition] = useTransition();
   const [optimisticLikes, addOptimisticLike] = useOptimistic(
     initialLikes,
-    (current, amount: number) => current + amount
+    (current, amount) => current + amount
   );
 
   const handleClick = () => {
@@ -152,11 +140,10 @@ export function OptimisticLikeWidget({ initialLikes = 0 }: { initialLikes?: numb
     <button
       onClick={handleClick}
       disabled={isPending}
-      className="flex items-center gap-2 px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-100 rounded-xl text-sm font-medium transition-all active:scale-95"
+      style={{ padding: "8px 16px", background: "#18181b", color: "#fff", border: "1px solid #3f3f46", borderRadius: "8px", cursor: "pointer" }}
     >
-      <span className="text-emerald-400">❤️</span>
-      <span>{optimisticLikes} Helpful</span>
-      {isPending && <span className="text-xs text-amber-400 animate-pulse">(Syncing...)</span>}
+      <span>❤️ {optimisticLikes} Helpful</span>
+      {isPending && <span style={{ marginLeft: "8px", color: "#fbbf24" }}>(Syncing...)</span>}
     </button>
   );
 }`,
@@ -166,58 +153,50 @@ export function OptimisticLikeWidget({ initialLikes = 0 }: { initialLikes?: numb
 
   {
     id: "ch-5-combined-pipeline",
-    title: "5. Combined: Dynamic Routes + Supabase + Server Actions + SEO",
+    title: "5. Combined: Dynamic Routes + Server Actions + Metadata",
     difficulty: "combined",
     estimatedMinutes: 18,
     prompt:
-      "Build a comprehensive product review module that generates dynamic SEO metadata, queries product details from Supabase on the server, and provides an inline Server Action form to post reviews.",
-    initialCode: `// Combined Full-Stack Challenge
-// Combine: generateMetadata + Supabase Query + Server Action
+      "Build a comprehensive product review module in plain JavaScript that generates dynamic SEO metadata and provides an inline Server Action form to post reviews.",
+    initialCode: `// Combined Full-Stack Challenge in Pure JavaScript
+// Combine: generateMetadata + Server Component + Server Action
 `,
-    expectedOutput: "A complete production-ready Server Component combining metadata, queries, and Server Actions.",
-    hints: ["Export `generateMetadata`", "Query Supabase table in main component", "Define inline Server Action or import from actions"],
-    solutionCode: `import type { Metadata } from "next";
-import { supabase, initialMockDb } from "@/lib/supabase";
-import { revalidatePath } from "next/cache";
+    expectedOutput: "A complete production-ready Server Component combining metadata and Server Actions.",
+    hints: ["Export `generateMetadata`", "Define inline Server Action or import from actions"],
+    solutionCode: `import { revalidatePath } from "next/cache";
 
-interface ProductProps {
-  params: Promise<{ id: string }>;
-}
-
-export async function generateMetadata({ params }: ProductProps): Promise<Metadata> {
+export async function generateMetadata({ params }) {
   const { id } = await params;
   return {
-    title: \`Product #\${id} Overview | INT257 Store\`,
+    title: \`Product #\${id} Overview | Store\`,
     description: "Full-stack server-rendered product specifications.",
   };
 }
 
-export default async function ProductOverviewPage({ params }: ProductProps) {
+export default async function ProductOverviewPage({ params }) {
   const { id } = await params;
 
-  async function postReviewAction(formData: FormData) {
+  async function postReviewAction(formData) {
     "use server";
-    const comment = formData.get("comment") as string;
+    const comment = formData.get("comment");
     console.log(\`Review for product #\${id}:\`, comment);
     revalidatePath(\`/products/\${id}\`);
   }
 
   return (
-    <div className="p-6 max-w-xl mx-auto bg-zinc-900 border border-zinc-800 rounded-2xl space-y-6">
-      <div className="space-y-1">
-        <span className="text-xs font-mono text-emerald-400">Database Record #{id}</span>
-        <h1 className="text-2xl font-bold text-zinc-100">Product Specifications</h1>
-      </div>
+    <div style={{ maxWidth: "500px", margin: "0 auto", padding: "24px", background: "#18181b", color: "#fff", borderRadius: "12px" }}>
+      <span>Database Record #{id}</span>
+      <h1>Product Specifications</h1>
 
-      <form action={postReviewAction} className="p-4 bg-zinc-950 border border-zinc-800 rounded-xl space-y-3">
-        <h3 className="text-sm font-semibold text-zinc-200">Leave a Review</h3>
+      <form action={postReviewAction} style={{ marginTop: "16px", display: "flex", flexDirection: "column", gap: "8px" }}>
+        <h3>Leave a Review</h3>
         <textarea
           name="comment"
           required
           placeholder="Share your thoughts on this item..."
-          className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-zinc-100 focus:outline-none focus:border-emerald-500"
+          style={{ padding: "8px", borderRadius: "6px", background: "#27272a", color: "#fff", border: "1px solid #3f3f46" }}
         />
-        <button type="submit" className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium">
+        <button type="submit" style={{ padding: "10px", background: "#10b981", color: "#fff", border: "none", borderRadius: "6px", fontWeight: "bold", cursor: "pointer" }}>
           Submit Review
         </button>
       </form>
@@ -225,6 +204,6 @@ export default async function ProductOverviewPage({ params }: ProductProps) {
   );
 }`,
     solutionExplanation:
-      "This pattern represents real-world Next.js development: server pre-rendering, dynamic SEO metadata, direct database querying, and server mutations in one clean file.",
+      "This pattern represents real-world Next.js development: server pre-rendering, dynamic SEO metadata, and server mutations in one clean file.",
   },
 ];

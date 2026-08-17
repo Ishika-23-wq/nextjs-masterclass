@@ -13,6 +13,7 @@ import {
   Database,
   HelpCircle,
   Trophy,
+  Mic,
 } from "lucide-react";
 import { syllabusUnits } from "@/data/syllabus";
 import { SupabaseRunner } from "@/components/classroom/SupabaseRunner";
@@ -30,7 +31,7 @@ export default function HomePage() {
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-zinc-200 text-xs text-zinc-700 font-mono shadow-xs">
             <span className="text-emerald-700 font-bold">&lt;int257-syllabus/&gt;</span>
             <span className="text-zinc-300">•</span>
-            <span className="text-amber-800 font-bold">100% Free • No Signups</span>
+            <span className="text-purple-700 font-bold">4-Hr Live Bootcamp Script Available</span>
           </div>
 
           {/* Main Headline */}
@@ -40,33 +41,33 @@ export default function HomePage() {
 
           {/* Subtitle */}
           <p className="text-base sm:text-lg text-zinc-600 max-w-2xl mx-auto leading-relaxed">
-            A complete, classroom-ready platform for students who know JavaScript: read concepts in <strong>simple Q&A format</strong>, edit real code in a live runner, and build full-stack Supabase applications.
+            A complete, classroom-ready platform for students who know JavaScript: read concepts in <strong>simple Q&amp;A format</strong>, follow the <strong>4-Hour Live Bootcamp Script</strong>, and build full-stack Supabase applications.
           </p>
 
           {/* Quick CTAs */}
           <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
             <Link
-              href="/units/unit-1/intro-and-project-structure"
-              className="flex items-center gap-2 px-6 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold text-sm shadow-md transition-all hover:scale-[1.02] active:scale-[0.98]"
+              href="/bootcamp"
+              className="flex items-center gap-2 px-6 py-3.5 bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-800 hover:to-indigo-800 text-white rounded-2xl font-bold text-sm shadow-md transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
-              <span>Start Learning Tutorials</span>
+              <Mic className="h-4 w-4 text-purple-200" />
+              <span>4-Hour Bootcamp Script (JS)</span>
               <ArrowRight className="h-4 w-4" />
             </Link>
 
             <Link
-              href="/practice"
-              className="flex items-center gap-2 px-6 py-3.5 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-2xl font-bold text-sm shadow-xs transition-all hover:border-zinc-300"
+              href="/units/unit-1/intro-and-project-structure"
+              className="flex items-center gap-2 px-6 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold text-sm shadow-md transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
-              <Trophy className="h-4 w-4 text-amber-600" />
-              <span>Practice Arena</span>
+              <span>Tutorial Lessons</span>
             </Link>
 
             <Link
-              href="/playground"
-              className="flex items-center gap-2 px-5 py-3.5 bg-white/80 hover:bg-white border border-zinc-200 text-zinc-700 rounded-2xl font-semibold text-sm transition-all shadow-2xs"
+              href="/practice"
+              className="flex items-center gap-2 px-5 py-3.5 bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-800 rounded-2xl font-bold text-sm shadow-xs transition-all hover:border-zinc-300"
             >
-              <Code2 className="h-4 w-4 text-emerald-600" />
-              <span>Live Playground</span>
+              <Trophy className="h-4 w-4 text-amber-600" />
+              <span>Practice Arena</span>
             </Link>
           </div>
 
@@ -144,6 +145,59 @@ export default function HomePage() {
             <div className="text-[11px] font-mono text-purple-700 pt-1 font-bold">
               ✓ Direct database integration
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Featured 4-Hour Live Bootcamp Script Banner */}
+      <section className="max-w-5xl mx-auto px-4 sm:px-6">
+        <div className="p-8 sm:p-10 rounded-3xl bg-gradient-to-br from-purple-900 via-indigo-950 to-zinc-900 text-white shadow-xl relative overflow-hidden space-y-6">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-purple-500/30 text-purple-200 border border-purple-400/30 flex items-center gap-1.5">
+              <Mic className="h-3.5 w-3.5 text-pink-300 animate-pulse" />
+              <span>Live Classroom Script</span>
+            </span>
+            <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+              Module 1 &amp; 2 • Pure JavaScript
+            </span>
+          </div>
+
+          <div className="space-y-3 max-w-2xl">
+            <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white">
+              The 4-Hour Next.js Bootcamp Script
+            </h2>
+            <p className="text-sm sm:text-base text-zinc-300 leading-relaxed font-sans">
+              Learn Next.js through 10-year-old child analogies (cookie cutters, video game counters, pizza kitchens, and teleportation portals). Includes full spoken script (🎤), live JavaScript code (💻), and interactive check-in quizzes (✅).
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+            <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10">
+              <div className="text-lg font-bold text-purple-300 font-mono">Hour 1</div>
+              <div className="text-xs text-zinc-300">React Foundations &amp; Why Next.js</div>
+            </div>
+            <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10">
+              <div className="text-lg font-bold text-purple-300 font-mono">Hour 2</div>
+              <div className="text-xs text-zinc-300">Project Structure &amp; 5 Magic Files</div>
+            </div>
+            <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10">
+              <div className="text-lg font-bold text-purple-300 font-mono">Hour 3</div>
+              <div className="text-xs text-zinc-300">Folder &amp; Dynamic [slug] Routes</div>
+            </div>
+            <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10">
+              <div className="text-lg font-bold text-purple-300 font-mono">Hour 4</div>
+              <div className="text-xs text-zinc-300">Layouts, &lt;Link&gt; &amp; Error Shields</div>
+            </div>
+          </div>
+
+          <div className="pt-2">
+            <Link
+              href="/bootcamp"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-white hover:bg-zinc-100 text-zinc-900 rounded-2xl font-extrabold text-sm transition-all shadow-md hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <span>Open 4-Hour Live Script</span>
+              <ArrowRight className="h-4 w-4 text-purple-700" />
+            </Link>
           </div>
         </div>
       </section>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Search, ChevronDown, ChevronRight, CheckCircle2, BookOpen } from "lucide-react";
+import { Search, ChevronDown, ChevronRight, CheckCircle2, BookOpen, Mic, Sparkles } from "lucide-react";
 import { syllabusUnits } from "@/data/syllabus";
 import { getCompletedTopics } from "@/lib/local-storage";
 
@@ -43,6 +43,23 @@ export function TutorialSidebar({ currentUnitId, currentTopicId }: TutorialSideb
           INT257
         </span>
       </div>
+
+      {/* Bootcamp Quick Link Banner */}
+      <Link
+        href="/bootcamp"
+        className="flex items-center justify-between p-2.5 rounded-2xl bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 text-purple-950 hover:border-purple-400 transition-all group shadow-2xs"
+      >
+        <div className="flex items-center gap-2">
+          <div className="p-1.5 rounded-xl bg-purple-600 text-white shadow-2xs">
+            <Mic className="h-3.5 w-3.5" />
+          </div>
+          <div>
+            <div className="text-[11px] font-extrabold text-purple-900 leading-tight">4-Hr Bootcamp Script</div>
+            <div className="text-[10px] text-purple-700 font-mono">JS &amp; ELI10 Edition</div>
+          </div>
+        </div>
+        <span className="text-xs text-purple-600 font-bold group-hover:translate-x-0.5 transition-transform">→</span>
+      </Link>
 
       {/* Quick Search */}
       <div className="relative">

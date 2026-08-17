@@ -19,6 +19,7 @@ import {
   Info,
   ArrowRight,
   ShieldAlert,
+  Mic,
 } from "lucide-react";
 import { SearchModal } from "./SearchModal";
 import { getLocalBookmarks } from "@/lib/local-storage";
@@ -40,6 +41,7 @@ export function Navbar() {
 
   const navLinks = [
     { href: "/units", label: "Tutorials", icon: BookOpen },
+    { href: "/bootcamp", label: "4-Hr Bootcamp", icon: Mic },
     { href: "/practice", label: "Practice", icon: Trophy },
     { href: "/quiz-arena", label: "Quiz", icon: Award },
     { href: "/playground", label: "Playground", icon: Code2 },

@@ -11,68 +11,70 @@ export interface CheatsheetSection {
 
 export const cheatsheetData: CheatsheetSection[] = [
   {
-    title: "1. App Router Special Files",
+    title: "1. App Router Magic Files (JavaScript)",
     category: "Routing & Project Structure",
     snippets: [
       {
-        title: "page.tsx (Route UI)",
-        description: "Defines the unique user interface for a route.",
-        language: "tsx",
-        code: `export default function Page() {
-  return <h1>Hello Next.js App Router!</h1>;
+        title: "page.js (The Main Stage)",
+        description: "Defines the visible webpage for that folder URL.",
+        language: "jsx",
+        code: `// app/about/page.js
+export default function AboutPage() {
+  return <h1>👋 Welcome to our About Page!</h1>;
 }`,
       },
       {
-        title: "layout.tsx (Shared Shell)",
-        description: "Persistent shared UI shell that does not re-mount across route changes.",
-        language: "tsx",
-        code: `export default function Layout({ children }: { children: React.ReactNode }) {
+        title: "layout.js (The Picture Frame)",
+        description: "The unbreakable picture frame wrapping pages without re-rendering.",
+        language: "jsx",
+        code: `// app/layout.js
+export default function RootLayout({ children }) {
   return (
-    <div className="layout-shell">
-      <Navbar />
-      <main>{children}</main>
-      <Footer />
-    </div>
+    <html lang="en">
+      <body>
+        <nav>🚀 My Permanent Navbar</nav>
+        <main>{children}</main>
+        <footer>© 2026 NextMastery</footer>
+      </body>
+    </html>
   );
 }`,
       },
       {
-        title: "loading.tsx (Suspense Skeleton)",
-        description: "Instant loading UI displayed immediately on page transition.",
-        language: "tsx",
-        code: `export default function Loading() {
-  return <div className="animate-pulse h-32 bg-zinc-800 rounded-xl" />;
+        title: "loading.js (The Popcorn Timer)",
+        description: "Automatic loading spinner shown while server data is cooking.",
+        language: "jsx",
+        code: `// app/dashboard/loading.js
+export default function Loading() {
+  return <p>⏳ Loading data... popping fresh popcorn! 🍿</p>;
 }`,
       },
       {
-        title: "error.tsx (Error Boundary)",
-        description: "Catches runtime errors; MUST be a Client Component.",
-        language: "tsx",
-        code: `"use client";
+        title: "error.js (The Circuit Breaker)",
+        description: "Catches bugs and crashes so the rest of the website stays alive. Must have 'use client'!",
+        language: "jsx",
+        code: `"use client"; // Required!
 
-export default function Error({ error, reset }: { error: Error; reset: () => void }) {
+export default function ErrorBoundary({ error, reset }) {
   return (
-    <div className="p-4 bg-rose-500/10 border border-rose-500/30 rounded-xl">
-      <p className="text-rose-400">{error.message}</p>
-      <button onClick={() => reset()} className="mt-2 px-3 py-1 bg-rose-600 rounded text-xs text-white">
-        Try Again
-      </button>
+    <div style={{ background: "#fee2e2", padding: "16px" }}>
+      <p style={{ color: "#991b1b" }}>🚨 {error.message}</p>
+      <button onClick={() => reset()}>🔄 Try Again</button>
     </div>
   );
 }`,
       },
       {
-        title: "not-found.tsx (404 Screen)",
-        description: "Custom 404 screen triggered on missing URLs or notFound() calls.",
-        language: "tsx",
+        title: "not-found.js (Outer Space 404)",
+        description: "Friendly screen shown when someone visits a missing URL.",
+        language: "jsx",
         code: `import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <div className="text-center p-10 space-y-4">
-      <h1 className="text-4xl font-bold text-amber-500">404</h1>
-      <p className="text-zinc-400">Page not found.</p>
-      <Link href="/" className="text-emerald-400 underline">Return Home</Link>
+    <div style={{ textAlign: "center", padding: "40px" }}>
+      <h1>🛸 404 - Lost in Outer Space!</h1>
+      <Link href="/">🚀 Beam Me Back Home</Link>
     </div>
   );
 }`,
@@ -81,156 +83,140 @@ export default function NotFound() {
   },
 
   {
-    title: "2. Data Fetching & Caching",
+    title: "2. Dynamic & Nested Routes",
+    category: "Routing & URLs",
+    snippets: [
+      {
+        title: "Dynamic Route [slug]",
+        description: "One single file handling thousands of dynamic items.",
+        language: "jsx",
+        code: `// app/pokemon/[name]/page.js
+export default async function PokemonPage({ params }) {
+  // Unwrap the params gift box:
+  const { name } = await params;
+  return <h1>⚡ Pokemon: {name}</h1>;
+}`,
+      },
+      {
+        title: "Catch-All Route [...slug]",
+        description: "Captures all subfolder segments into a JavaScript array.",
+        language: "jsx",
+        code: `// app/docs/[...slug]/page.js
+export default async function DocsPage({ params }) {
+  const { slug } = await params; // Array of strings e.g. ["math", "algebra"]
+  return <p>Section: {slug.join(" > ")}</p>;
+}`,
+      },
+      {
+        title: "Route Groups (Invisible Folders)",
+        description: "Folders in parentheses (folderName) are skipped in the browser URL.",
+        language: "bash",
+        code: `app/(marketing)/about/page.js   ->  /about   ((marketing) is invisible!)
+app/(shop)/toys/page.js          ->  /toys`,
+      },
+    ],
+  },
+
+  {
+    title: "3. Navigation & Teleportation",
+    category: "Client Navigation",
+    snippets: [
+      {
+        title: "<Link> Component (Instant Teleport)",
+        description: "Instant client-side transition without full page reloading.",
+        language: "jsx",
+        code: `import Link from "next/link";
+
+export function Navbar() {
+  return (
+    <nav style={{ display: "flex", gap: "12px" }}>
+      <Link href="/">🏠 Home</Link>
+      <Link href="/about">ℹ️ About</Link>
+    </nav>
+  );
+}`,
+      },
+      {
+        title: "useRouter().push (Programmatic Navigation)",
+        description: "Navigate users from button clicks or form submits.",
+        language: "jsx",
+        code: `"use client";
+import { useRouter } from "next/navigation"; // 👈 Remember: next/navigation!
+
+export function LoginButton() {
+  const router = useRouter();
+  return <button onClick={() => router.push("/dashboard")}>🔑 Log In</button>;
+}`,
+      },
+      {
+        title: "Active Tab with usePathname",
+        description: "Highlight the active page in your navbar.",
+        language: "jsx",
+        code: `"use client";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
+export function NavTab({ href, label }) {
+  const pathname = usePathname();
+  const isActive = pathname === href;
+  return (
+    <Link href={href} style={{ fontWeight: isActive ? "bold" : "normal" }}>
+      {label}
+    </Link>
+  );
+}`,
+      },
+    ],
+  },
+
+  {
+    title: "4. Data Fetching & Bakery Paradigms",
     category: "Rendering & Fetch",
     snippets: [
       {
         title: "Server Component Direct Fetch (SSG / Static)",
-        description: "Fetches data on the server with default static caching.",
-        language: "tsx",
-        code: `export default async function Page() {
-  const res = await fetch("https://api.example.com/data");
-  const data = await res.json();
-  return <div>{data.title}</div>;
+        description: "Pre-baked morning bread: fast and cached by default.",
+        language: "jsx",
+        code: `export default async function ToysPage() {
+  const res = await fetch("https://api.example.com/toys");
+  const toys = await res.json();
+  return <div>{toys.map(t => <p key={t.id}>{t.name}</p>)}</div>;
 }`,
       },
       {
         title: "Time-Based Revalidation (ISR)",
-        description: "Revalidates static data cache in background every X seconds.",
-        language: "tsx",
-        code: `const res = await fetch("https://api.example.com/posts", {
-  next: { revalidate: 60 } // 60 seconds ISR
+        description: "Bakes a fresh batch automatically every 60 seconds.",
+        language: "javascript",
+        code: `const res = await fetch("https://api.example.com/scores", {
+  next: { revalidate: 60 } // Re-bake every 60 seconds
 });`,
       },
       {
-        title: "Dynamic Server Rendering (SSR)",
-        description: "Forces fresh data computation on every request.",
-        language: "tsx",
-        code: `const res = await fetch("https://api.example.com/live", {
+        title: "Dynamic Server Rendering (Fresh Pizza SSR)",
+        description: "Cooks the meal fresh on every request.",
+        language: "javascript",
+        code: `const res = await fetch("https://api.example.com/live-stock", {
   cache: "no-store"
-});
-// Or export: export const dynamic = 'force-dynamic';`,
-      },
-      {
-        title: "Tagged Cache Invalidation",
-        description: "Tag a fetch and invalidate on-demand via Server Action.",
-        language: "tsx",
-        code: `// 1. Fetch with tag:
-const res = await fetch(url, { next: { tags: ["courses"] } });
-
-// 2. Invalidate in Server Action:
-"use server";
-import { revalidateTag } from "next/cache";
-revalidateTag("courses");`,
+});`,
       },
     ],
   },
 
   {
-    title: "3. Server Actions & Mutations",
-    category: "Forms & Backend",
+    title: "5. Server Actions (The Secret Walkie-Talkie)",
+    category: "Full-Stack Mutations",
     snippets: [
       {
-        title: "Server Action Form Handler",
-        description: "Backend mutation attached directly to native HTML form.",
-        language: "tsx",
-        code: `import { revalidatePath } from "next/cache";
+        title: "Server Action Function",
+        description: "Talk directly to the backend database from a button or form with no API routes.",
+        language: "javascript",
+        code: `// app/actions.js
+"use server"; // Secret keyword!
 
-async function createItemAction(formData: FormData) {
-  "use server";
-  const name = formData.get("name") as string;
-  await db.insert({ name });
-  revalidatePath("/items");
-}
-
-export default function Form() {
-  return (
-    <form action={createItemAction}>
-      <input name="name" required />
-      <button type="submit">Create</button>
-    </form>
-  );
-}`,
-      },
-      {
-        title: "Pending State Indicator with useFormStatus",
-        description: "Disable submit button while form is processing.",
-        language: "tsx",
-        code: `"use client";
-import { useFormStatus } from "react-dom";
-
-export function SubmitBtn() {
-  const { pending } = useFormStatus();
-  return (
-    <button type="submit" disabled={pending}>
-      {pending ? "Saving..." : "Save"}
-    </button>
-  );
-}`,
-      },
-    ],
-  },
-
-  {
-    title: "4. Supabase Client & CRUD",
-    category: "Databases",
-    snippets: [
-      {
-        title: "Supabase Client Initialization",
-        description: "Configuring Supabase client with public environment variables.",
-        language: "typescript",
-        code: `import { createClient } from "@supabase/supabase-js";
-
-export const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);`,
-      },
-      {
-        title: "Full CRUD Query Operations",
-        description: "Select, Insert, Update, and Delete rows.",
-        language: "typescript",
-        code: `// SELECT
-const { data } = await supabase.from('posts').select('*').eq('published', true);
-
-// INSERT
-const { error } = await supabase.from('posts').insert([{ title: 'Next.js 16' }]);
-
-// UPDATE
-const { error } = await supabase.from('posts').update({ views: 100 }).eq('id', 1);
-
-// DELETE
-const { error } = await supabase.from('posts').delete().eq('id', 1);`,
-      },
-    ],
-  },
-
-  {
-    title: "5. SEO & Metadata",
-    category: "SEO",
-    snippets: [
-      {
-        title: "Static Metadata Export",
-        description: "Static title and OpenGraph tags.",
-        language: "typescript",
-        code: `import type { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "My Course Platform",
-  description: "Learn Next.js App Router.",
-  openGraph: {
-    title: "My Course Platform",
-    images: ["/og.png"],
-  },
-};`,
-      },
-      {
-        title: "Dynamic generateMetadata()",
-        description: "Generate metadata from dynamic route parameters.",
-        language: "typescript",
-        code: `export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  return { title: \`Item #\${id} | Store\` };
+export async function addScore(formData) {
+  const name = formData.get("playerName");
+  console.log("Saving player score to DB:", name);
+  return { success: true };
 }`,
       },
     ],
