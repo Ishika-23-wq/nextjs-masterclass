@@ -172,7 +172,7 @@ export function CodeSandbox({
             onChange={(e) => setCode(e.target.value)}
             spellCheck={false}
             rows={12}
-            className="w-full bg-[#211F2E] p-4 font-mono text-xs sm:text-[13px] text-emerald-300 focus:outline-none focus:ring-1 focus:ring-emerald-500/50 resize-y leading-relaxed font-normal border-t border-[#333045]"
+            className="w-full bg-[#FCFBF9] p-4 font-mono text-xs sm:text-[13px] text-stone-900 focus:outline-none focus:ring-2 focus:ring-emerald-400/30 resize-y leading-relaxed font-normal border-t border-[#e5ded4] selection:bg-emerald-100"
           />
         </div>
       )}
@@ -219,19 +219,21 @@ export function CodeSandbox({
       )}
 
       {activeTab === "logs" && (
-        <div className="p-4 bg-[#211F2E] font-mono text-xs text-zinc-200 min-h-[220px] space-y-2 overflow-x-auto border-t border-[#333045]">
-          <div className="text-zinc-400 border-b border-[#333045] pb-1">Next.js Turbopack Compiler Stream:</div>
+        <div className="p-4 bg-[#FAF7F2] font-mono text-xs text-stone-800 min-h-[220px] space-y-2 overflow-x-auto border-t border-[#e5ded4]">
+          <div className="text-stone-500 border-b border-[#e5ded4] pb-1 font-semibold flex items-center gap-1.5">
+            <span>⚡ Next.js Turbopack Compiler Stream:</span>
+          </div>
           {result ? (
             result.logs.map((log, index) => (
-              <div key={index} className="leading-relaxed">
-                <span className="text-zinc-500">[{new Date().toLocaleTimeString()}]</span>{" "}
-                <span className={log.includes("[Error]") ? "text-rose-400 font-bold" : log.includes("✓") ? "text-emerald-400 font-bold" : "text-zinc-200"}>
+              <div key={index} className="leading-relaxed flex items-start gap-2">
+                <span className="text-stone-400 shrink-0">[{new Date().toLocaleTimeString()}]</span>{" "}
+                <span className={log.includes("[Error]") ? "text-rose-700 font-bold bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200" : log.includes("✓") ? "text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200" : "text-stone-700"}>
                   {log}
                 </span>
               </div>
             ))
           ) : (
-            <p className="text-zinc-400">No compilation logs yet. Click 'Run Code' to execute.</p>
+            <p className="text-stone-400">No compilation logs yet. Click 'Run Code' to execute.</p>
           )}
         </div>
       )}

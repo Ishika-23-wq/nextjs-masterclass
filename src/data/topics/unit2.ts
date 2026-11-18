@@ -5,105 +5,115 @@ export const unit2Topics: TopicContent[] = [
     id: "rendering-paradigms",
     unitId: "unit-2",
     title: "Rendering Strategies: SSR, SSG, ISR & CSR",
-    shortSummary: "Understand the 4 rendering strategies in web development, when HTML is generated, and how Next.js unifies them.",
+    shortSummary: "Understand the 4 rendering strategies in web development using the bakery analogy, when HTML is generated, and how Next.js unifies them.",
     order: 1,
     tags: ["SSR", "SSG", "ISR", "CSR", "Rendering"],
 
     simpleExplanation:
-      "When a browser asks for a webpage, there are 4 main ways to build it: (1) **CSR (Client-Side Rendering)**: The browser downloads a blank HTML file and empty JavaScript, then builds the page on your laptop. (2) **SSG (Static Site Generation)**: The server builds the HTML pages ONCE during `npm run build`, and hands out the exact same fast files to everyone. (3) **SSR (Server-Side Rendering)**: The server builds fresh custom HTML every single time a user makes a request. (4) **ISR (Incremental Static Regeneration)**: Next.js serves static pages at blazing speed, but quietly rebuilds them in the background every X seconds so data is always fresh!",
+      "Imagine you run a bakery. There are 4 different ways to serve your customers:\n\n1. **SSG (Static Site Generation) - Morning Bread!**\nYou bake 100 loaves of bread once at 6:00 AM (during `npm run build`). When a customer walks in at 2:00 PM, you hand them a loaf in 1 second flat. It is blazing fast, but the bread was baked earlier in the morning.\n\n2. **SSR (Server-Side Rendering) - Fresh Hot Pizza!**\nEvery time a customer places an order, the chef fires up the oven and bakes a fresh pizza with custom toppings right then and there. It takes a few extra seconds, but the food is 100% fresh and made-to-order.\n\n3. **ISR (Incremental Static Regeneration) - Fresh Cookie Batches!**\nYou keep warm cookies on the counter. Every 60 seconds, your kitchen quietly bakes a fresh batch in the background. Customers get cookies instantly, and the cookies are never older than 60 seconds!\n\n4. **CSR (Client-Side Rendering) - DIY Meal Kit!**\nYou hand the customer raw flour, yeast, and a mini oven to take to their table and bake the bread themselves on their own laptop.",
 
     whyNeeded:
-      "Different pages have completely different performance and freshness needs. An 'About Us' page never changes and should be SSG (zero compute cost). A real-time stock dashboard must be SSR (100% fresh data). A blog with 50,000 articles should be ISR (instant cache + periodic background update). Next.js allows you to mix and match all 4 rendering strategies in the SAME application.",
+      "Different pages have different freshness needs. An 'About Us' page never changes, so SSG gives visitors 0ms instant loading. A real-time stock ticker or bank balance must be SSR so numbers are 100% up-to-the-second fresh. A blog or e-commerce shop with thousands of items uses ISR so pages load with static speed but quietly update in the background. Next.js lets you mix and match all 4 rendering styles in the SAME website!",
 
     reactVsNext: {
       concept: "Page Rendering Strategy",
       reactWay: {
-        title: "Vanilla React (CSR Only)",
-        code: `// Vanilla React is 100% Client-Side Rendered (CSR)
-// The server only sends: <div id="root"></div>
-function ProductList() {
+        title: "Client-Side Only Rendering (CSR)",
+        code: `// Pure Client-Side Rendering (CSR)
+// The server only sends a blank page: <div id="root"></div>
+import { useState, useEffect } from "react";
+
+export default function ProductList() {
   const [items, setItems] = useState([]);
+
   useEffect(() => {
-    // Fetches in user's browser AFTER JavaScript loads:
+    // The browser has to download React first,
+    // THEN start downloading this data:
     fetch("/api/products")
-      .then(res => res.json())
-      .then(data => setItems(data));
+      .then((res) => res.json())
+      .then((data) => setItems(data));
   }, []);
 
-  return <div>{items.map(item => <p key={item.id}>{item.name}</p>)}</div>;
+  return (
+    <div>
+      {items.map((item) => (
+        <p key={item.id}>{item.name}</p>
+      ))}
+    </div>
+  );
 }`,
         explanation:
-          "React by itself only runs in the user's browser. It cannot pre-render static HTML or render on a Node.js server without complicated custom server pipelines.",
+          "React by itself only runs in the user's browser. It cannot pre-render static HTML on a server without complicated custom build pipelines.",
         drawbacks: [
-          "Zero pre-rendered HTML (blank screen on initial request)",
-          "Requires users to download the entire React runtime before seeing content",
-          "Cannot do SSG or ISR",
+          "Zero pre-rendered HTML (users see a blank white screen while downloading JavaScript)",
+          "Search engines like Google struggle to index dynamic client-rendered content",
+          "Cannot do SSG or ISR out of the box",
         ],
       },
       nextjsWay: {
-        title: "Next.js Hybrid Rendering Engine",
-        code: `// 1. SSG (Default for static pages):
+        title: "Next.js Hybrid Rendering Engine (Bakery)",
+        code: `// 1. SSG: Static Site Generation (Default for static pages)
 export default function AboutPage() {
-  return <h1>About Us (Built once at build time)</h1>;
+  return <h1>About Us (Baked once during npm run build!)</h1>;
 }
 
-// 2. SSR (Dynamic on every request):
-export const dynamic = 'force-dynamic';
+// 2. SSR: Server-Side Rendering (Fresh pizza on every request)
+export const dynamic = "force-dynamic";
+
 export default async function LiveDashboard() {
-  const data = await fetch('https://api.example.com/stocks', { cache: 'no-store' });
-  const stocks = await data.json();
-  return <div>Live Stock: {stocks.price}</div>;
+  const res = await fetch("https://api.example.com/stocks", { cache: "no-store" });
+  const stocks = await res.json();
+  return <div>Live Stock Price: \${stocks.price}</div>;
 }
 
-// 3. ISR (Static + Regenerated every 60 seconds):
+// 3. ISR: Incremental Static Regeneration (Fresh batches every 60s)
 export default async function BlogPage() {
-  const res = await fetch('https://api.example.com/posts', {
-    next: { revalidate: 60 } // Automatically regenerates static cache every 60s!
+  const res = await fetch("https://jsonplaceholder.typicode.com/posts", {
+    next: { revalidate: 60 } // Next.js quietly bakes a fresh batch every 60 seconds!
   });
   const posts = await res.json();
   return <div>{posts.map(p => <h2 key={p.id}>{p.title}</h2>)}</div>;
 }`,
         explanation:
-          "In Next.js, you configure caching and dynamic export options per page or per `fetch()` call. Next.js automatically selects SSG, SSR, or ISR.",
+          "In Next.js, you choose how fresh you want your data with simple settings like `next: { revalidate: 60 }`. Next.js handles the caching and background regeneration automatically.",
         benefits: [
-          "Sub-millisecond static page delivery from Edge CDN",
-          "Fresh data when required without sacrificing SEO",
-          "Incremental builds: update 1 page without rebuilding the whole website",
+          "Instant static delivery from Edge CDN servers worldwide",
+          "Fresh data whenever you need it without sacrificing SEO or mobile speed",
+          "Incremental updates: update one single post without rebuilding the entire website",
         ],
       },
       whyDifferent:
-        "Next.js unifies CSR, SSR, SSG, and ISR into a single framework. You don't have to choose between a static site generator or a dynamic server; you get both simultaneously.",
+        "Next.js unifies CSR, SSR, SSG, and ISR into a single framework. You don't have to choose between a static generator or a server; you get both simultaneously.",
       mentalShiftSummary:
-        "Don't default to client fetching. Decide: 'Is this data static (SSG), periodic (ISR), or real-time unique (SSR)?'",
+        "Don't fetch data on the client by default. Ask: 'Is this data static (SSG), periodic (ISR), or real-time unique (SSR)?'",
     },
 
     basicExample: {
-      title: "Configuring ISR (Incremental Static Regeneration)",
-      description: "Fetching posts with time-based revalidation to achieve static speed with live updates.",
-      language: "tsx",
-      filename: "src/app/posts/page.tsx",
-      code: `// src/app/posts/page.tsx
-interface Post {
-  id: number;
-  title: string;
-  views: number;
-}
-
+      title: "Configuring ISR with JSONPlaceholder in Plain JavaScript",
+      description: "Fetching posts with time-based revalidation to achieve instant static speed with automated updates every 60 seconds.",
+      language: "jsx",
+      filename: "src/app/posts/page.js",
+      code: `// src/app/posts/page.js
+// 1. This is an async Server Component written in plain JavaScript:
 export default async function PostsPage() {
-  // Revalidates in the background every 60 seconds (ISR):
+  // 2. Fetch data from JSONPlaceholder with a 60-second ISR timer:
   const res = await fetch("https://jsonplaceholder.typicode.com/posts?_limit=5", {
-    next: { revalidate: 60 }
+    next: { revalidate: 60 },
   });
-  const posts: Post[] = await res.json();
 
+  // 3. Convert the response to a plain JavaScript array:
+  const posts = await res.json();
+
+  // 4. Return JSX to render the posts:
   return (
     <div className="p-6 max-w-2xl mx-auto space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-zinc-100">Latest Articles</h1>
         <span className="text-xs px-2.5 py-1 bg-amber-500/20 text-amber-400 rounded-md font-mono">
-          ISR: 60s Cache
+          ISR: 60s Freshness
         </span>
       </div>
+
       <div className="space-y-3">
         {posts.map((post) => (
           <div key={post.id} className="p-4 bg-zinc-900 border border-zinc-800 rounded-xl">
@@ -115,20 +125,21 @@ export default async function PostsPage() {
   );
 }`,
       explanation:
-        "The first visitor gets instant cached HTML. After 60 seconds, Next.js triggers a background regeneration to fetch fresh posts.",
-      outputPreview: "List of posts with ISR 60s badge, loading with zero client waterfall delay.",
+        "Line-by-line explanation:\n- Line 2: export default async function PostsPage() defines an asynchronous Server Component. Because it is on the server, we can use await directly inside it!\n- Line 4: fetch(..., { next: { revalidate: 60 } }) tells Next.js: 'Cache this response for 60 seconds. When 60 seconds pass, quietly fetch a new copy in the background.'\n- Line 9: await res.json() parses the data into a normal JavaScript array of post objects.\n- Line 12-28: Next.js renders the full HTML with the posts already filled in and sends it to the browser.\n\nWhat happens in the browser?\n1. Visitor 1 arrives: Next.js serves the cached static HTML in under 10ms. No loading spinner!\n2. Visitor 2 arrives at 30 seconds: Still within the 60s window, gets the instant cached page.\n3. Visitor 3 arrives at 65 seconds: Next.js still shows the fast cached page, but in the background it quietly makes a new fetch to JSONPlaceholder and stores the fresh data.\n4. Visitor 4 arrives: Now receives the freshly updated batch of articles!",
+      outputPreview: "List of 5 articles with an ISR badge, delivered as pre-rendered HTML in milliseconds.",
     },
 
     moreExamples: [
       {
         title: "Dynamic Server Rendering (SSR) with force-dynamic",
-        description: "Forcing a page to compute on the server on every single HTTP request.",
-        language: "tsx",
-        filename: "src/app/admin/live-stats/page.tsx",
-        code: `// Force dynamic rendering on every request (SSR):
+        description: "Forcing a page to compute on the server on every single HTTP request in plain JavaScript.",
+        language: "jsx",
+        filename: "src/app/admin/live-stats/page.js",
+        code: `// Force dynamic rendering on every single visit (SSR):
 export const dynamic = "force-dynamic";
 
 export default async function LiveStatsPage() {
+  // Calculated fresh on the server every time someone refreshes:
   const timestamp = new Date().toLocaleTimeString();
 
   return (
@@ -136,70 +147,71 @@ export default async function LiveStatsPage() {
       <span className="text-xs font-mono text-emerald-400 uppercase">⚡ Server Rendered (SSR)</span>
       <h1 className="text-xl font-bold text-zinc-100">Live Server Clock: {timestamp}</h1>
       <p className="text-zinc-400 text-sm">
-        This value is calculated on the server every time you refresh this page.
+        This time is generated by the server on every page refresh!
       </p>
     </div>
   );
 }`,
         explanation:
-          "`export const dynamic = 'force-dynamic'` instructs Next.js to bypass static generation and evaluate this component on the server for each request.",
+          "export const dynamic = 'force-dynamic' tells Next.js: 'Do not save a static copy of this page. Run this function on the server every time a user visits!'",
       },
     ],
 
     multipleWays: [
       {
         name: "Static Site Generation (SSG)",
-        syntax: "default in App Router (or fetch cache: 'force-cache')",
-        codeSnippet: `const res = await fetch('https://api.com/data'); // Cached indefinitely by default`,
-        howItWorks: "HTML is generated at build time (`npm run build`) and served via global CDN.",
+        syntax: "default in App Router",
+        codeSnippet: "const res = await fetch('https://api.com/data'); // Cached statically at build time",
+        howItWorks: "HTML is generated once during npm run build (morning bread) and served instantly via global CDN.",
         pros: ["Fastest possible response time (0ms TTFB)", "Cheapest hosting cost"],
-        cons: ["Data can become stale until next project deployment"],
-        whenToUse: "Marketing pages, blogs, help documentation, terms of service.",
+        cons: ["Data remains the same until you redeploy the site"],
+        whenToUse: "Marketing pages, portfolios, help documentation, terms of service.",
         isRecommended: true,
       },
       {
         name: "Incremental Static Regeneration (ISR)",
         syntax: "fetch(url, { next: { revalidate: 60 } })",
-        codeSnippet: `const res = await fetch('https://api.com/posts', { next: { revalidate: 300 } });`,
-        howItWorks: "Serves cached static page, then regenerates cache in the background after expiry.",
-        pros: ["Static speed + automated fresh data", "Never slows down for end users"],
-        cons: ["First visitor after expiry may see stale content for one hit while background updates"],
-        whenToUse: "E-commerce product catalogs, news feeds, forum post listings.",
+        codeSnippet: "const res = await fetch('https://jsonplaceholder.typicode.com/posts', { next: { revalidate: 60 } });",
+        howItWorks: "Serves fast cached static pages, then quietly updates the cache in the background after expiry (fresh cookie batches).",
+        pros: ["Static speed + automated fresh data", "Users never wait for slow database queries"],
+        cons: ["The first visitor after the timer expires sees the older version once while the background rebuild finishes"],
+        whenToUse: "E-commerce catalogs, news sites, blogs, student course listings.",
         isRecommended: true,
       },
       {
         name: "Server-Side Rendering (SSR)",
-        syntax: "export const dynamic = 'force-dynamic' or fetch cache: 'no-store'",
-        codeSnippet: `const res = await fetch('https://api.com/user', { cache: 'no-store' });`,
-        howItWorks: "Renders fresh HTML on the server for every single incoming HTTP request.",
-        pros: ["100% guaranteed real-time data", "Can inspect user cookies and headers"],
-        cons: ["Slightly higher server response time (TTFB)", "More server compute load"],
-        whenToUse: "User account dashboards, checkout pages, real-time analytics.",
+        syntax: "export const dynamic = 'force-dynamic' or fetch(url, { cache: 'no-store' })",
+        codeSnippet: "const res = await fetch('https://api.com/account', { cache: 'no-store' });",
+        howItWorks: "Generates fresh HTML on the server for every single visitor request (hot pizza baked on order).",
+        pros: ["100% guaranteed real-time data", "Can inspect user cookies, headers, and permissions"],
+        cons: ["Slightly slower initial response because the server has to work before sending HTML"],
+        whenToUse: "Personal account dashboards, checkout screens, real-time banking or stock portals.",
       },
       {
         name: "Client-Side Rendering (CSR)",
-        syntax: "'use client' + useEffect / SWR",
+        syntax: "'use client' + useEffect / useState",
         codeSnippet: `"use client";
-useEffect(() => { fetch('/api/data').then(...) }, []);`,
-        howItWorks: "Browser downloads empty skeleton and fetches data via JavaScript.",
-        pros: ["Interactive widgets, canvas animations, browser-only APIs"],
-        cons: ["Worst SEO, causes loading spinners and layout shift"],
-        whenToUse: "Browser games, video editors, interactive canvas tools.",
+import { useState, useEffect } from "react";
+// Data downloaded by the browser after page loads`,
+        howItWorks: "Browser downloads an empty skeleton and fills it in using browser JavaScript (DIY kit).",
+        pros: ["Great for interactive widgets, drawing canvases, browser video games"],
+        cons: ["Slower for mobile devices, empty HTML for SEO crawlers, causes loading spinners"],
+        whenToUse: "Interactive drawing tools, audio editors, games.",
       },
     ],
 
     decisionGuide: {
-      recommendationSummary: "Use SSG for static pages, ISR for dynamic catalogs, SSR for private user data, and CSR only for client interactivity.",
+      recommendationSummary: "Use SSG for static content, ISR for data that changes occasionally (like blogs and shops), SSR for private user accounts, and CSR only for client interactivity.",
       scenarios: [
         {
-          scenario: "University syllabus and course outlines",
+          scenario: "University syllabus and course descriptions",
           recommendedApproach: "SSG (or ISR with 24-hour revalidation)",
-          reason: "Syllabus rarely changes, so static caching gives instant 0ms load speed.",
+          reason: "Course outlines rarely change during a semester, so static caching gives instant 0ms speed.",
         },
         {
-          scenario: "Live examination timer or student grade report",
-          recommendedApproach: "SSR (`cache: 'no-store'`) or Server Action",
-          reason: "Must reflect instant, tamper-free real-time database state.",
+          scenario: "Live examination countdown timer or student grade report",
+          recommendedApproach: "SSR (cache: 'no-store') or Server Action",
+          reason: "Grades and exam timers must be 100% accurate and reflect real-time database state.",
         },
       ],
     },
@@ -207,12 +219,12 @@ useEffect(() => { fetch('/api/data').then(...) }, []);`,
     commonMistakes: [
       {
         mistakeTitle: "Using cache: 'no-store' on content that rarely changes",
-        badCode: `// ❌ BAD: Forcing SSR on static blog posts
-const res = await fetch("https://api.com/blog", { cache: "no-store" });`,
-        goodCode: `// ✅ GOOD: Use ISR or default static caching
-const res = await fetch("https://api.com/blog", { next: { revalidate: 3600 } });`,
-        whyItBreaks: "Makes your database handle a query on every single page view unnecessarily, slowing down page loads.",
-        howToFix: "Use `next: { revalidate: seconds }` to cache responses.",
+        badCode: `// ❌ BAD: Forcing the server to rebuild static blog articles on every click
+const res = await fetch("https://jsonplaceholder.typicode.com/posts", { cache: "no-store" });`,
+        goodCode: `// ✅ GOOD: Use ISR to cache articles with periodic background updates
+const res = await fetch("https://jsonplaceholder.typicode.com/posts", { next: { revalidate: 60 } });`,
+        whyItBreaks: "Forces your database to handle a heavy query on every single page view unnecessarily, slowing down page loads for all users.",
+        howToFix: "Use next: { revalidate: seconds } to cache responses.",
       },
     ],
 
@@ -220,7 +232,7 @@ const res = await fetch("https://api.com/blog", { next: { revalidate: 3600 } });
       {
         title: "Default to Static First",
         rule: "Keep pages static by default, and only introduce dynamic rendering where strictly necessary.",
-        explanation: "Static pages delivered via CDN offer the highest speed and lowest server costs.",
+        explanation: "Static pages delivered via global CDN offer the fastest possible speed and lowest server costs.",
       },
     ],
 
@@ -231,8 +243,9 @@ const res = await fetch("https://api.com/blog", { next: { revalidate: 3600 } });
         difficulty: "easy",
         estimatedMinutes: 8,
         prompt:
-          "Write a Server Component for `src/app/feed/page.tsx` that fetches from `https://api.example.com/feed` with an ISR revalidation time of 120 seconds.",
-        initialCode: `export default async function FeedPage() {
+          "Write a Server Component for src/app/feed/page.js in plain JavaScript that fetches from https://jsonplaceholder.typicode.com/posts?_limit=3 with an ISR revalidation time of 120 seconds.",
+        initialCode: `// src/app/feed/page.js
+export default async function FeedPage() {
   // TODO: Fetch feed data with 120 second ISR revalidation
   return (
     <div>
@@ -240,73 +253,67 @@ const res = await fetch("https://api.com/blog", { next: { revalidate: 3600 } });
     </div>
   );
 }`,
-        expectedOutput: "A server-rendered feed component using next: { revalidate: 120 }.",
-        hints: ["Pass `{ next: { revalidate: 120 } }` to the `fetch` options object"],
-        solutionCode: `export default async function FeedPage() {
+        expectedOutput: "A server-rendered feed component using next: { revalidate: 120 } in plain JavaScript.",
+        hints: ["Pass { next: { revalidate: 120 } } to the fetch options object"],
+        solutionCode: `// src/app/feed/page.js
+export default async function FeedPage() {
   const res = await fetch("https://jsonplaceholder.typicode.com/posts?_limit=3", {
     next: { revalidate: 120 },
   });
   const items = await res.json();
 
   return (
-    <div className="p-6 bg-zinc-900 border border-zinc-800 rounded-xl space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-zinc-100">Live Campus Feed</h1>
-        <span className="text-xs px-2.5 py-1 bg-emerald-500/20 text-emerald-400 rounded-md font-mono">
-          Revalidates every 120s
-        </span>
-      </div>
-      <ul className="space-y-2">
-        {items.map((item: any) => (
-          <li key={item.id} className="p-3 bg-zinc-950 rounded-lg border border-zinc-800 text-zinc-300 text-sm">
-            {item.title}
-          </li>
+    <div className="p-6 space-y-4">
+      <h1 className="text-xl font-bold text-zinc-100">Course Feed (120s ISR)</h1>
+      <div className="space-y-2">
+        {items.map((item) => (
+          <div key={item.id} className="p-3 bg-zinc-900 rounded-lg border border-zinc-800">
+            <h2 className="font-medium text-zinc-200">{item.title}</h2>
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }`,
-        solutionExplanation:
-          "This page renders statically with sub-millisecond response time while updating its data cache every 2 minutes automatically.",
+        solutionExplanation: "Using next: { revalidate: 120 } instructs Next.js to serve static HTML from the cache, while refreshing it in the background every 120 seconds.",
       },
     ],
 
     quizzes: [
       {
         id: "u2-q1",
-        question: "What is Incremental Static Regeneration (ISR)?",
-        syllabusTopic: "Next.js ISR",
+        syllabusTopic: "Rendering Paradigms (SSR, SSG, ISR, CSR)",
+        question: "What does ISR (Incremental Static Regeneration) do in Next.js?",
+        conceptualExplanation: "ISR lets you keep static CDN speeds while Next.js quietly regenerates pages in the background when the timer expires.",
         options: [
-          { id: "a", text: "A tool that deletes your database every hour", isCorrect: false, explanation: "ISR is a page rendering caching strategy." },
-          { id: "b", text: "A method that allows updating static pages in the background without rebuilding the entire website", isCorrect: true, explanation: "Correct! ISR serves fast cached static pages and periodically regenerates them in the background." },
-          { id: "c", text: "A way to run JavaScript exclusively in Internet Explorer", isCorrect: false, explanation: "ISR is modern web architecture." },
-          { id: "d", text: "A React hook for client-side forms", isCorrect: false, explanation: "ISR is a server-side caching feature." },
+          { id: "a", text: "It deletes your database every hour", isCorrect: false, explanation: "ISR is a page caching and regeneration strategy, not a database tool." },
+          { id: "b", text: "It serves fast cached static pages and quietly rebuilds them in the background after a set number of seconds", isCorrect: true, explanation: "Correct! Like baking fresh cookie batches, visitors get instant cached pages while Next.js updates them in the background." },
+          { id: "c", text: "It forces the user's phone to recompile the whole website", isCorrect: false, explanation: "ISR runs on the server/CDN, not on the user's phone." },
+          { id: "d", text: "It is only available in Python web apps", isCorrect: false, explanation: "ISR is a core Next.js feature." },
         ],
-        conceptualExplanation:
-          "ISR gives you the best of both worlds: static page CDN performance and automatic background updates based on time or on-demand triggers.",
       },
     ],
 
     realWorldExample: {
       domain: "Global E-Commerce Store (100,000 Products)",
-      description: "How Amazon or Shopify-style sites serve instant static product pages while keeping prices and inventory updated via ISR.",
+      description: "How Amazon or Shopify-style sites serve instant static product pages while keeping prices and inventory updated via ISR in plain JavaScript.",
       code: {
         title: "Product Detail Page with 5-minute ISR",
-        description: "Fast static catalog with background inventory refreshes.",
-        language: "tsx",
-        filename: "src/app/products/[id]/page.tsx",
-        code: `export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
+        description: "Fast static catalog with background inventory refreshes in plain JavaScript.",
+        language: "jsx",
+        filename: "src/app/products/[id]/page.js",
+        code: `export default async function ProductPage({ params }) {
   const { id } = await params;
-  const res = await fetch(\`https://api.store.com/products/\${id}\`, {
-    next: { revalidate: 300 } // Regenerates every 5 minutes
+  const res = await fetch(\`https://jsonplaceholder.typicode.com/posts/\${id}\`, {
+    next: { revalidate: 300 } // Regenerates every 5 minutes (300 seconds)
   });
   const product = await res.json();
 
   return (
-    <div className="p-6 bg-zinc-900 border border-zinc-800 rounded-xl">
-      <h1 className="text-2xl font-bold">{product.name}</h1>
-      <p className="text-emerald-400 font-mono text-xl">\${product.price}</p>
-      <p className="text-zinc-400 text-sm">Stock remaining: {product.inventory}</p>
+    <div className="p-6 bg-zinc-900 border border-zinc-800 rounded-xl space-y-2">
+      <span className="text-xs text-amber-400 font-mono">Product ID: {id}</span>
+      <h1 className="text-2xl font-bold text-zinc-100">{product.title}</h1>
+      <p className="text-zinc-400 text-sm">{product.body}</p>
     </div>
   );
 }`,
@@ -317,17 +324,13 @@ const res = await fetch("https://api.com/blog", { next: { revalidate: 3600 } });
     combinedExample: {
       combinedTopics: ["ISR", "Dynamic Routes", "Error Boundary"],
       title: "Resilient ISR Dynamic Catalog",
-      description: "Combining dynamic route params with time-based revalidation and safe fallbacks.",
+      description: "Combining dynamic route params with time-based revalidation and safe fallbacks in plain JavaScript.",
       code: {
         title: "Production ISR Page with Graceful Fallback",
         description: "Dynamic route fetching external API with ISR caching.",
-        language: "tsx",
-        filename: "src/app/catalog/[id]/page.tsx",
-        code: `interface CatalogProps {
-  params: Promise<{ id: string }>;
-}
-
-export default async function CatalogItemPage({ params }: CatalogProps) {
+        language: "jsx",
+        filename: "src/app/catalog/[id]/page.js",
+        code: `export default async function CatalogItemPage({ params }) {
   const { id } = await params;
 
   try {
@@ -347,12 +350,16 @@ export default async function CatalogItemPage({ params }: CatalogProps) {
       </div>
     );
   } catch (err) {
-    return <div className="p-4 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-xl">Unable to load catalog item.</div>;
+    return (
+      <div className="p-4 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded-xl">
+        Unable to load catalog item.
+      </div>
+    );
   }
 }`,
       },
       stepByStepFlow: [
-        "User visits `/catalog/1`",
+        "User visits /catalog/1",
         "Next.js serves cached static version in 5 milliseconds",
         "If 60 seconds have passed, Next.js triggers background fetch",
         "Next visitor gets the updated content seamlessly",
@@ -364,351 +371,344 @@ export default async function CatalogItemPage({ params }: CatalogProps) {
     id: "server-vs-client-components",
     unitId: "unit-2",
     title: "Server Components vs Client Components",
-    shortSummary: "Master React Server Components (RSC), when to add 'use client', the component boundary pattern, and how to interleave them.",
+    shortSummary: "Master React Server Components using the Restaurant analogy: Kitchen (Server) vs Dining Table (Client), and why useState is a memory box.",
     order: 2,
-    tags: ["Server Components", "Client Components", "use client", "Hydration", "Bundle Size"],
+    tags: ["Server Components", "Client Components", "use client", "Hydration", "useState"],
 
     simpleExplanation:
-      "In Next.js App Router, every component you create is a **Server Component** by default. A Server Component runs EXCLUSIVELY on the server. Its JavaScript code is NEVER sent to the user's browser, resulting in 0 KB bundle size! However, because Server Components live on the server, they cannot listen to button clicks (`onClick`) or use state (`useState`). When you need browser interactivity (like a toggle switch, search modal, or click listener), you add `'use client'` at the very top of that specific file to make it a **Client Component**.",
+      "Think of a restaurant:\n\n1. **The Kitchen (Server Component)**:\nBehind swinging doors, the chef prepares the dishes. Heavy gas ovens, big refrigerators, and secret sauce recipes (database passwords and secret API keys) stay strictly in the kitchen. The customer at the dining table NEVER enters the kitchen, and heavy cooking appliances are NEVER hauled to the customer's table. In Next.js, EVERY component is in the Kitchen by default! Its JavaScript code is NEVER sent to the user's browser, meaning 0 KB bundle size!\n\n2. **The Dining Table (Client Component)**:\nThe dining table is where the customer sits. It has interactive things: a salt shaker they can shake, a menu they can open, or a napkin they can unfold. When you need browser interactivity (like a button click onClick or a search input onChange), you place 'use client' at the very top of that specific file!\n\n3. **What is useState?**\nuseState is like a little **memory box** that remembers a value (such as click count or text input) across clicks. Server Components run once on the server, create HTML, and finish. They don't stay alive in the browser, so they don't have this memory box. Only Client Components have useState!",
 
     whyNeeded:
-      "In standard React apps, 100% of your code is shipped to every mobile user, leading to 10MB+ bundle sizes that take 8 seconds to parse. By keeping 80% of your app as Server Components, Next.js drastically cuts mobile data usage, speeds up CPU execution, and protects secret database keys from leaking to the client.",
+      "In standard React apps, 100% of your code is shipped to every mobile user, leading to giant download sizes that take seconds to load. By keeping 80% of your app as Server Components in the Kitchen, Next.js drastically cuts mobile data usage, speeds up performance, and keeps secret database keys completely safe from hackers.",
 
     reactVsNext: {
       concept: "Component Execution Environment",
       reactWay: {
-        title: "All Components are Client Components",
-        code: `// In traditional React, every component is bundled and sent to browser:
+        title: "All Components are Client Components (Everything on the Table)",
+        code: `// In client-only execution, every component is bundled and sent to the browser:
 import { useState } from "react";
 
 export function HeavyDashboard() {
-  // Even if this component just shows static text, its 50KB code
-  // is downloaded by every single mobile visitor!
-  return <div>Static Dashboard</div>;
+  // Even if this component just shows static text and has no buttons,
+  // its entire code is downloaded by every single mobile phone!
+  return <div>Static University Dashboard</div>;
 }`,
         explanation:
-          "In vanilla React, all components are client-side. Secret API tokens or heavy Markdown parsers are accidentally exposed to the client bundle.",
+          "In client-only execution, all components run in the browser. Heavy libraries and secret database passwords can easily leak into client bundles.",
         drawbacks: [
-          "Heavy JavaScript bundle size slows down mobile phones",
-          "Cannot access database or filesystem directly inside components",
-          "API keys can leak if included in frontend code",
+          "Heavy JavaScript bundle size slows down phones on 4G/5G connections",
+          "Cannot talk to the database directly inside components",
+          "Secret API keys will leak if included in frontend code",
         ],
       },
       nextjsWay: {
-        title: "Next.js Default Server Components (RSC)",
-        code: `// File 1: Server Component (Default - 0 KB client JS sent!)
-// src/app/dashboard/page.tsx
-import { InteractiveCounter } from "@/components/InteractiveCounter";
-import { db } from "@/lib/db";
+        title: "Next.js Kitchen & Dining Table Architecture",
+        code: `// File 1: Server Component (Default - The Kitchen! 0 KB sent to browser!)
+// src/app/dashboard/page.js
+import { LikeButton } from "@/components/LikeButton";
 
 export default async function DashboardPage() {
-  // Directly query database on the server!
-  const stats = await db.query("SELECT COUNT(*) FROM students");
-
+  // Directly query database or fetch securely on the server!
   return (
-    <div className="space-y-4">
-      <h1>Total Students: {stats.count}</h1>
-      {/* Embed interactive client island: */}
-      <InteractiveCounter />
+    <div className="p-6 space-y-4">
+      <h1 className="text-2xl font-bold">University Portal</h1>
+      <p>Prepared securely in the server kitchen.</p>
+
+      {/* Embed the interactive dining table widget: */}
+      <LikeButton />
     </div>
   );
 }
 
-// File 2: Client Component (Only downloaded where interactivity is needed)
-// src/components/InteractiveCounter.tsx
+// File 2: Client Component (The Dining Table - interactive!)
+// src/components/LikeButton.js
 "use client";
 
 import { useState } from "react";
 
-export function InteractiveCounter() {
-  const [count, setCount] = useState(0);
+export function LikeButton() {
+  // useState is our memory box:
+  const [likes, setLikes] = useState(10);
+
   return (
-    <button onClick={() => setCount(c => c + 1)} className="px-4 py-2 bg-emerald-600 rounded">
-      Clicked: {count} times
+    <button
+      onClick={() => setLikes(likes + 1)}
+      className="px-4 py-2 bg-emerald-600 text-white rounded-lg"
+    >
+      👍 Likes: {likes}
     </button>
   );
 }`,
         explanation:
-          "Next.js separates components into Server Components (data fetching, zero client bundle) and Client Components (interactivity islands).",
+          "Next.js cleanly separates components: Server Components do the heavy lifting in the kitchen (0 KB client bundle), while Client Components handle small interactive moments at the dining table.",
         benefits: [
-          "Zero JavaScript bundle impact for server components",
+          "Zero JavaScript bundle overhead for server components",
           "Direct secure access to databases, secrets, and server environment variables",
-          "Client interactivity isolated to small, lightweight leaf components",
+          "Client interactivity isolated to tiny, lightweight components",
         ],
       },
       whyDifferent:
         "Next.js splits your component tree: Server Components render to HTML on the server, while Client Components hydrate in the browser.",
       mentalShiftSummary:
-        "Default to Server Components. Only add `'use client'` to small interactive buttons, inputs, and modals.",
+        "Keep components as Server Components by default. Only add 'use client' to small interactive buttons, inputs, and modals.",
     },
 
     basicExample: {
-      title: "Interactive Bookmark Toggle (Client Component Island)",
-      description: "A small interactive Client Component embedded inside a fast Server Component.",
-      language: "tsx",
-      filename: "src/components/BookmarkButton.tsx",
-      code: `"use client"; // Marked as Client Component for browser click event & state!
+      title: "Interactive Like Button (useState Memory Box)",
+      description: "A small interactive Client Component embedded inside a fast Server Component in plain JavaScript.",
+      language: "jsx",
+      filename: "src/components/LikeButton.js",
+      code: `// src/components/LikeButton.js
+"use client"; // 1. Tells Next.js: "This belongs at the Dining Table (browser interactivity!)"
 
 import { useState } from "react";
 
-export function BookmarkButton({ topicId }: { topicId: string }) {
-  const [isSaved, setIsSaved] = useState(false);
+export function LikeButton() {
+  // 2. useState is a little memory box initialized to 10:
+  const [likes, setLikes] = useState(10);
+
+  // 3. When clicked, we open the box and put (current value + 1) inside:
+  function handleLikeClick() {
+    setLikes(likes + 1);
+  }
 
   return (
     <button
-      onClick={() => setIsSaved(!isSaved)}
-      className={\`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all \${
-        isSaved
-          ? "bg-amber-500/20 border-amber-500/50 text-amber-300"
-          : "bg-zinc-800 border-zinc-700 text-zinc-400 hover:text-zinc-200"
-      }\`}
+      onClick={handleLikeClick}
+      className="px-4 py-2 bg-zinc-900 border border-zinc-700 hover:border-emerald-500 text-zinc-100 rounded-xl transition-colors flex items-center gap-2"
     >
-      <span>{isSaved ? "★ Saved" : "☆ Bookmark Topic"}</span>
+      <span>❤️</span>
+      <span>{likes} Likes</span>
     </button>
   );
 }`,
       explanation:
-        "Because it has `'use client'`, React hydrates this component in the browser, enabling `onClick` and `useState`.",
-      outputPreview: "Interactive button toggling between '☆ Bookmark Topic' and highlighted '★ Saved'.",
+        "Line-by-line explanation:\n- Line 2: 'use client'; must be at the very top of the file! It tells Next.js to package this file for the browser so users can click buttons.\n- Line 4: import { useState } from 'react'; imports React's memory box tool.\n- Line 7: const [likes, setLikes] = useState(10); creates a variable likes with initial value 10, and a function setLikes to change it.\n- Line 10-12: handleLikeClick() runs when the user taps the button, increasing the counter.\n- Line 15-21: The JSX button with an onClick listener.\n\nWhat happens in the browser?\n1. The page arrives with the button displaying '❤️ 10 Likes'.\n2. The user taps the button.\n3. The browser triggers handleLikeClick().\n4. setLikes(11) updates the memory box, and React instantly re-renders the button showing '❤️ 11 Likes' without reloading the page!",
+      outputPreview: "A clickable like button that increments from 10 to 11, 12, etc. on each tap.",
     },
 
     moreExamples: [
       {
-        title: "Passing Server Components as Children to Client Components",
-        description: "The Interleaving Pattern: Rendering heavy Server Components inside an interactive modal shell without turning them into client components.",
-        language: "tsx",
-        filename: "src/components/ModalShell.tsx",
-        code: `// src/components/ModalShell.tsx (Client Component)
-"use client";
+        title: "Embedding Client Components inside Server Components",
+        description: "How a Server Component page imports and uses an interactive Client Component without converting the whole page to client-side in plain JavaScript.",
+        language: "jsx",
+        filename: "src/app/blog/page.js",
+        code: `// src/app/blog/page.js
+// This page is a SERVER COMPONENT (Default - Kitchen! 0 KB client JS!)
+import { LikeButton } from "@/components/LikeButton";
 
-import { useState } from "react";
-
-export function ModalShell({ children }: { children: React.ReactNode }) {
-  const [isOpen, setIsOpen] = useState(false);
-
+export default function BlogArticlePage() {
   return (
-    <div>
-      <button onClick={() => setIsOpen(true)} className="px-4 py-2 bg-emerald-600 text-white rounded-lg">
-        Open Syllabus Modal
-      </button>
+    <article className="p-8 max-w-2xl mx-auto space-y-6">
+      <h1 className="text-3xl font-bold text-zinc-100">Why Next.js App Router is Amazing</h1>
+      <p className="text-zinc-400 leading-relaxed">
+        Server Components render directly on the server into pure, fast HTML.
+        This entire article text adds zero bytes of JavaScript to your phone!
+      </p>
 
-      {isOpen && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-          <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-2xl max-w-lg w-full">
-            {/* The {children} here remains a pure Server Component! */}
-            {children}
-            <button onClick={() => setIsOpen(false)} className="mt-4 px-3 py-1 bg-zinc-800 text-zinc-300 rounded text-xs">
-              Close
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
+      {/* Only this button is interactive: */}
+      <div className="pt-4 border-t border-zinc-800">
+        <LikeButton />
+      </div>
+    </article>
   );
 }`,
         explanation:
-          "By passing Server Components as `{children}` prop to a Client Component, the children remain 100% server-rendered and zero client bundle size!",
+          "The article page remains a fast, lightweight Server Component. Only the small <LikeButton /> component downloads client JavaScript to the user's device.",
       },
     ],
 
     multipleWays: [
       {
-        name: "Server Component (Default)",
-        syntax: "No directive needed",
-        codeSnippet: `// Server Component
+        name: "Server Component (Default - The Kitchen)",
+        syntax: "Standard component (no 'use client' directive)",
+        codeSnippet: `// Server Component (0 KB client bundle)
 export default async function Page() {
-  const data = await fetch('...');
-  return <div>{data.title}</div>;
+  const data = await fetch('https://api.com');
+  return <div>{/* Pure HTML */}</div>;
 }`,
-        howItWorks: "Executes only on the server, produces HTML + React Server Component (RSC) payload.",
-        pros: ["0 KB client bundle size", "Direct database access", "Automatic security for API tokens"],
-        cons: ["Cannot use useState, useEffect, onClick, or browser APIs (window/localStorage)"],
-        whenToUse: "For 80%+ of your pages, layouts, data-heavy tables, and static cards.",
+        howItWorks: "Runs exclusively on the server. Never sends its JavaScript code to the user's browser.",
+        pros: ["0 KB bundle size", "Secure access to databases & secret keys", "Direct async/await support"],
+        cons: ["Cannot use useState, useEffect, or onClick event listeners"],
+        whenToUse: "Pages, layouts, data fetching, static banners, markdown content.",
         isRecommended: true,
       },
       {
-        name: "Client Component ('use client')",
-        syntax: "'use client' at line 1",
+        name: "Client Component (The Dining Table)",
+        syntax: "'use client' at top of file",
         codeSnippet: `"use client";
 import { useState } from "react";
-export function Counter() { ... }`,
-        howItWorks: "Pre-rendered on server for initial HTML, then hydrated with JavaScript in browser.",
-        pros: ["Can use all React hooks (useState, useEffect, useContext)", "Handles browser events (onClick, onScroll)"],
-        cons: ["Increases client JavaScript bundle size"],
-        whenToUse: "For form inputs, buttons, sliders, modals, interactive charts, and animations.",
+export function Modal() {
+  const [open, setOpen] = useState(false);
+  return <button onClick={() => setOpen(true)}>Open</button>;
+}`,
+        howItWorks: "Pre-rendered to HTML on the server, then hydrated with JavaScript in the user's browser.",
+        pros: ["Full browser interactivity: onClick, onChange, useState, useEffect, browser APIs"],
+        cons: ["Increases the JavaScript bundle size downloaded by the visitor's device"],
+        whenToUse: "Buttons, dropdown menus, search inputs, modal dialogs, audio/video players.",
         isRecommended: true,
       },
     ],
 
     decisionGuide: {
-      recommendationSummary: "Keep parent pages and layouts as Server Components. Push `'use client'` down to the leaves of your component tree.",
+      recommendationSummary: "Always start with a Server Component. Only add 'use client' when you need onClick, onChange, or useState.",
       scenarios: [
         {
-          scenario: "You need to fetch student records from Supabase and show a table",
-          recommendedApproach: "Server Component (no 'use client')",
-          reason: "Database query runs securely on server; table HTML is delivered with 0 KB client JS.",
+          scenario: "Displaying a list of student records from a database",
+          recommendedApproach: "Server Component",
+          reason: "Needs database access and has zero client interactivity.",
         },
         {
-          scenario: "You need a search input box that filters table rows as the user types",
-          recommendedApproach: "Client Component for the search input box only",
-          reason: "Input typing requires `onChange` and client state.",
+          scenario: "A search bar that filters items as the user types",
+          recommendedApproach: "Client Component ('use client')",
+          reason: "Needs an onChange listener and useState to track user keystrokes.",
         },
       ],
     },
 
     commonMistakes: [
       {
-        mistakeTitle: "Placing 'use client' at the root layout or top of every page",
-        badCode: `// ❌ BAD: src/app/layout.tsx
-"use client"; // Turns the entire application into client-rendered React!
-export default function RootLayout({ children }: { children: React.ReactNode }) { ... }`,
-        goodCode: `// ✅ GOOD: Keep layout as Server Component; make only interactive widgets client components
-export default function RootLayout({ children }: { children: React.ReactNode }) { ... }`,
-        whyItBreaks: "Marking a parent component with `'use client'` turns ALL imported child components into Client Components, forfeiting the performance benefits of Next.js.",
-        howToFix: "Only put `'use client'` on specific interactive components inside `src/components/`.",
+        mistakeTitle: "Adding 'use client' to the entire page or layout",
+        badCode: `// ❌ BAD: src/app/layout.js
+"use client"; // Turns your entire website into a client-side app!
+
+export default function RootLayout({ children }) {
+  return <html><body>{children}</body></html>;
+}`,
+        goodCode: `// ✅ GOOD: Keep layout as Server Component, extract interactive parts
+// src/app/layout.js remains Server Component
+// Only add 'use client' to small components like src/components/ThemeToggle.js`,
+        whyItBreaks: "Putting 'use client' at the root layout forces every child component to download client JavaScript, defeating the purpose of Next.js.",
+        howToFix: "Push 'use client' down to the smallest leaf components that actually need interactivity.",
       },
     ],
 
     bestPractices: [
       {
-        title: "Move Client Interactivity to the Leaves",
-        rule: "Keep data fetching in Server Components and pass data as props to small Client Component buttons.",
-        explanation: "Maintains minimal JavaScript payload and maximum page load speed.",
+        title: "Keep the Dining Table Small",
+        rule: "Only put 'use client' on the specific interactive button or form input, not the whole page.",
+        explanation: "This keeps 85%+ of your website code in the server kitchen with zero client JavaScript penalty.",
       },
     ],
 
     exercises: [
       {
         id: "u2-ex-2",
-        title: "Build an Interactive Like Counter Component",
+        title: "Create an Interactive Counter Component",
         difficulty: "easy",
         estimatedMinutes: 6,
         prompt:
-          "Create a Client Component `LikeButton.tsx` with `'use client'` that maintains a click counter and displays the total likes.",
-        initialCode: `// TODO: Create a Client Component
+          "Create a Client Component in src/components/Counter.js in plain JavaScript with 'use client' that uses useState to increment a count when clicked.",
+        initialCode: `// src/components/Counter.js
+// TODO: Add directive and build counter
 import { useState } from "react";
 
-export function LikeButton({ initialLikes = 0 }: { initialLikes?: number }) {
-  // TODO: Add state and button onClick
+export function Counter() {
   return (
     <button>
-      ❤️ Likes: 0
+      {/* Show count and handle click */}
     </button>
   );
 }`,
-        expectedOutput: "A functional client component button incrementing its like count on click.",
-        hints: ["Add `\"use client\";` on the very first line", "Use `const [likes, setLikes] = useState(initialLikes);`"],
-        solutionCode: `"use client";
+        expectedOutput: "A working Client Component that increments a counter on every click.",
+        hints: ["Remember to put 'use client'; at the very first line of the file!"],
+        solutionCode: `// src/components/Counter.js
+"use client";
 
 import { useState } from "react";
 
-export function LikeButton({ initialLikes = 0 }: { initialLikes?: number }) {
-  const [likes, setLikes] = useState(initialLikes);
+export function Counter() {
+  const [count, setCount] = useState(0);
 
   return (
     <button
-      onClick={() => setLikes(likes + 1)}
-      className="flex items-center gap-2 px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-100 rounded-xl text-sm font-medium transition-all active:scale-95"
+      onClick={() => setCount(count + 1)}
+      className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm"
     >
-      <span>❤️</span>
-      <span>{likes} Helpful</span>
+      Clicks: {count}
     </button>
   );
 }`,
-        solutionExplanation:
-          "Because this component has `'use client'`, React attaches browser event listeners to handle `onClick` without requiring the whole page to be client-side.",
+        solutionExplanation: "The 'use client' directive marks this component as an interactive client component, allowing it to use React's useState memory box.",
       },
     ],
 
     quizzes: [
       {
         id: "u2-q2",
-        question: "What happens when you import a Server Component directly into a Client Component?",
-        syllabusTopic: "Server vs Client Component Boundaries",
+        syllabusTopic: "Server vs Client Components ('use client')",
+        question: "Why can't you use useState inside a default Next.js Server Component?",
+        conceptualExplanation: "Server Components run once on the server to create HTML and do not run in the browser to maintain interactive state.",
         options: [
-          { id: "a", text: "It remains a Server Component with 0 KB bundle", isCorrect: false, explanation: "Direct static imports in client files become client components." },
-          { id: "b", text: "It is automatically converted into a Client Component and bundled into the client JavaScript", isCorrect: true, explanation: "Correct! If a Client Component statically imports a component, that child becomes part of the client bundle unless passed as children." },
-          { id: "c", text: "The Next.js compiler crashes with a fatal syntax error", isCorrect: false, explanation: "It compiles, but converts it to a client component." },
-          { id: "d", text: "It only works on iOS Safari", isCorrect: false, explanation: "Platform is unrelated." },
+          { id: "a", text: "Because Server Components run on the server, create HTML, and do not stay alive in the browser to track clicks", isCorrect: true, explanation: "Correct! Server Components run once on the server and send pure HTML. They do not have the browser memory box (useState)." },
+          { id: "b", text: "Because useState was removed in modern JavaScript", isCorrect: false, explanation: "useState is still a core React hook." },
+          { id: "c", text: "Because the computer runs out of RAM", isCorrect: false, explanation: "RAM is unrelated." },
+          { id: "d", text: "Because useState only works in Python", isCorrect: false, explanation: "useState is React." },
         ],
-        conceptualExplanation:
-          "To render a Server Component inside a Client Component while preserving its 0-bundle server nature, pass it via the `{children}` prop (the Interleaving Pattern).",
       },
     ],
 
     realWorldExample: {
-      domain: "Media Streaming & Video Player Platform",
-      description: "How YouTube/Netflix-style platforms render video descriptions, comments, and recommendations on the server while keeping the interactive video player as a client component.",
+      domain: "Media Streaming Portal",
+      description: "How a streaming platform keeps video metadata as Server Components while isolating video playback controls to Client Components.",
       code: {
-        title: "Video Watch Page Composition",
-        description: "Server page embedding client video player.",
-        language: "tsx",
-        filename: "src/app/watch/[id]/page.tsx",
-        code: `import { VideoPlayer } from "@/components/VideoPlayer"; // 'use client'
-import { CommentsList } from "@/components/CommentsList"; // Server Component
+        title: "Video Detail Page with Interactive Player",
+        description: "Server Component wrapper with isolated Client Component video player.",
+        language: "jsx",
+        filename: "src/app/watch/[id]/page.js",
+        code: `import { VideoPlayer } from "@/components/VideoPlayer";
 
-export default async function WatchPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function WatchPage({ params }) {
   const { id } = await params;
-  const video = await getVideoDetails(id);
+  const res = await fetch(\`https://jsonplaceholder.typicode.com/posts/\${id}\`);
+  const video = await res.json();
 
   return (
-    <div className="space-y-6">
-      {/* Interactive Player with controls (Client Component) */}
-      <VideoPlayer src={video.streamUrl} />
-
-      {/* Heavy Server-Rendered Metadata & Comments (0 KB client bundle!) */}
-      <div className="space-y-2">
-        <h1 className="text-2xl font-bold">{video.title}</h1>
-        <p className="text-zinc-400">{video.description}</p>
-      </div>
-      <CommentsList videoId={id} />
+    <div className="max-w-4xl mx-auto p-6 space-y-4">
+      <h1 className="text-2xl font-bold text-zinc-100">{video.title}</h1>
+      <VideoPlayer videoId={id} />
+      <p className="text-zinc-400 text-sm">{video.body}</p>
     </div>
   );
 }`,
       },
-      keyTakeaway: "Combine heavy server components for content and light client components for media controls to achieve maximum performance.",
+      keyTakeaway: "Zero JavaScript bundle impact for video metadata, while playback controls remain fluid and interactive.",
     },
 
     combinedExample: {
-      combinedTopics: ["Server Components", "Client Components", "Data Fetching"],
-      title: "Course Lesson with Interactive Progress Tracker",
-      description: "Fetching course syllabus on the server and passing progress handlers to client checkboxes.",
+      combinedTopics: ["Server Components", "Client Components", "Props Interleaving"],
+      title: "Interactive Course Card with Server Content",
+      description: "Passing server-rendered children through an interactive client shell.",
       code: {
-        title: "Hybrid Course Unit Viewer",
-        description: "Server Component fetching data and passing items to interactive Client Component.",
-        language: "tsx",
-        filename: "src/app/units/[unitId]/page.tsx",
-        code: `// Server Component: Fetches syllabus data
-import { syllabusUnits } from "@/data/syllabus";
-import { TopicCheckbox } from "@/components/TopicCheckbox"; // 'use client'
+        title: "Course Card with Client Expand Toggle",
+        description: "Interactive accordion holding pure server-rendered syllabus text.",
+        language: "jsx",
+        filename: "src/components/CourseAccordion.js",
+        code: `"use client";
 
-export default async function UnitPage({ params }: { params: Promise<{ unitId: string }> }) {
-  const { unitId } = await params;
-  const unit = syllabusUnits.find(u => u.id === unitId);
+import { useState } from "react";
 
-  if (!unit) return <div>Unit not found</div>;
+export function CourseAccordion({ title, children }) {
+  const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="p-6 bg-zinc-900 border border-zinc-800 rounded-2xl space-y-4">
-      <h1 className="text-2xl font-bold text-zinc-100">{unit.title}</h1>
-      <div className="space-y-2">
-        {unit.topics.map((topic) => (
-          <div key={topic.id} className="flex items-center justify-between p-3 bg-zinc-950 rounded-xl border border-zinc-800">
-            <span className="text-sm font-medium text-zinc-200">{topic.title}</span>
-            {/* Client Island */}
-            <TopicCheckbox topicId={topic.id} />
-          </div>
-        ))}
-      </div>
+    <div className="border border-zinc-800 rounded-xl overflow-hidden">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full p-4 flex justify-between items-center bg-zinc-900 text-zinc-100 font-medium"
+      >
+        <span>{title}</span>
+        <span>{expanded ? "−" : "+"}</span>
+      </button>
+      {expanded && <div className="p-4 bg-zinc-950 text-zinc-300">{children}</div>}
     </div>
   );
 }`,
       },
       stepByStepFlow: [
-        "Server queries unit data from memory/database",
-        "Generates initial HTML structure",
-        "Browser receives fast pre-rendered HTML",
-        "React hydrates only the small `<TopicCheckbox />` buttons for instant clicking",
+        "Server renders children syllabus text into HTML",
+        "Client component manages the open/close accordion state",
+        "Children content stays 0 KB client JavaScript bundle overhead",
       ],
     },
   },
@@ -716,72 +716,59 @@ export default async function UnitPage({ params }: { params: Promise<{ unitId: s
   {
     id: "data-fetching-strategies",
     unitId: "unit-2",
-    title: "Data Fetching in Server & Client Components",
-    shortSummary: "Fetch data directly inside async Server Components without useEffect, and learn client-side data fetching with SWR/TanStack.",
+    title: "Fetch API: Server-side & Client-side Data Fetching",
+    shortSummary: "Fetch data directly inside async Server Components without useEffect, and explore real-world JSONPlaceholder examples in plain JavaScript.",
     order: 3,
-    tags: ["Data Fetching", "async/await", "Server Fetch", "Parallel Fetching", "SWR"],
+    tags: ["Data Fetching", "async/await", "Server Fetch", "JSONPlaceholder", "TechnologyBlog"],
 
     simpleExplanation:
-      "In standard React, fetching data is annoying: you have to write `useState`, create a `useEffect` hook, handle loading booleans, and deal with cleanup functions. In Next.js Server Components, fetching data is as simple as writing `const data = await fetch(...)` directly inside your component function! No `useEffect`, no state variables, and no flash of empty content.",
+      "In standard React, fetching data is annoying: you have to create a state variable (useState), create a useEffect hook, create loading flags (isLoading = true), and handle cleanup functions. If you forget one step, your app breaks or flickers.\n\nIn Next.js Server Components, fetching data is as simple as writing:\nconst res = await fetch(\"https://...\");\nconst data = await res.json();\n\nDirectly inside your component function! No useEffect, no useState, and no loading flickers. Your server fetches the data first, puts it into the HTML, and sends a complete page straight to the visitor.",
 
     whyNeeded:
-      "Server-side data fetching eliminates client network latency (waterfalls), reduces the amount of JavaScript sent to mobile phones, and keeps database connections fast and secure on the backend.",
+      "Server-side data fetching eliminates slow client waterfalls (where the phone has to download React before even starting to fetch data). It keeps database passwords completely private and delivers complete HTML so search engines like Google can instantly read your content.",
 
     reactVsNext: {
       concept: "Data Fetching Flow",
       reactWay: {
-        title: "React Client-Side useEffect Fetching",
-        code: `// Traditional React Data Fetching (Boilerplate heavy)
+        title: "React Client-Side useEffect Fetching (Slow & Annoying)",
+        code: `// Client-Side useEffect Data Fetching (manual boilerplate)
 import { useState, useEffect } from "react";
 
-export function StudentRoster() {
+export default function StudentRoster() {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
-    let isMounted = true;
     fetch("/api/students")
-      .then(res => res.json())
-      .then(data => {
-        if (isMounted) {
-          setStudents(data);
-          setLoading(false);
-        }
-      })
-      .catch(err => {
-        if (isMounted) {
-          setError(err);
-          setLoading(false);
-        }
+      .then((res) => res.json())
+      .then((data) => {
+        setStudents(data);
+        setLoading(false);
       });
-
-    return () => { isMounted = false; };
   }, []);
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error.message}</p>;
-  return <ul>{students.map(s => <li key={s.id}>{s.name}</li>)}</ul>;
+  if (loading) return <p>Loading students...</p>;
+  return <ul>{students.map((s) => <li key={s.id}>{s.name}</li>)}</ul>;
 }`,
         explanation:
-          "In plain React, you must handle mount states, cancel tokens, loading spinners, and error objects manually.",
+          "In client-side data fetching, you must manually track loading states, handle component unmounting, and deal with empty loading spinners on every page visit.",
         drawbacks: [
-          "25+ lines of code just to fetch a simple list",
-          "Waterfall: page loads -> downloads JS -> starts fetch -> shows spinner -> renders data",
-          "SEO crawler sees empty loading state",
+          "20+ lines of code just to fetch a simple list of names",
+          "Waterfall: page loads -> phone downloads JS -> starts fetch -> shows spinner -> renders data",
+          "Google search crawler only sees 'Loading students...' instead of your real content",
         ],
       },
       nextjsWay: {
-        title: "Next.js Async Server Component Fetching",
-        code: `// Next.js App Router: Simple, direct async/await!
+        title: "Next.js Async Server Component (Clean, Direct JavaScript)",
+        code: `// Next.js App Router: Simple, direct async/await in plain JavaScript!
 export default async function StudentRoster() {
   // Direct fetch inside the component body:
-  const res = await fetch("https://api.university.com/students");
+  const res = await fetch("https://jsonplaceholder.typicode.com/users?_limit=4");
   const students = await res.json();
 
   return (
     <ul className="space-y-2">
-      {students.map((s: any) => (
+      {students.map((s) => (
         <li key={s.id} className="p-3 bg-zinc-900 rounded-lg">
           {s.name}
         </li>
@@ -790,287 +777,301 @@ export default async function StudentRoster() {
   );
 }`,
         explanation:
-          "In Next.js, component functions can be `async`. Data is fetched on the server before HTML is sent to the client.",
+          "In Next.js, your component can be an async function. Data is fetched on the server before HTML is sent to the client.",
         benefits: [
-          "Under 10 lines of clean, readable code",
-          "HTML arrives fully populated with data (instant paint, 100% SEO friendly)",
+          "Under 10 lines of clean, readable JavaScript code",
+          "HTML arrives fully populated with data (instant display, 100% SEO friendly)",
           "Zero client JavaScript required for data fetching",
         ],
       },
       whyDifferent:
-        "React Server Components execute in an asynchronous Node.js/Edge environment where `await` is natively supported inside React component trees.",
+        "React Server Components run in Node.js on the server where await is natively supported directly inside component bodies.",
       mentalShiftSummary:
-        "Delete `useEffect` and `useState` for data loading. Just write `async function Component()` and `await fetch()`.",
+        "Delete useEffect and useState for loading data. Just write async function Component() and await fetch().",
     },
 
     basicExample: {
-      title: "Direct Server Fetching with Error Handling",
-      description: "Fetching dynamic data inside an async Next.js Server Component.",
-      language: "tsx",
-      filename: "src/app/students/page.tsx",
-      code: `// src/app/students/page.tsx
-interface Student {
-  id: number;
-  name: string;
-  course: string;
-}
+      title: "Technology Blog Post Fetcher (JSONPlaceholder Example)",
+      description: "Fetching blog posts from JSONPlaceholder and rendering ID, title, and body in plain JavaScript with full line-by-line breakdown.",
+      language: "jsx",
+      filename: "src/app/blog/technology/page.js",
+      code: `// src/app/blog/technology/page.js
+// 1. Define an async Server Component:
+export default async function TechnologyBlog() {
+  // 2. Fetch tech posts from JSONPlaceholder directly on the server:
+  const res = await fetch("https://jsonplaceholder.typicode.com/posts?userId=1");
 
-export default async function StudentsPage() {
-  const res = await fetch("https://jsonplaceholder.typicode.com/users?_limit=4");
-  
+  // 3. Check if the fetch succeeded:
   if (!res.ok) {
-    throw new Error("Failed to fetch students from university API");
+    throw new Error("Failed to fetch blog posts from JSONPlaceholder");
   }
 
-  const students: Array<{ id: number; name: string; email: string }> = await res.json();
+  // 4. Parse the JSON response into a plain JavaScript array:
+  const posts = await res.json();
 
+  // 5. Render the list of posts into HTML:
   return (
-    <div className="p-6 max-w-2xl mx-auto space-y-4">
-      <h1 className="text-2xl font-bold text-zinc-100">Enrolled Students</h1>
-      <div className="grid gap-3">
-        {students.map((student) => (
-          <div key={student.id} className="p-4 bg-zinc-900 border border-zinc-800 rounded-xl flex justify-between items-center">
-            <div>
-              <h2 className="font-semibold text-zinc-200">{student.name}</h2>
-              <p className="text-xs text-zinc-500">{student.email}</p>
+    <div className="max-w-3xl mx-auto p-6 space-y-6">
+      <div className="border-b border-zinc-800 pb-4">
+        <h1 className="text-3xl font-extrabold text-zinc-100">Technology Articles</h1>
+        <p className="text-zinc-400 text-sm mt-1">
+          Fetched directly from JSONPlaceholder using Server Components in plain JavaScript.
+        </p>
+      </div>
+
+      <div className="space-y-4">
+        {posts.map((post) => (
+          <article
+            key={post.id}
+            className="p-5 bg-zinc-900 border border-zinc-800 rounded-2xl space-y-2"
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                Post #{post.id}
+              </span>
             </div>
-            <span className="text-xs px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded font-mono">
-              INT257
-            </span>
-          </div>
+            <h2 className="text-lg font-bold text-zinc-100 capitalize">{post.title}</h2>
+            <p className="text-zinc-400 text-sm leading-relaxed">{post.body}</p>
+          </article>
         ))}
       </div>
     </div>
   );
 }`,
       explanation:
-        "The data is fetched directly on the server. The user receives pre-rendered HTML without seeing any client loading spinners.",
-      outputPreview: "List of enrolled students with styled email subtext and green INT257 course badge.",
+        "Line-by-line explanation:\n- Line 2: export default async function TechnologyBlog() creates an async Server Component. Notice how easy it is — no TypeScript interfaces or type annotations required!\n- Line 4: const res = await fetch(...) sends an HTTP GET request to JSONPlaceholder directly from our backend server.\n- Line 7-9: if (!res.ok) checks if the status code was 200 OK. If not, it throws an error that our error.js file can catch.\n- Line 12: const posts = await res.json() parses the data into a standard JavaScript array of objects.\n- Line 15-40: We map over the array with posts.map((post) => ...) and render the post's id, title, and body.\n\nWhat happens in the browser?\n1. A student navigates to /blog/technology.\n2. The Next.js server runs the TechnologyBlog function and fetches the articles from JSONPlaceholder.\n3. The server generates the complete HTML with all article titles and bodies filled in.\n4. The browser receives the finished HTML page and paints it instantly in milliseconds with zero loading spinners!",
+      outputPreview: "A clean feed of technology posts showing Post ID badge, bold title, and body text.",
     },
 
     moreExamples: [
       {
         title: "Parallel Data Fetching with Promise.all",
-        description: "Avoid sequential waterfalls by fetching multiple independent resources at the exact same time.",
-        language: "tsx",
-        filename: "src/app/dashboard/page.tsx",
-        code: `// Parallel fetching: Both API calls run concurrently!
+        description: "Fetching two different data sources at the exact same time so neither has to wait for the other in plain JavaScript.",
+        language: "jsx",
+        filename: "src/app/dashboard/page.js",
+        code: `// Fetching students and courses in parallel:
 export default async function DashboardPage() {
-  const [coursesRes, announcementsRes] = await Promise.all([
-    fetch("https://api.school.com/courses"),
-    fetch("https://api.school.com/announcements"),
+  // Fire both fetches at the exact same second:
+  const [studentsRes, coursesRes] = await Promise.all([
+    fetch("https://jsonplaceholder.typicode.com/users?_limit=3"),
+    fetch("https://jsonplaceholder.typicode.com/posts?_limit=3"),
   ]);
 
+  const students = await studentsRes.json();
   const courses = await coursesRes.json();
-  const announcements = await announcementsRes.json();
 
   return (
-    <div className="grid md:grid-cols-2 gap-6">
-      <section><h2>Courses ({courses.length})</h2></section>
-      <section><h2>Announcements ({announcements.length})</h2></section>
+    <div className="p-6 grid grid-cols-2 gap-6">
+      <div>
+        <h2 className="text-lg font-bold text-zinc-100">Students ({students.length})</h2>
+        {students.map((s) => <p key={s.id} className="text-zinc-300">{s.name}</p>)}
+      </div>
+      <div>
+        <h2 className="text-lg font-bold text-zinc-100">Recent Posts ({courses.length})</h2>
+        {courses.map((c) => <p key={c.id} className="text-zinc-300">{c.title}</p>)}
+      </div>
     </div>
   );
 }`,
         explanation:
-          "`Promise.all` executes both requests in parallel, cutting total loading time in half compared to sequential `await` statements.",
+          "Promise.all runs both network requests concurrently. If each takes 1 second, the total wait time is only 1 second instead of 2 seconds!",
       },
     ],
 
     multipleWays: [
       {
-        name: "Async Server Component (Recommended)",
-        syntax: "async function Page() { await fetch(...) }",
+        name: "Async Server Component fetch (Recommended)",
+        syntax: "await fetch('url') inside async Server Component",
         codeSnippet: `export default async function Page() {
-  const data = await getDatabaseData();
-  return <div>{data.title}</div>;
+  const data = await (await fetch('https://api.com/items')).json();
+  return <div>{data.length} items</div>;
 }`,
-        howItWorks: "Runs on the server before sending HTML.",
-        pros: ["Direct DB access", "0 KB client bundle", "Instant SEO"],
-        cons: ["Cannot respond to live client mouse events without re-fetching"],
-        whenToUse: "For all standard initial page data.",
+        howItWorks: "Runs directly on the server before HTML is sent to the user.",
+        pros: ["Cleanest code", "Best performance and SEO", "Keeps API keys private"],
+        cons: ["Runs on the server, so you cannot fetch in response to a user button click here"],
+        whenToUse: "Initial page loading, blogs, news feeds, dashboards.",
         isRecommended: true,
       },
       {
-        name: "Client Fetch with SWR / TanStack Query",
-        syntax: "const { data, error } = useSWR('/api/data', fetcher)",
+        name: "Client Fetching (For user-triggered actions)",
+        syntax: "'use client' + fetch inside an event handler",
         codeSnippet: `"use client";
-import useSWR from "swr";
-export function LiveChat() {
-  const { data } = useSWR('/api/chat', fetcher, { refreshInterval: 1000 });
-  return <div>{data?.messages}</div>;
+function SearchButton() {
+  async function handleSearch() {
+    const res = await fetch('/api/search?q=react');
+    const results = await res.json();
+  }
+  return <button onClick={handleSearch}>Search</button>;
 }`,
-        howItWorks: "Fetches on the client and periodically polls or synchronizes with WebSockets.",
-        pros: ["Auto-revalidation on window focus", "Real-time intervals"],
-        cons: ["Requires extra npm library and client JS"],
-        whenToUse: "For real-time chats, live stock notifications, or user polling.",
+        howItWorks: "Runs in the user's browser when they click a button or type in a box.",
+        pros: ["Great for live search suggestions, filtering on click"],
+        cons: ["Requires client JavaScript download"],
+        whenToUse: "Live search autocomplete, infinite scrolling, client-only modals.",
       },
     ],
 
     decisionGuide: {
-      recommendationSummary: "Fetch data in async Server Components for page rendering. Use Client fetch only for real-time polling.",
+      recommendationSummary: "Fetch on the server by default. Only fetch on the client when responding to user actions like clicking a 'Load More' button.",
       scenarios: [
         {
-          scenario: "Loading a blog post or student report card",
-          recommendedApproach: "Async Server Component with `fetch()`",
-          reason: "Best performance and complete pre-rendered HTML.",
+          scenario: "Loading a blog post or student profile page",
+          recommendedApproach: "Server Component fetch",
+          reason: "The page content is known when the URL loads, so pre-rendering delivers instant speed and great SEO.",
         },
         {
-          scenario: "Auto-refreshing live cryptocurrency ticker every 2 seconds",
-          recommendedApproach: "Client Component with `useSWR` interval polling or WebSocket",
-          reason: "Needs periodic client-side re-fetching without whole-page reloads.",
+          scenario: "A live filter dropdown where selecting an option fetches new data",
+          recommendedApproach: "Client Component or URL searchParams navigation",
+          reason: "Depends on user interaction inside the browser.",
         },
       ],
     },
 
     commonMistakes: [
       {
-        mistakeTitle: "Creating sequential waterfalls with sequential await statements",
-        badCode: `// ❌ SLOW: Waits for user, THEN waits for posts (2x duration)
-const user = await fetchUser();
-const posts = await fetchPosts();`,
-        goodCode: `// ✅ FAST: Initiates both fetches simultaneously
-const [user, posts] = await Promise.all([fetchUser(), fetchPosts()]);`,
-        whyItBreaks: "Sequential requests take Time(A) + Time(B) instead of Max(Time(A), Time(B)).",
-        howToFix: "Use `Promise.all()` when requests do not depend on each other.",
+        mistakeTitle: "Using useEffect for data fetching in Next.js Server Components",
+        badCode: `// ❌ BAD: Trying to use useEffect in a Server Component
+export default function Page() {
+  useEffect(() => { /* fetch */ }, []);
+  return <div>Data</div>;
+}`,
+        goodCode: `// ✅ GOOD: Use async/await directly in the Server Component!
+export default async function Page() {
+  const res = await fetch("https://jsonplaceholder.typicode.com/posts");
+  const posts = await res.json();
+  return <div>{posts.length} posts</div>;
+}`,
+        whyItBreaks: "Server Components do not run in the browser, so React hooks like useEffect and useState will throw an error.",
+        howToFix: "Make your component async and use await fetch() directly.",
       },
     ],
 
     bestPractices: [
       {
-        title: "Colocate Data Fetching Where Data is Used",
-        rule: "Fetch data inside the specific component that renders it rather than passing props through 10 parent layers.",
-        explanation: "Next.js automatically deduplicates identical `fetch()` requests across the component tree.",
+        title: "Use Parallel Fetching for Multiple Requests",
+        rule: "Use Promise.all() when fetching two independent datasets.",
+        explanation: "Running independent requests at the same time cuts your server loading time in half.",
       },
     ],
 
     exercises: [
       {
         id: "u2-ex-3",
-        title: "Implement Parallel Server Fetching",
-        difficulty: "medium",
-        estimatedMinutes: 10,
+        title: "Fetch Users from JSONPlaceholder",
+        difficulty: "easy",
+        estimatedMinutes: 8,
         prompt:
-          "Write an async Server Component that uses `Promise.all` to fetch both `/users` and `/todos` concurrently, then renders their counts.",
-        initialCode: `export default async function ParallelDashboard() {
-  // TODO: Fetch users and todos concurrently using Promise.all
+          "Write an async Server Component for src/app/users/page.js in plain JavaScript that fetches users from https://jsonplaceholder.typicode.com/users?_limit=3 and renders their names and emails.",
+        initialCode: `// src/app/users/page.js
+// TODO: Make this an async function and fetch users
+export default function UsersPage() {
   return (
     <div>
-      {/* Show counts */}
+      <h1>University Users</h1>
     </div>
   );
 }`,
-        expectedOutput: "A dashboard displaying counts for both datasets fetched in parallel.",
-        hints: ["Use `const [usersRes, todosRes] = await Promise.all([...])`"],
-        solutionCode: `export default async function ParallelDashboard() {
-  const [usersRes, todosRes] = await Promise.all([
-    fetch("https://jsonplaceholder.typicode.com/users"),
-    fetch("https://jsonplaceholder.typicode.com/todos?_limit=5"),
-  ]);
-
-  const users = await usersRes.json();
-  const todos = await todosRes.json();
+        expectedOutput: "A server-rendered list of users showing names and emails.",
+        hints: ["Change function UsersPage to async function UsersPage and use await fetch(...)"],
+        solutionCode: `// src/app/users/page.js
+export default async function UsersPage() {
+  const res = await fetch("https://jsonplaceholder.typicode.com/users?_limit=3");
+  const users = await res.json();
 
   return (
-    <div className="p-6 bg-zinc-900 border border-zinc-800 rounded-2xl space-y-4">
-      <h1 className="text-xl font-bold text-zinc-100">Parallel Fetching Dashboard</h1>
-      <div className="grid grid-cols-2 gap-4">
-        <div className="p-4 bg-zinc-950 border border-zinc-800 rounded-xl">
-          <span className="text-2xl font-bold text-emerald-400">{users.length}</span>
-          <p className="text-xs text-zinc-400">Total Users</p>
-        </div>
-        <div className="p-4 bg-zinc-950 border border-zinc-800 rounded-xl">
-          <span className="text-2xl font-bold text-amber-400">{todos.length}</span>
-          <p className="text-xs text-zinc-400">Active Tasks</p>
-        </div>
+    <div className="p-6 space-y-4">
+      <h1 className="text-2xl font-bold text-zinc-100">University Users</h1>
+      <div className="space-y-2">
+        {users.map((user) => (
+          <div key={user.id} className="p-3 bg-zinc-900 rounded-lg border border-zinc-800">
+            <h2 className="font-semibold text-zinc-100">{user.name}</h2>
+            <p className="text-xs text-zinc-400">{user.email}</p>
+          </div>
+        ))}
       </div>
     </div>
   );
 }`,
-        solutionExplanation:
-          "Both HTTP requests execute at the exact same moment on the server, drastically reducing total response time.",
+        solutionExplanation: "Server Components can be declared as async, allowing direct await fetch() calls without React hooks or client waterfalls.",
       },
     ],
 
     quizzes: [
       {
         id: "u2-q3",
-        question: "Why is async/await data fetching inside Server Components faster on mobile devices than useEffect in React?",
-        syllabusTopic: "Server Data Fetching Performance",
+        syllabusTopic: "Data Fetching in Server Components",
+        question: "Why is fetching data in an async Server Component better than using useEffect in React?",
+        conceptualExplanation: "Server Components fetch data on the backend before HTML is transmitted, providing instant initial render and optimal SEO.",
         options: [
-          { id: "a", text: "Because mobile phones do not support JSON", isCorrect: false, explanation: "All modern devices support JSON." },
-          { id: "b", text: "Because the server runs close to the database and sends complete HTML, eliminating client network waterfalls", isCorrect: true, explanation: "Correct! Server-side data fetching avoids client roundtrips and sends ready-to-display HTML." },
-          { id: "c", text: "Because useEffect is disabled by Google", isCorrect: false, explanation: "useEffect is a core React hook." },
-          { id: "d", text: "Because async functions use less battery", isCorrect: false, explanation: "The main reason is architecture and network roundtrips." },
+          { id: "a", text: "Because mobile phones do not support JSON", isCorrect: false, explanation: "All modern phones support JSON." },
+          { id: "b", text: "Because data is fetched on the server before sending HTML, eliminating blank loading screens and improving SEO", isCorrect: true, explanation: "Correct! The browser receives ready-to-display HTML with zero client waterfall delay." },
+          { id: "c", text: "Because useEffect is illegal in Next.js", isCorrect: false, explanation: "useEffect works fine in Client Components with 'use client'." },
+          { id: "d", text: "Because async functions save device battery", isCorrect: false, explanation: "The main benefit is architecture, speed, and SEO." },
         ],
-        conceptualExplanation:
-          "Server data fetching executes directly in the cloud data center near your database, sending pure HTML to the user with zero client-side waterfall latency.",
       },
     ],
 
     realWorldExample: {
-      domain: "Analytics SaaS Platform",
-      description: "How high-traffic analytics platforms query databases server-side and render charts without exposing database credentials.",
+      domain: "EdTech University Portal",
+      description: "How a university course directory queries department data directly on the server without client spinners.",
       code: {
-        title: "Secure Server Metric Aggregator",
-        description: "Direct server database queries.",
-        language: "tsx",
-        filename: "src/app/analytics/page.tsx",
-        code: `export default async function AnalyticsPage() {
-  const metrics = await fetch("https://api.internal-metrics.corp/summary", {
-    headers: { Authorization: \`Bearer \${process.env.INTERNAL_METRICS_KEY}\` }
-  }).then(r => r.json());
+        title: "Department Course Directory",
+        description: "Direct server fetch of course modules in plain JavaScript.",
+        language: "jsx",
+        filename: "src/app/courses/page.js",
+        code: `export default async function CoursesPage() {
+  const res = await fetch("https://jsonplaceholder.typicode.com/posts?_limit=6");
+  const courses = await res.json();
 
   return (
-    <div className="p-6 bg-zinc-900 border border-zinc-800 rounded-xl">
-      <h1 className="text-xl font-bold">Monthly Active Users: {metrics.mau.toLocaleString()}</h1>
+    <div className="p-6 space-y-4">
+      <h1 className="text-2xl font-bold text-zinc-100">Available Courses</h1>
+      <div className="grid gap-4 sm:grid-cols-2">
+        {courses.map((course) => (
+          <div key={course.id} className="p-4 bg-zinc-900 border border-zinc-800 rounded-xl">
+            <h2 className="font-semibold text-zinc-200 capitalize">{course.title}</h2>
+            <p className="text-xs text-zinc-400 mt-2 line-clamp-2">{course.body}</p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }`,
       },
-      keyTakeaway: "Server components can safely use secret environment variables (like `INTERNAL_METRICS_KEY`) without them ever leaking to the browser.",
+      keyTakeaway: "Pre-rendering course data on the server ensures instant navigation and perfect SEO indexing.",
     },
 
     combinedExample: {
-      combinedTopics: ["Server Fetch", "Suspense", "TypeScript"],
-      title: "Streaming Server Data Fetcher with Suspense Boundary",
-      description: "Combining async data fetching with React Suspense for smooth progressive loading.",
+      combinedTopics: ["Data Fetching", "Dynamic Routes", "Error Boundary"],
+      title: "Resilient Post Reader with Error Handling",
+      description: "Fetching dynamic post data with try/catch fallback in plain JavaScript.",
       code: {
-        title: "Async Data Component with Suspense Fallback",
-        description: "Suspense boundary wrapping slow server component.",
-        language: "tsx",
-        filename: "src/app/courses/page.tsx",
-        code: `import { Suspense } from "react";
+        title: "Dynamic Post Viewer",
+        description: "Server Component fetching single post with route parameter.",
+        language: "jsx",
+        filename: "src/app/posts/[id]/page.js",
+        code: `export default async function PostDetail({ params }) {
+  const { id } = await params;
+  const res = await fetch(\`https://jsonplaceholder.typicode.com/posts/\${id}\`);
+  
+  if (!res.ok) {
+    throw new Error(\`Post #\${id} could not be loaded\`);
+  }
 
-async function CourseList() {
-  const res = await fetch("https://jsonplaceholder.typicode.com/posts?_limit=3");
-  const courses = await res.json();
-  return (
-    <div className="space-y-2">
-      {courses.map((c: any) => (
-        <div key={c.id} className="p-3 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-zinc-200">
-          {c.title}
-        </div>
-      ))}
-    </div>
-  );
-}
+  const post = await res.json();
 
-export default function CoursesPage() {
   return (
-    <div className="p-6 space-y-4">
-      <h1 className="text-2xl font-bold text-zinc-100">Available Courses</h1>
-      <Suspense fallback={<div className="h-24 bg-zinc-900 animate-pulse rounded-xl" />}>
-        <CourseList />
-      </Suspense>
-    </div>
+    <article className="p-6 max-w-xl mx-auto space-y-3">
+      <h1 className="text-2xl font-bold text-zinc-100">{post.title}</h1>
+      <p className="text-zinc-400 leading-relaxed">{post.body}</p>
+    </article>
   );
 }`,
       },
       stepByStepFlow: [
-        "User visits `/courses`",
-        "Heading renders instantly",
-        "Suspense shows smooth animated skeleton placeholder",
-        "`CourseList` completes fetch on server and streams into place",
+        "User visits /posts/5",
+        "Server extracts id 5 from params",
+        "Server fetches JSONPlaceholder post 5",
+        "Server returns ready-to-read article HTML",
       ],
     },
   },
@@ -1078,304 +1079,322 @@ export default function CoursesPage() {
   {
     id: "caching-and-revalidation",
     unitId: "unit-2",
-    title: "Caching Architecture & Revalidation",
-    shortSummary: "Understand the 4 caching layers in Next.js, time-based revalidation, and on-demand cache purges with revalidatePath and revalidateTag.",
+    title: "Caching and Revalidation",
+    shortSummary: "Understand caching using the cheat sheet analogy, time-based revalidation, and on-demand cache purges with revalidatePath.",
     order: 4,
     tags: ["Caching", "Revalidation", "revalidatePath", "revalidateTag", "Data Cache"],
 
     simpleExplanation:
-      "Imagine every time someone asks for your website, your server had to recalculate everything from scratch—it would be slow and expensive. Caching means saving a completed copy of data or HTML so the next visitor gets it instantly in 1 millisecond. **Revalidation** is the process of updating that cached copy when new data is added (for example, when a teacher publishes a new assignment).",
+      "Imagine your teacher asks you: 'What is 487 × 629?'\n\nThe first time, you have to sit down with a pencil and work it out (takes 2 minutes). The answer is 306,323.\n\nNow, instead of throwing away your work, you write the answer down on a **cheat sheet** (this is **Caching**!).\n\nThe next 100 times someone asks you 'What is 487 × 629?', you don't calculate it again. You glance at your cheat sheet and answer in 1 millisecond!\n\n**What is Revalidation?**\nRevalidation is updating that cheat sheet when the facts change. For example, if a teacher adds a new assignment to the course board, we want to erase the old cheat sheet and write down the fresh list of assignments!",
 
     whyNeeded:
-      "Without caching, high-traffic websites crash under database overload. Next.js provides a multi-layer caching architecture that makes sites blisteringly fast while giving you surgical tools (`revalidatePath` and `revalidateTag`) to purge outdated data on demand.",
+      "Without caching, if 10,000 students visit your website at 9:00 AM, your database server will crash under the load. Caching saves a completed copy so all 10,000 students get instant answers without melting your server.",
 
     reactVsNext: {
       concept: "Caching & Revalidation Model",
       reactWay: {
-        title: "Manual Client Cache (TanStack / React Query)",
-        code: `// In React, you must install TanStack Query and manage cache keys manually:
+        title: "Manual Client Cache (TanStack Query / SWR)",
+        code: `// Browser-only caching lives strictly inside each single user's tab:
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-function PostList() {
+export function StudentList() {
   const queryClient = useQueryClient();
   const { data } = useQuery({
-    queryKey: ['posts'],
-    queryFn: () => fetch('/api/posts').then(r => r.json()),
-    staleTime: 60000, // 1 minute client cache
+    queryKey: ['students'],
+    queryFn: () => fetch('/api/students').then(r => r.json()),
   });
 
-  const handleUpdate = async () => {
-    await fetch('/api/posts', { method: 'POST', body: ... });
-    // Invalidate client cache:
-    queryClient.invalidateQueries({ queryKey: ['posts'] });
+  const handleAdd = async () => {
+    await fetch('/api/students', { method: 'POST' });
+    // Invalidate only in THIS student's browser tab:
+    queryClient.invalidateQueries({ queryKey: ['students'] });
   };
 }`,
         explanation:
-          "In vanilla React, caching only lives inside the individual user's browser memory. If a new user opens the website, they start with an empty cache.",
+          "In client-only architecture, caching only exists inside a single user's browser memory. If another user opens the website, they must fetch everything from scratch.",
         drawbacks: [
-          "Every individual visitor hits the database independently",
-          "Cache is lost if the user refreshes or closes the tab",
+          "Every single visitor hits the database independently",
+          "Cache disappears if the user refreshes or closes their tab",
           "Requires heavy third-party client libraries",
         ],
       },
       nextjsWay: {
         title: "Next.js Built-in Server & CDN Caching",
-        code: `// 1. Tagging a fetch request on the server:
-export async function getPosts() {
-  const res = await fetch("https://api.example.com/posts", {
-    next: { tags: ["posts-list"] } // Assign a cache tag
+        code: `// 1. Tagging a fetch request on the server (Shared cheat sheet!):
+export async function getStudents() {
+  const res = await fetch("https://jsonplaceholder.typicode.com/users", {
+    next: { tags: ["students-list"] } // Assign a cache tag
   });
   return res.json();
 }
 
-// 2. On-demand Purge inside a Server Action:
+// 2. On-demand cache purge in a Server Action (plain JavaScript):
 "use server";
 import { revalidateTag, revalidatePath } from "next/cache";
 
-export async function createPostAction(formData: FormData) {
-  await savePostToDatabase(formData);
-
-  // Instantly purges cache globally for all visitors:
-  revalidateTag("posts-list");
-  // Or purge a specific route path:
-  revalidatePath("/blog");
+export async function addStudentAction(formData) {
+  // Save new student to database...
+  
+  // Instantly updates the cheat sheet for EVERY visitor worldwide!
+  revalidatePath("/students");
+  // Or purge by tag:
+  revalidateTag("students-list");
 }`,
         explanation:
-          "Next.js caches data on the server and CDN globally. Calling `revalidateTag()` updates the cache for ALL users worldwide in real time.",
+          "Next.js caches data on the server and CDN globally. When you call revalidatePath(), the cache is refreshed for all students worldwide simultaneously.",
         benefits: [
-          "Zero client library dependencies",
-          "Shared global cache (one visitor's request warms the cache for everyone)",
-          "Instant surgical cache purge on database mutations",
+          "Zero third-party client library required",
+          "Shared global cache: one student's request warms the cache for all others",
+          "Instant surgical cache purge whenever new data is saved",
         ],
       },
       whyDifferent:
         "Next.js caches at the server and edge network level, so thousands of users share the same blazing fast cached data.",
       mentalShiftSummary:
-        "Tag your fetches with `next: { tags: ['my-tag'] }`. Purge them in Server Actions with `revalidateTag('my-tag')`.",
+        "Cache data on the server. Purge the cache inside Server Actions using revalidatePath('/my-page') when data changes.",
     },
 
     basicExample: {
       title: "On-Demand Cache Revalidation with revalidatePath",
-      description: "Purging the cache of a route immediately after adding a new item.",
-      language: "tsx",
-      filename: "src/actions/todo.ts",
-      code: `"use server"; // Server Action
+      description: "Purging the cache of a route immediately after adding a new item in plain JavaScript.",
+      language: "jsx",
+      filename: "src/actions/todoActions.js",
+      code: `// src/actions/todoActions.js
+"use server"; // 1. Tells Next.js this file runs on the backend server
 
 import { revalidatePath } from "next/cache";
 
-export async function addTodoAction(formData: FormData) {
-  const title = formData.get("title") as string;
+// Simple in-memory tasks list:
+let tasks = [
+  { id: 1, title: "Study Unit 2 Rendering Strategies" },
+];
 
-  // Insert todo into database:
-  await db.insert({ title, completed: false });
+export async function addTodoAction(formData) {
+  // 2. Extract title from the submitted form:
+  const title = formData.get("title");
+  if (!title || title.trim() === "") return;
 
-  // Instantly invalidate the cache for /todos so the page shows the new item:
+  // 3. Add the new item to our data store:
+  tasks.push({ id: Date.now(), title: title.trim() });
+
+  // 4. THE MAGIC STEP: revalidatePath tells Next.js:
+  // "Hey! The data for /todos has changed! Erase the old cached page and rebuild it fresh!"
   revalidatePath("/todos");
 }`,
       explanation:
-        "When `revalidatePath('/todos')` runs, Next.js marks the cached HTML for `/todos` as stale and regenerates it with the latest database records.",
-      outputPreview: "Form submission triggers immediate cache purge and updates the page without full reload.",
+        "Line-by-line explanation:\n- Line 2: 'use server'; marks every function in this file as a backend Server Action.\n- Line 4: import { revalidatePath } from 'next/cache'; imports the built-in Next.js cache-clearing function.\n- Line 12: const title = formData.get('title'); gets the user's input from the form.\n- Line 16: tasks.push(...) stores the new task.\n- Line 20: revalidatePath('/todos') tells Next.js to purge the cached HTML for /todos. The very next time the screen updates, the new task is already there without a full browser reload!\n\nWhat happens in the browser?\n1. A student types 'Complete Assignment 2' in the input box and clicks 'Add'.\n2. The browser sends the form to addTodoAction on the server.\n3. The server updates the data and runs revalidatePath('/todos').\n4. Next.js rebuilds the /todos page with the new task and smoothly updates the user's screen in milliseconds!",
+      outputPreview: "Submitting a form instantly adds an item and refreshes the page list without flickering.",
     },
 
     moreExamples: [
       {
-        title: "Tag-Based Revalidation (revalidateTag)",
-        description: "Targeting specific datasets across multiple different pages using semantic cache tags.",
-        language: "tsx",
-        filename: "src/actions/courses.ts",
-        code: `"use server";
+        title: "Tag-Based Revalidation with revalidateTag",
+        description: "Targeting specific datasets across multiple pages using semantic cache tags in plain JavaScript.",
+        language: "jsx",
+        filename: "src/actions/courseActions.js",
+        code: `// src/actions/courseActions.js
+"use server";
 
 import { revalidateTag } from "next/cache";
 
-export async function updateCourseSyllabus(courseId: string) {
-  await updateCourseInDatabase(courseId);
+export async function updateCourseSyllabus(courseId) {
+  // Update database...
 
-  // Purges every page in the app that fetched data tagged with 'courses':
+  // Purges any page that fetched data tagged with 'courses':
   revalidateTag("courses");
 }`,
         explanation:
-          "`revalidateTag` is more flexible than `revalidatePath` because one tag can update the homepage, course list, and sidebar simultaneously.",
+          "revalidateTag('courses') purges the cache across every page in your app that used next: { tags: ['courses'] }. One function call updates multiple pages at once!",
       },
     ],
 
     multipleWays: [
       {
-        name: "Time-Based Revalidation",
+        name: "Time-Based Revalidation (ISR)",
         syntax: "fetch(url, { next: { revalidate: 60 } })",
-        codeSnippet: `const res = await fetch('https://api.com/news', { next: { revalidate: 300 } });`,
-        howItWorks: "Cache expires automatically after the specified number of seconds.",
-        pros: ["Completely automated", "No webhook or mutation wiring needed"],
-        cons: ["May serve stale data for up to X seconds after an update"],
-        whenToUse: "For content that updates periodically (weather, news, aggregate stats).",
+        codeSnippet: "const res = await fetch('https://jsonplaceholder.typicode.com/posts', { next: { revalidate: 60 } });",
+        howItWorks: "Next.js automatically refreshes the cache after 60 seconds have passed.",
+        pros: ["Completely automated", "No manual cache purging code required"],
+        cons: ["Data may be up to 60 seconds old"],
+        whenToUse: "Blog posts, course listings, news feeds.",
+        isRecommended: true,
       },
       {
-        name: "On-Demand Revalidation (revalidatePath / revalidateTag)",
-        syntax: "revalidateTag('tag-name') / revalidatePath('/path')",
-        codeSnippet: `revalidateTag('products');
-revalidatePath('/shop');`,
-        howItWorks: "Cache is kept indefinitely until explicitly purged by a Server Action or Route Handler.",
-        pros: ["100% fresh data immediately after mutations", "Maximum cache hit ratio (fastest speed)"],
-        cons: ["Must remember to call revalidate in mutation handlers"],
-        whenToUse: "For user-driven data: forms, comments, product edits, inventory updates.",
+        name: "On-Demand Path Revalidation",
+        syntax: "revalidatePath('/path')",
+        codeSnippet: `"use server";
+import { revalidatePath } from "next/cache";
+revalidatePath("/inventory");`,
+        howItWorks: "Purges the cache for a specific URL path immediately when a Server Action runs.",
+        pros: ["Instant update: users see changes immediately after clicking Save"],
+        cons: ["Only clears that specific URL path"],
+        whenToUse: "Todo lists, comment sections, profile updates.",
         isRecommended: true,
+      },
+      {
+        name: "On-Demand Tag Revalidation",
+        syntax: "revalidateTag('tag-name')",
+        codeSnippet: `"use server";
+import { revalidateTag } from "next/cache";
+revalidateTag("products");`,
+        howItWorks: "Purges all cached data marked with the tag 'products' across your entire website.",
+        pros: ["Clears multiple pages at once with a single command"],
+        cons: ["Requires tagging your fetch calls beforehand"],
+        whenToUse: "E-commerce inventory where a product appears on the home page, search page, and category page.",
       },
     ],
 
     decisionGuide: {
-      recommendationSummary: "Use On-Demand `revalidateTag` for user CRUD actions; use Time-Based `revalidate` for external API feeds.",
+      recommendationSummary: "Use time-based revalidate for read-only feeds. Use revalidatePath inside Server Actions whenever a user creates, edits, or deletes an item.",
       scenarios: [
         {
-          scenario: "A student submits an assignment or a teacher edits a grade",
-          recommendedApproach: "On-Demand `revalidatePath('/grades')` inside the Server Action",
-          reason: "The teacher and student must see the updated grade immediately.",
+          scenario: "A student posts a new comment on a discussion forum",
+          recommendedApproach: "revalidatePath('/discussions')",
+          reason: "The comment must appear on the discussion page immediately for all students.",
         },
         {
-          scenario: "Fetching external weather data or public GitHub repository star counts",
-          recommendedApproach: "Time-Based `revalidate: 3600` (1 hour)",
-          reason: "External counts don't need real-time precision and shouldn't overload third-party rate limits.",
+          scenario: "A university campus weather widget",
+          recommendedApproach: "fetch(url, { next: { revalidate: 300 } })",
+          reason: "Weather only changes every few minutes, so 5-minute time-based caching is ideal.",
         },
       ],
     },
 
     commonMistakes: [
       {
-        mistakeTitle: "Calling revalidatePath inside a Client Component",
-        badCode: `// ❌ BAD: 'revalidatePath' only works on the server!
+        mistakeTitle: "Calling revalidatePath in a Client Component",
+        badCode: `// ❌ BAD: src/components/TodoButton.js
 "use client";
-import { revalidatePath } from "next/cache"; // Compile Error!`,
-        goodCode: `// ✅ GOOD: Call revalidatePath inside a Server Action or Route Handler
+import { revalidatePath } from "next/cache"; // 💥 Error!
+
+export function TodoButton() {
+  return <button onClick={() => revalidatePath("/todos")}>Refresh</button>;
+}`,
+        goodCode: `// ✅ GOOD: Call revalidatePath inside a Server Action ('use server')
+// src/actions/todoActions.js
 "use server";
-import { revalidatePath } from "next/cache";`,
-        whyItBreaks: "`revalidatePath` and `revalidateTag` are server-only APIs that manipulate server-side caches.",
-        howToFix: "Wrap cache invalidation logic inside Server Actions or Route Handlers.",
+import { revalidatePath } from "next/cache";
+
+export async function refreshTodos() {
+  revalidatePath("/todos");
+}`,
+        whyItBreaks: "revalidatePath and revalidateTag are server-only functions. The browser cannot purge the server's cache directly.",
+        howToFix: "Always call revalidatePath inside a Server Action with 'use server'.",
       },
     ],
 
     bestPractices: [
       {
-        title: "Use Descriptive, Granular Cache Tags",
-        rule: "Tag fetches with entity-specific tags like `courses` or `course-101`.",
-        explanation: "Allows invalidating just one specific entity without clearing the cache for unrelated pages.",
+        title: "Revalidate Immediately After Mutations",
+        rule: "Whenever your code writes to a database, call revalidatePath right below the database write.",
+        explanation: "This guarantees that users immediately see their new data without having to manually refresh their browser.",
       },
     ],
 
     exercises: [
       {
         id: "u2-ex-4",
-        title: "Write a Server Action with Tag Invalidation",
+        title: "Purge Student Cache After Adding a Student",
         difficulty: "medium",
         estimatedMinutes: 8,
         prompt:
-          "Write a Server Action `publishAnnouncementAction` that logs an announcement and invalidates the cache tag `'campus-announcements'` using `revalidateTag`.",
-        initialCode: `// Define a Server Action with cache invalidation
-export async function publishAnnouncementAction(formData: FormData) {
-  // TODO: Add 'use server', extract title, and revalidate tag
+          "Write a Server Action in src/actions/studentActions.js in plain JavaScript that extracts a student's name from formData, saves it, and purges the cache for /students using revalidatePath.",
+        initialCode: `// src/actions/studentActions.js
+// TODO: Add 'use server' and revalidatePath
+export async function addStudent(formData) {
+  // Extract name and revalidate /students
 }`,
-        expectedOutput: "A Server Action calling revalidateTag('campus-announcements').",
-        hints: ["Include `\"use server\";` at top of function or file", "Import `revalidateTag` from `next/cache`"],
-        solutionCode: `"use server";
+        expectedOutput: "A Server Action that invalidates the /students cache path.",
+        hints: ["Import revalidatePath from 'next/cache' and call revalidatePath('/students')"],
+        solutionCode: `// src/actions/studentActions.js
+"use server";
 
-import { revalidateTag } from "next/cache";
+import { revalidatePath } from "next/cache";
 
-export async function publishAnnouncementAction(formData: FormData) {
-  const title = formData.get("title") as string;
-  const content = formData.get("content") as string;
+export async function addStudent(formData) {
+  const name = formData.get("name");
+  if (!name || name.trim() === "") return;
 
-  console.log("Publishing announcement:", { title, content });
-
-  // Invalidate all pages tagged with 'campus-announcements':
-  revalidateTag("campus-announcements");
+  // Simulate saving to database...
+  // Invalidate cache so the /students page refreshes:
+  revalidatePath("/students");
 }`,
-        solutionExplanation:
-          "When this Server Action runs, Next.js instantly purges cached HTML and data for every page displaying campus announcements.",
+        solutionExplanation: "revalidatePath('/students') instructs Next.js to purge the cached static HTML and data for /students so the next request gets the new student record.",
       },
     ],
 
     quizzes: [
       {
         id: "u2-q4",
-        question: "What is the key advantage of revalidateTag over revalidatePath?",
-        syllabusTopic: "Next.js Revalidation",
+        syllabusTopic: "Caching Architecture & Revalidation",
+        question: "What is the main advantage of revalidateTag over revalidatePath?",
+        conceptualExplanation: "revalidateTag purges data across multiple routes that share a cache tag, whereas revalidatePath purges a single URL path.",
         options: [
-          { id: "a", text: "revalidateTag only works in Google Chrome", isCorrect: false, explanation: "Revalidation is browser-independent." },
-          { id: "b", text: "revalidateTag can purge data across multiple different routes at once by referencing a shared semantic tag", isCorrect: true, explanation: "Correct! One tag can invalidate multiple pages that share the same data query." },
-          { id: "c", text: "revalidateTag is 100 times slower", isCorrect: false, explanation: "Both are near instantaneous." },
-          { id: "d", text: "revalidateTag requires a payment subscription", isCorrect: false, explanation: "It is a free built-in Next.js feature." },
+          { id: "a", text: "revalidateTag only works in Google Chrome", isCorrect: false, explanation: "Revalidation is completely server-side and browser-independent." },
+          { id: "b", text: "revalidateTag can purge data across multiple different pages at once if they share the same tag", isCorrect: true, explanation: "Correct! If 5 different pages show products, one revalidateTag('products') updates all 5 pages simultaneously." },
+          { id: "c", text: "revalidateTag is 100 times slower", isCorrect: false, explanation: "Both revalidation methods are near instantaneous." },
+          { id: "d", text: "revalidateTag requires a paid subscription", isCorrect: false, explanation: "It is a free, built-in feature of Next.js." },
         ],
-        conceptualExplanation:
-          "`revalidateTag` allows decoupling cache invalidation from URL path structures, making multi-page data updates clean and maintainable.",
       },
     ],
 
     realWorldExample: {
-      domain: "Publishing & Media News Portal",
-      description: "How major newspapers deploy breaking news instantly by triggering tag invalidations via webhooks.",
+      domain: "Campus Noticeboard",
+      description: "How a university noticeboard invalidates announcements in real time across the portal using revalidateTag.",
       code: {
-        title: "CMS Webhook Revalidation Endpoint",
-        description: "Route handler receiving headless CMS webhooks.",
-        language: "tsx",
-        filename: "src/app/api/revalidate/route.ts",
-        code: `import { revalidateTag } from "next/cache";
-import { NextRequest, NextResponse } from "next/server";
+        title: "Campus Announcement Publisher",
+        description: "Server Action updating notices and purging shared cache tag in plain JavaScript.",
+        language: "jsx",
+        filename: "src/actions/noticeActions.js",
+        code: `"use server";
 
-export async function POST(request: NextRequest) {
-  const secret = request.nextUrl.searchParams.get("secret");
+import { revalidateTag } from "next/cache";
+
+export async function publishNotice(formData) {
+  const noticeText = formData.get("notice");
+  // Save to database...
   
-  if (secret !== process.env.REVALIDATION_SECRET) {
-    return NextResponse.json({ message: "Invalid token" }, { status: 401 });
-  }
-
-  // Purge news cache immediately:
-  revalidateTag("breaking-news");
-  return NextResponse.json({ revalidated: true, now: Date.now() });
+  // Purges every widget, page, and feed displaying notices:
+  revalidateTag("campus-notices");
 }`,
       },
-      keyTakeaway: "Headless CMS platforms call this webhook when a journalist clicks 'Publish', updating the static news site in under 50 milliseconds.",
+      keyTakeaway: "One call to revalidateTag updates student dashboard, public home page, and mobile feed at the same second.",
     },
 
     combinedExample: {
-      combinedTopics: ["Tagged Fetching", "Server Actions", "revalidateTag"],
-      title: "End-to-End Tagged Data Mutation Pipeline",
-      description: "Fetching tagged data on a page and invalidating it through a Server Action form submission.",
+      combinedTopics: ["Caching", "Server Actions", "Optimistic Revalidation"],
+      title: "Real-Time Notice Board with Instant Refresh",
+      description: "Combining Server Actions and cache tagging for zero-downtime updates.",
       code: {
-        title: "Complete Tagged Fetch & Invalidation Pattern",
-        description: "Server Component fetching tagged data and Server Action form.",
-        language: "tsx",
-        filename: "src/app/announcements/page.tsx",
-        code: `import { revalidateTag } from "next/cache";
-
-async function addNotice(formData: FormData) {
-  "use server";
-  const notice = formData.get("notice");
-  // Save to db...
-  revalidateTag("notices");
-}
-
-export default async function NoticesPage() {
-  const res = await fetch("https://api.school.com/notices", {
-    next: { tags: ["notices"] }
+        title: "Live Notice Feed Component",
+        description: "Async Server Component with tagged fetch.",
+        language: "jsx",
+        filename: "src/app/notices/page.js",
+        code: `export default async function NoticesPage() {
+  const res = await fetch("https://jsonplaceholder.typicode.com/posts?_limit=4", {
+    next: { tags: ["campus-notices"] }
   });
   const notices = await res.json();
 
   return (
-    <div className="p-6 space-y-6">
-      <form action={addNotice} className="flex gap-2">
-        <input name="notice" placeholder="Add notice..." className="px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-100" />
-        <button type="submit" className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm">Post</button>
-      </form>
-
-      <ul className="space-y-2">
-        {notices.map((n: any) => <li key={n.id} className="p-3 bg-zinc-900 rounded-lg">{n.text}</li>)}
-      </ul>
+    <div className="p-6 space-y-4">
+      <h1 className="text-xl font-bold text-zinc-100">Live Campus Notices</h1>
+      <div className="space-y-2">
+        {notices.map((n) => (
+          <div key={n.id} className="p-3 bg-zinc-900 border border-zinc-800 rounded-lg">
+            <h2 className="font-semibold text-zinc-200">{n.title}</h2>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }`,
       },
       stepByStepFlow: [
-        "Page loads cached notices with tag `notices`",
-        "Admin submits form -> `addNotice` Server Action runs",
-        "`revalidateTag('notices')` invalidates cache",
-        "Next.js seamlessly re-fetches and streams fresh notices to the screen",
+        "Page loads cached notices with tag campus-notices",
+        "Admin submits form -> publishNotice Server Action runs",
+        "revalidateTag('campus-notices') invalidates cache",
+        "Next.js seamlessly re-fetches and streams fresh notices to all students",
       ],
     },
   },

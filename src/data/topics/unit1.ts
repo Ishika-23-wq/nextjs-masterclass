@@ -4,39 +4,35 @@ export const unit1Topics: TopicContent[] = [
   {
     id: "intro-and-project-structure",
     unitId: "unit-1",
-    title: "Next.js Introduction & Project Structure",
-    shortSummary: "What is Next.js, why plain React has the blank-screen problem, and how folders inside app/ become rooms in your website treehouse.",
+    title: "Introduction to Next.js & Project Structure",
+    shortSummary: "Introduction to Next.js, key features, project structure, App Router architecture, and how folders inside app/ become rooms in your website treehouse.",
     order: 1,
     tags: ["Basics", "App Router", "Folder Structure", "JavaScript", "ELI10"],
 
     simpleExplanation:
-      "Imagine you want to build a cool toy car. In plain React, someone dumps a big bucket of loose Lego bricks on your carpet — you have to build your own wheels, engine, steering wheel, and GPS navigation from scratch. Next.js is a pre-built Lego Race Car Kit! It comes with the engine (server rendering), GPS navigation (folder routing), and headlights (automatic speed boosts) already connected. In Next.js, every folder you create inside 'app/' automatically becomes a real webpage on the internet!",
+      "Imagine you want to build a super-fast toy car. Next.js is a pre-built Lego Race Car Kit! It comes with the engine (server rendering), GPS navigation (automatic folder routing), and headlights (automatic speed boosts) already connected and ready to race. In Next.js, every folder you create inside 'app/' automatically becomes a real, live webpage on the internet with zero complicated configuration!",
 
     whyNeeded:
-      "When you use plain React (like Create React App or Vite), your browser receives an empty HTML file with just `<div id='root'></div>`. The browser has to download megabytes of JavaScript before anything shows on screen, so users on slow phones stare at a blank white screen for 3 seconds! Next.js fixes this by pre-cooking the HTML on the server (like a chef in a restaurant kitchen) so the webpage appears instantly with zero blank screen waiting.",
+      "When building modern web applications, visitors want pages to appear instantly without waiting. Next.js achieves this by pre-cooking the complete HTML directly on the server (like a master chef in a restaurant kitchen). When a visitor opens your website, they receive a fully-formed webpage right away — no blank screens, no waiting for huge JavaScript bundles, and instant visibility on any mobile phone!",
 
     reactVsNext: {
       concept: "Creating Webpages & Project Setup",
       reactWay: {
-        title: "Vanilla React with React Router",
-        code: `// In vanilla React (Vite / CRA), you must install extra router packages
-// and manually wire up URL paths:
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Home from "./pages/Home";
-import About from "./pages/About";
+        title: "Traditional Client-Side Routing",
+        code: `// Manual client-side routing:
+// Requires installing third-party packages and configuring paths manually:
+import { createRouter } from "client-router";
+
+const routes = [
+  { path: "/", view: HomePage },
+  { path: "/about", view: AboutPage },
+];
 
 export default function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
-      </Routes>
-    </BrowserRouter>
-  );
+  return <Router routes={routes} />;
 }`,
         explanation:
-          "In plain React, you have to install third-party libraries, write long route lists by hand, and manage everything inside client-side JavaScript.",
+          "In manual client-side routing, you have to install external libraries, write route lists by hand, and manage everything inside browser JavaScript.",
         drawbacks: [
           "Browser starts with an empty white screen (`<div id='root'></div>`)",
           "Google search engines struggle to read empty pages",
@@ -293,7 +289,7 @@ export default function StudentPage() {
       },
       {
         id: "u1-q2",
-        question: "Why does Next.js render HTML on the server compared to standard Create React App (CSR)?",
+        question: "Why does Next.js render HTML on the server before sending it to the client browser?",
         syllabusTopic: "SSR vs CSR Mental Model",
         options: [
           { id: "a", text: "To prevent JavaScript from ever running in the browser", isCorrect: false, explanation: "JavaScript still runs on the client for interactivity (hydration)." },
@@ -391,7 +387,7 @@ export default function ToysPage() {
   {
     id: "file-based-routing",
     unitId: "unit-1",
-    title: "File-Based & Dynamic Routing",
+    title: "File-based Routing & Dynamic Routes",
     shortSummary: "Turn folders into URLs, use dynamic name tags [slug] for 1,000s of pages, unwrap await params like a birthday gift, and organize files with Route Groups.",
     order: 2,
     tags: ["Dynamic Routes", "Slug Parameters", "Catch-All", "URL Mapping", "JavaScript"],
@@ -405,8 +401,8 @@ export default function ToysPage() {
     reactVsNext: {
       concept: "Dynamic Route Parameters",
       reactWay: {
-        title: "React Router useParams() Hook",
-        code: `// React Router (Client-side only)
+        title: "Client-Side Parameter Reading",
+        code: `// Client-side only parameter parsing
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 
@@ -424,7 +420,7 @@ export default function ProductDetail() {
   return <h1>{product.name}</h1>;
 }`,
         explanation:
-          "In vanilla React, URL parameters are read on the client browser. You have to display a loading spinner while fetching data inside `useEffect`.",
+          "Without server-side routing, URL parameters are read on the client browser with loading spinners while data fetches.",
         drawbacks: [
           "Waterfall loading: component mounts -> shows spinner -> fetches data -> re-renders",
           "Google search bots see 'Loading product...' instead of the real product",
@@ -513,6 +509,28 @@ export default async function DocsPage({ params }) {
           "The three dots `[...slug]` mean: 'Catch all remaining parts of the URL and put them in a JavaScript array!'",
       },
       {
+        title: "Multi-Segment Dynamic Routes: Profile by Name, ID & Email",
+        description: "Extracting multiple dynamic URL parameters from nested folders (e.g. /profile/alex/101/alex@test.com).",
+        language: "jsx",
+        filename: "app/profile/[name]/[id]/[email]/page.js",
+        code: `// app/profile/[name]/[id]/[email]/page.js (Pure JavaScript)
+export default async function Profile({ params }) {
+  // Unwrap all dynamic segments:
+  const { id, name, email } = await params;
+
+  return (
+    <div style={{ padding: "20px", fontFamily: "sans-serif" }}>
+      <h2>👤 Student Profile Page</h2>
+      <h3>Profile ID: {id}</h3>
+      <h3>Profile Name: {name}</h3>
+      <h3>Profile Email: {email}</h3>
+    </div>
+  );
+}`,
+        explanation:
+          "Each bracketed folder segment ([name], [id], [email]) automatically maps its value to the params object on the server.",
+      },
+      {
         title: "Route Groups: Invisible Invisibility Cloak Folders",
         description: "Organizing folders without changing the public URL.",
         language: "bash",
@@ -527,7 +545,7 @@ export default async function DocsPage({ params }) {
     └── toys/
         └── page.js       👉 http://localhost:3000/toys   ((shop) is skipped!)`,
         explanation:
-          "Wrapping a folder name in parentheses `(name)` tells Next.js to ignore that folder name in the URL address.",
+          "Wrapping a folder name in parentheses \`(name)\` tells Next.js to ignore that folder name in the URL address.",
       },
     ],
 
@@ -710,7 +728,7 @@ export default async function PlayerProfile({ params }) {
   {
     id: "layouts-and-nested-routes",
     unitId: "unit-1",
-    title: "Layouts, Templates & Nested Routes",
+    title: "Nested Routes & Layouts",
     shortSummary: "Keep your navbar and footer locked in place with picture-frame layouts, stack Russian nesting doll layouts, and prevent unnecessary re-renders.",
     order: 3,
     tags: ["Layouts", "Root Layout", "Nested Routes", "Children Prop", "JavaScript"],
@@ -724,8 +742,8 @@ export default async function PlayerProfile({ params }) {
     reactVsNext: {
       concept: "Shared Navigation & Page Shells",
       reactWay: {
-        title: "React Manual Wrapper Components",
-        code: `// Vanilla React: You must manually wrap each page component:
+        title: "Manual Layout Wrapping",
+        code: `// Manual layout wrapping pattern:
 function MainLayout({ children }) {
   return (
     <div>
@@ -746,7 +764,7 @@ export default function About() {
   return <MainLayout><h1>About Page</h1></MainLayout>;
 }`,
         explanation:
-          "In plain React, you have to remember to wrap every page manually in `<MainLayout>`. During navigation, the layout often re-renders completely.",
+          "Without App Router layouts, you have to remember to wrap every page manually in layout wrappers, causing full re-renders on navigation.",
         drawbacks: [
           "Easy to forget wrapping a page in the layout",
           "Layout re-renders on route changes, losing component state (like audio playing in a header)",
@@ -1039,7 +1057,7 @@ export default function StudentPortalLayout({ children }) {
   {
     id: "navigation-and-redirects",
     unitId: "unit-1",
-    title: "Navigation, Links & Redirects",
+    title: "Navigation & Links",
     shortSummary: "Instant teleportation with <Link>, why regular <a> tags restart your game console, programmatic redirects with useRouter, and active tab highlights.",
     order: 4,
     tags: ["Navigation", "next/link", "useRouter", "usePathname", "JavaScript"],
@@ -1053,8 +1071,8 @@ export default function StudentPortalLayout({ children }) {
     reactVsNext: {
       concept: "Client-Side Page Navigation",
       reactWay: {
-        title: "React Router <Link> and useNavigate()",
-        code: `// Vanilla React (react-router-dom):
+        title: "Standard HTML Anchor Navigation",
+        code: `// Standard HTML anchor tags:
 import { Link, useNavigate } from "react-router-dom";
 
 export function NavMenu() {
@@ -1068,7 +1086,7 @@ export function NavMenu() {
   );
 }`,
         explanation:
-          "In vanilla React, you import from `react-router-dom` using `to='...'` and `useNavigate()`.",
+          "Standard HTML anchor tags cause a full browser page refresh, losing in-memory state.",
         drawbacks: [
           "Requires external routing library installation",
           "No automatic background prefetching of upcoming pages",
@@ -1396,7 +1414,7 @@ export default function TabNav() {
   {
     id: "loading-and-error-ui",
     unitId: "unit-1",
-    title: "Loading UI, Suspense & Error Boundaries",
+    title: "Error and Loading UI",
     shortSummary: "Show instant popcorn loading spinners with loading.js, catch bugs with superhero error.js circuit breakers, and craft custom 404 screens.",
     order: 5,
     tags: ["Loading UI", "Error Boundaries", "not-found.js", "Suspense", "JavaScript"],
@@ -1405,13 +1423,13 @@ export default function TabNav() {
       "What happens when data takes 2 seconds to download, or when a piece of code crashes? Next.js gives you built-in superhero files! `loading.js` is like the cheerful microwave popcorn timer 🍿: while food is cooking, it shows a friendly spinner so the user knows good things are coming. `error.js` is like the electrical fuse in your house 🛡️: if a toaster in the kitchen shorts out, only the kitchen fuse clicks off — your living room lights, TV, and navbar stay on!",
 
     whyNeeded:
-      "In older React apps, if one small component threw an error, the entire screen turned into a horrible blank white crash. And handling loading states required writing `if (loading) return <Spinner />` in every single file. Next.js does both automatically just by naming your files `loading.js` and `error.js`.",
+      "When building web applications, network delays and unhandled runtime exceptions can frustrate users. Next.js makes handling both effortless: simply create a `loading.js` file for instant streaming skeleton screens, and an `error.js` file as an automatic safety circuit breaker!",
 
     reactVsNext: {
       concept: "Loading States & Error Handling",
       reactWay: {
-        title: "Vanilla React Manual Spinners & Class Boundaries",
-        code: `// Vanilla React: Manual loading state in every component
+        title: "Manual Loading & Error State Tracking",
+        code: `// Manual loading state in every component:
 import { useState, useEffect } from "react";
 
 export default function UserList() {
@@ -1431,7 +1449,7 @@ export default function UserList() {
   return <ul>{data.map(u => <li key={u.id}>{u.name}</li>)}</ul>;
 }`,
         explanation:
-          "In vanilla React, you have to write `useState` for loading and error in every component, or write complex class-based `componentDidCatch` boundaries.",
+          "Without Next.js reserved files, you have to write `useState` for loading and error in every component, creating boilerplate across your project.",
         drawbacks: [
           "Massive amounts of repetitive boilerplate code",
           "One unhandled error crashes the entire application",

@@ -3,23 +3,36 @@ import { ShieldCheck, Zap, BookOpen } from "lucide-react";
 
 export function Footer() {
   return (
-    <footer className="border-t border-zinc-200/80 bg-white mt-20 pb-20 lg:pb-12 pt-12">
+    <footer className="relative border-t border-[#e8e2d8] bg-white mt-20 pb-20 lg:pb-12 pt-12">
+      {/* Decorative Washi Tape on Footer */}
+      <div
+        className="h-5 w-48 -rotate-1 absolute -top-2.5 left-1/2 -translate-x-1/2 pointer-events-none rounded-xs opacity-90 shadow-xs"
+        style={{
+          backgroundColor: "rgba(163, 214, 175, 0.7)",
+          backgroundImage: "repeating-linear-gradient(45deg, transparent, transparent 6px, rgba(255,255,255,0.4) 6px, rgba(255,255,255,0.4) 12px)",
+        }}
+        aria-hidden="true"
+      />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand Info */}
           <div className="space-y-3 md:col-span-2">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-xl bg-emerald-600 flex items-center justify-center text-white font-bold text-xs font-mono">
+              <div className="w-8 h-8 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold text-xs font-mono shadow-xs border-2 border-white">
                 &lt;N/&gt;
               </div>
-              <span className="font-extrabold text-zinc-900 text-sm">NextMastery • INT257 Syllabus</span>
+              <span className="font-extrabold text-stone-900 text-sm flex items-center gap-2">
+                NextMastery • INT257
+                <span className="text-xs">🌸</span>
+              </span>
             </div>
-            <p className="text-xs text-zinc-600 max-w-md leading-relaxed">
-              A complete, free, mobile-first interactive Next.js learning platform designed for students who already know JavaScript but are learning modern React and Next.js App Router for the first time.
+            <p className="text-xs text-stone-600 max-w-md leading-relaxed font-sans">
+              A cozy, aesthetic, beginner-first Next.js learning companion for students who know JavaScript. Built with simple explanations, live code runners, and cute stationery motivation!
             </p>
-            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-50 text-xs text-emerald-800 border border-emerald-200 font-mono">
-              <ShieldCheck className="h-4 w-4 text-emerald-600" />
-              <span>100% Free • No Signups • No Login • Privacy First</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#edf6ee] text-xs text-[#2e5939] border border-[#bfe0c6] font-mono shadow-2xs">
+              <ShieldCheck className="h-4 w-4 text-[#5b9669]" />
+              <span>100% Free • No Signups • Studyblr Aesthetic 🍵</span>
             </div>
           </div>
 
@@ -74,8 +87,8 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/quiz-arena" className="hover:text-emerald-700 transition-colors">
-                  Interactive Quiz Arena
+                <Link href="/cheatsheet" className="hover:text-emerald-700 transition-colors">
+                  Master Cheatsheet &amp; Boilerplates
                 </Link>
               </li>
               <li>
@@ -85,7 +98,7 @@ export function Footer() {
               </li>
               <li>
                 <Link href="/react-vs-next" className="hover:text-emerald-700 transition-colors">
-                  React vs Next.js Matrix
+                  Next.js Architecture Matrix
                 </Link>
               </li>
               <li>

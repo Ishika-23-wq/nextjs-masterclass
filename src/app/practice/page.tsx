@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Code2, Trophy, Filter, CheckCircle2, Clock, Play, Lightbulb, Sparkles } from "lucide-react";
 import { allCodingChallenges } from "@/data/exercises";
 import { CodeSandbox } from "@/components/classroom/CodeSandbox";
+import { CodeBlock } from "@/components/ui/CodeBlock";
+import { WashiTape, StickerBadge, MildlinerText } from "@/components/ui/StudyStickers";
 
 export default function PracticeArenaPage() {
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>("all");
@@ -17,17 +19,18 @@ export default function PracticeArenaPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 space-y-10">
-      {/* Header */}
-      <div className="space-y-3 max-w-2xl">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 border border-emerald-200 text-xs font-mono font-bold text-emerald-800">
-          <Trophy className="h-3.5 w-3.5" />
-          <span>Hands-on Coding Arena</span>
+      {/* Header with Cute Study Aesthetic */}
+      <div className="space-y-4 max-w-2xl">
+        <div className="flex flex-wrap items-center gap-2">
+          <StickerBadge emoji="🎯" label="Practice Arena" color="honey" size="sm" tilt="rotate-[-1deg]" />
+          <StickerBadge emoji="💻" label="Pure JS Runners" color="matcha" size="sm" tilt="rotate-[1deg]" />
+          <StickerBadge emoji="🧸" label="Self-Paced Study" color="sakura" size="sm" tilt="rotate-[-2deg]" />
         </div>
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-zinc-900 tracking-tight">
-          Next.js Practice Exercises
+        <h1 className="text-3xl sm:text-4xl font-black text-stone-900 tracking-tight">
+          Next.js Practice <span className="mildliner-green">Exercises</span>
         </h1>
-        <p className="text-sm text-zinc-600 leading-relaxed">
-          Sharpen your skills with progressive coding challenges from Very Easy to Hard & Combined full-stack tasks. Edit the code, run it live in your browser, and verify solutions.
+        <p className="text-sm text-stone-600 leading-relaxed font-sans">
+          Sharpen your skills with progressive coding challenges from Very Easy to Hard &amp; Combined tasks. Edit the code, run it live in your browser, and verify solutions with zero setup.
         </p>
       </div>
 
@@ -147,6 +150,33 @@ export default function PracticeArenaPage() {
               explanation={activeChallenge.solutionExplanation}
               title={`Workspace: ${activeChallenge.title}`}
             />
+
+            {/* Dedicated Solution & Explanation Card */}
+            <div className="p-6 rounded-3xl bg-[#edf6ee]/40 border border-[#bfe0c6] space-y-4 shadow-2xs">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-base">💡</span>
+                  <h3 className="font-bold text-xs sm:text-sm text-[#2e5939] font-mono uppercase tracking-wide">
+                    Complete Pure JavaScript Solution
+                  </h3>
+                </div>
+                <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-white text-[#2e5939] border border-[#bfe0c6]">
+                  100% Pure JS
+                </span>
+              </div>
+
+              <CodeBlock
+                code={activeChallenge.solutionCode}
+                language="jsx"
+                filename="solution.js"
+                showLineNumbers={false}
+              />
+
+              <div className="p-4 bg-white rounded-2xl border border-[#bfe0c6] text-xs text-stone-800 leading-relaxed font-sans space-y-1 shadow-2xs">
+                <strong className="text-[#2e5939] font-mono block">Why &amp; How This Solution Works:</strong>
+                <p>{activeChallenge.solutionExplanation}</p>
+              </div>
+            </div>
           </div>
         ) : (
           <div className="p-12 text-center text-zinc-500">No challenges found.</div>

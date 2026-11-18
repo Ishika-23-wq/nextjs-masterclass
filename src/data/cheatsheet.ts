@@ -210,13 +210,139 @@ export function NavTab({ href, label }) {
         title: "Server Action Function",
         description: "Talk directly to the backend database from a button or form with no API routes.",
         language: "javascript",
-        code: `// app/actions.js
+        code: `// app/actions.js (Pure JavaScript)
 "use server"; // Secret keyword!
 
 export async function addScore(formData) {
   const name = formData.get("playerName");
   console.log("Saving player score to DB:", name);
   return { success: true };
+}`,
+      },
+      {
+        title: "useOptimistic (0ms Instant UI)",
+        description: "Show the new number or like immediately, then sync with server.",
+        language: "jsx",
+        code: `"use client";
+import { useOptimistic, useTransition } from "react";
+
+export function LikeButton({ initialLikes = 10 }) {
+  const [isPending, startTransition] = useTransition();
+  const [likes, addLike] = useOptimistic(initialLikes, (curr, amount) => curr + amount);
+
+  const handleLike = () => {
+    startTransition(async () => {
+      addLike(1); // 0ms instant!
+      await saveLikeToServer();
+    });
+  };
+
+  return <button onClick={handleLike}>❤️ {likes}</button>;
+}`,
+      },
+    ],
+  },
+
+  {
+    title: "6. Authentication & Protected Routes (The Security Guard)",
+    category: "Security & Sessions",
+    snippets: [
+      {
+        title: "Protected Route Guard in page.js",
+        description: "Check cookie or session before displaying the private room.",
+        language: "jsx",
+        code: `// app/dashboard/page.js (Pure JavaScript)
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+
+export default async function DashboardPage() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("auth_token");
+
+  // Security guard check:
+  if (!token) {
+    redirect("/login");
+  }
+
+  return <h1>🛡️ Private Dashboard: Welcome back!</h1>;
+}`,
+      },
+    ],
+  },
+
+  {
+    title: "7. Database & CRUD (The School Register)",
+    category: "Database & ORM",
+    snippets: [
+      {
+        title: "CRUD Operations (Create, Read, Update, Delete)",
+        description: "Connecting JavaScript to your database via ORM or client.",
+        language: "javascript",
+        code: `// 1. CREATE: Add student
+await db.student.create({ data: { name: "Rahul", course: "CSE" } });
+
+// 2. READ: Get students
+const students = await db.student.findMany();
+
+// 3. UPDATE: Edit student
+await db.student.update({ where: { id: 1 }, data: { course: "IT" } });
+
+// 4. DELETE: Delete student
+await db.student.delete({ where: { id: 1 } });`,
+      },
+    ],
+  },
+
+  {
+    title: "8. Images, SEO & Middleware",
+    category: "Performance & Headers",
+    snippets: [
+      {
+        title: "Optimized <Image /> Component",
+        description: "Zero layout shift and automatic WebP image compression.",
+        language: "jsx",
+        code: `import Image from "next/image";
+
+export function Hero() {
+  return (
+    <Image
+      src="/hero.png"
+      width={600}
+      height={300}
+      alt="Fun hero banner"
+      priority // Loads immediately without delay
+    />
+  );
+}`,
+      },
+      {
+        title: "Dynamic Metadata (SEO Social Card)",
+        description: "Give every page a custom Google title and WhatsApp share preview.",
+        language: "javascript",
+        code: `// app/blog/[id]/page.js (Pure JavaScript)
+export async function generateMetadata({ params }) {
+  const { id } = await params;
+  return {
+    title: \`Blog Post #\${id} | NextMastery\`,
+    description: "Read our fun beginner guide!",
+  };
+}`,
+      },
+      {
+        title: "middleware.js (The Airport Checkpoint)",
+        description: "Inspect every visitor before they reach any room.",
+        language: "javascript",
+        code: `// middleware.js (Pure JavaScript, at project root)
+import { NextResponse } from "next/server";
+
+export function middleware(request) {
+  const token = request.cookies.get("auth_token");
+
+  if (!token && request.nextUrl.pathname.startsWith("/admin")) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  return NextResponse.next();
 }`,
       },
     ],

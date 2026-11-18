@@ -4,309 +4,299 @@ export const unit6Topics: TopicContent[] = [
   {
     id: "parallel-and-intercepting-routes",
     unitId: "unit-6",
-    title: "Parallel & Intercepting Routes",
-    shortSummary: "Build multi-slot dashboards with Parallel Routes (@slots) and Instagram-style shareable modal feeds with Intercepting Routes ((.)photo).",
+    title: "Parallel Routes & Intercepting Routes (@slots, (.)modals)",
+    shortSummary: "ADVANCED TOPIC: Learn parallel routes using the Split-Screen TV analogy (@slots), default.js fallbacks, and Instagram-style photo popups with (.)modals.",
     order: 1,
-    tags: ["Parallel Routes", "Intercepting Routes", "Slots", "Modal Feeds", "default.tsx"],
+    tags: ["Parallel Routes", "Intercepting Routes", "Slots", "Modal Feeds", "default.js", "Advanced"],
 
     simpleExplanation:
-      "Have you ever browsed Instagram or Pinterest, clicked on a photo, and saw it open in a smooth popup modal with a shareable URL (like `/photos/42`), but when you refreshed the browser, it rendered the full dedicated photo page instead of a popup? This is called **Intercepting Routes** (`(.)photo`). **Parallel Routes** (`@analytics`, `@team`) allow you to render multiple independent sub-pages simultaneously inside the SAME layout, each with its own independent loading and error states!",
+      "*(Note to students: This is an ADVANCED topic! Make sure you are comfortable with Units 1-4 before exploring this!)*\n\n" +
+      "Imagine two cool features:\n\n" +
+      "1. **Parallel Routes (@slots) - The Split-Screen TV**:\n" +
+      "Imagine watching TV with Picture-in-Picture mode: the left side of the screen shows the soccer match (`@team`), and the right side shows live scores (`@analytics`). Both screens update independently inside the same living room (`layout.js`)! In Next.js, folders prefixed with `@` (like `@analytics` and `@team`) become parallel slots passed into your layout props!\n\n" +
+      "2. **What is default.js? (The Fallback TV Standby Screen)**:\n" +
+      "If a user refreshes their browser while browsing a sub-route on one side of the split screen, Next.js needs to know what to display on the other side! A `default.js` file is the standby screen that displays whenever Next.js cannot match that slot.\n\n" +
+      "3. **Intercepting Routes ((.)photo) - The Instagram Photo Popup**:\n" +
+      "When you browse Instagram and tap a photo in your feed, what happens?\n" +
+      "- A popup modal opens over your feed without leaving the feed! (The URL changes to `/photo/123`, but your feed stays in the background).\n" +
+      "- But if you copy that link and paste it into a brand new browser tab, it opens as a FULL standalone page!\n" +
+      "- Next.js creates this with **Intercepting Routes** using folder notation like `(.)photo`!",
 
     whyNeeded:
-      "Building complex multi-widget analytics dashboards or modal feeds previously required messy global state, hacky URL sync hooks, and broken browser Back-button behavior. Parallel and Intercepting Routes make these advanced UX patterns native to the file system.",
+      "Complex SaaS dashboards need multiple independent loading states on one screen without messy iframe hacks. Social apps and e-commerce stores need contextual modals that preserve the user's scroll position while still having shareable, bookmarkable URLs.",
 
     reactVsNext: {
-      concept: "Modals & Multi-Pane Layouts",
+      concept: "Split-Screen & Modal Routing",
       reactWay: {
-        title: "React Global Modal State",
-        code: `// Traditional React Modal (Hacky URL Sync):
+        title: "State-Driven Modal Overlays",
+        code: `// Traditional client-side approach:
 function Feed() {
-  const [selectedPhoto, setSelectedPhoto] = useState(null);
-
-  // Does not update browser URL naturally.
-  // If user clicks 'Share Link' or refreshes page, modal state is lost!
+  const [activePhoto, setActivePhoto] = useState(null);
+  // ⚠️ If the user copies the URL, modal state is lost!
+  // If the user presses the browser 'Back' button, they leave the website!
   return (
     <div>
-      <Gallery onSelect={photo => setSelectedPhoto(photo)} />
-      {selectedPhoto && <Modal photo={selectedPhoto} />}
+      <PhotoGrid onSelect={id => setActivePhoto(id)} />
+      {activePhoto && <PhotoModal id={activePhoto} />}
     </div>
   );
 }`,
         explanation:
-          "In vanilla React, modals are typically managed with local `useState` or Redux. They don't support deep-linking, browser history navigation, or Server Components without manual synchronization.",
+          "State-driven modals do not update the browser URL bar cleanly, breaking back/forward browser history and shareable URLs.",
         drawbacks: [
-          "Cannot copy-paste URL to share the open modal with a classmate",
-          "Clicking browser 'Back' button leaves the website instead of just closing the modal",
-          "SSR cannot pre-render modal content on page refresh",
+          "Browser 'Back' button navigates away from the entire website instead of closing the modal",
+          "Hard to share direct URLs with friends",
+          "No independent parallel slot rendering",
         ],
       },
       nextjsWay: {
-        title: "Next.js Intercepting & Parallel Routes",
-        code: `// File Structure:
-// src/app/feed/layout.tsx
-// src/app/feed/@modal/(.)photo/[id]/page.tsx   <- Intercepts client navigation to show Modal!
-// src/app/feed/photo/[id]/page.tsx             <- Full standalone page on direct URL visit or refresh!
-
-// src/app/feed/layout.tsx:
-export default function FeedLayout({
-  children,
-  modal, // Parallel slot received as prop!
-}: {
-  children: React.ReactNode;
-  modal: React.ReactNode;
-}) {
+        title: "Next.js Parallel & Intercepting Routes (@slots & (.)modals)",
+        code: `// 1. Parallel Slots in layout.js:
+export default function DashboardLayout({ children, analytics, team }) {
   return (
-    <div>
-      {children}
-      {modal}
+    <div className="grid grid-cols-2 gap-4">
+      <div>{children}</div>
+      <div>{analytics}</div>
+      <div>{team}</div>
     </div>
   );
-}`,
+}
+
+// 2. Intercepting Route folder structure:
+// app/feed/layout.js
+// app/feed/@modal/(.)photo/[id]/page.js   <- Intercepts client clicks to show Modal!
+// app/feed/photo/[id]/page.js             <- Full standalone page on direct URL visit or refresh!`,
         explanation:
-          "Next.js intercepts client-side navigation to display the photo inside the `@modal` slot. When directly visited or refreshed, Next.js renders the full `/photo/[id]` page.",
+          "Next.js handles URL history, modal presentation, and standalone page fallbacks natively through folder conventions.",
         benefits: [
-          "Shareable URLs for modal popups",
-          "Browser Back button cleanly closes the modal without page reload",
-          "Full standalone fallback page on hard refresh or search engine crawl",
-          "Independent error and loading boundaries per slot",
+          "Browser 'Back' button smoothly closes the modal",
+          "URL can be shared or refreshed directly into a standalone page",
+          "Independent streaming and loading states for parallel dashboard widgets",
         ],
       },
       whyDifferent:
-        "Next.js handles routing context at the file-system level, intercepting client navigation while preserving standard server rendering paths.",
+        "Next.js connects modal dialogs and split layouts directly to the browser history and URL router.",
       mentalShiftSummary:
-        "Folder `@slotName` creates a parallel slot prop in `layout.tsx`. Folder `(.)target` intercepts client transitions to that route.",
+        "Folder `@slotName` creates a parallel slot prop in layout.js. Folder `(.)target` intercepts client transitions to that route.",
     },
 
     basicExample: {
-      title: "Multi-Widget Parallel Dashboard",
-      description: "Rendering analytics and notifications simultaneously in parallel slots.",
-      language: "tsx",
-      filename: "src/app/dashboard/layout.tsx",
-      code: `// src/app/dashboard/layout.tsx
-// Receives @analytics and @notifications slots as props:
-
-export default function DashboardLayout({
-  children,
-  analytics,
-  notifications,
-}: {
-  children: React.ReactNode;
-  analytics: React.ReactNode;
-  notifications: React.ReactNode;
-}) {
+      title: "Split-Screen Dashboard with Parallel Slots in Plain JavaScript",
+      description: "A dashboard layout rendering children alongside parallel @analytics and @team slots.",
+      language: "jsx",
+      filename: "src/app/dashboard/layout.js",
+      code: `// src/app/dashboard/layout.js
+// Next.js automatically injects folders named @analytics and @team as props:
+export default function DashboardLayout({ children, analytics, team }) {
   return (
-    <div className="p-6 space-y-6">
-      <div>{children}</div>
-      <div className="grid md:grid-cols-2 gap-6">
-        <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-xl">{analytics}</div>
-        <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-xl">{notifications}</div>
+    <div className="p-6 max-w-5xl mx-auto space-y-6">
+      <header className="border-b border-zinc-800 pb-4">
+        <h1 className="text-2xl font-bold text-zinc-100">University Portal Dashboard</h1>
+        <span className="text-xs font-mono text-amber-400">⚡ Advanced: Parallel Routes Architecture</span>
+      </header>
+
+      {/* Main children content */}
+      <main className="bg-zinc-900 border border-zinc-800 p-5 rounded-2xl">
+        {children}
+      </main>
+
+      {/* Parallel independent slots side-by-side: */}
+      <div className="grid gap-6 sm:grid-cols-2">
+        <section className="bg-zinc-900 border border-zinc-800 p-5 rounded-2xl">
+          <h2 className="text-sm font-bold text-zinc-400 uppercase tracking-wider mb-3">
+            Real-Time Analytics
+          </h2>
+          {analytics}
+        </section>
+
+        <section className="bg-zinc-900 border border-zinc-800 p-5 rounded-2xl">
+          <h2 className="text-sm font-bold text-zinc-400 uppercase tracking-wider mb-3">
+            Active Study Groups
+          </h2>
+          {team}
+        </section>
       </div>
     </div>
   );
 }`,
       explanation:
-        "The `@analytics` and `@notifications` folders run in parallel. If analytics takes 2 seconds to load, it streams independently without blocking notifications.",
-      outputPreview: "Two-column dashboard with parallel streaming widgets.",
+        "Line-by-line explanation:\n- Line 3: export default function DashboardLayout({ children, analytics, team }) receives @analytics and @team folders as normal JavaScript props!\n- Line 12-14: Renders the standard page.js children content.\n- Line 17-31: Renders the two parallel slots in a 2-column grid. Each slot can have its own loading.js and error.js without affecting the other slot!\n\nWhat happens in the browser?\n1. The visitor opens /dashboard.\n2. Next.js renders the main children, the analytics slot, and the team slot simultaneously.\n3. If the team data is slow, only the team slot shows a loading spinner while the rest of the dashboard is fully interactive!",
+      outputPreview: "A dashboard split into main content on top and two parallel widget slots below.",
     },
 
     moreExamples: [
       {
-        title: "Intercepting Route Matcher Syntax",
-        description: "Understanding the convention symbols for intercepting routes at different folder depths.",
-        language: "typescript",
-        filename: "Intercepting Symbols Reference",
-        code: `// (.) matches segments on the SAME level
-// Example: src/app/feed/(.)photo/[id]/page.tsx intercepts /feed/photo/[id]
-
-// (..) matches segments ONE level above
-// Example: src/app/feed/@modal/(..)photo/[id]/page.tsx intercepts /photo/[id]
-
-// (..)(..) matches segments TWO levels above
-
-// (...) matches segments from the ROOT app/ directory`,
+        title: "Standby Fallback Screen (default.js) in Plain JavaScript",
+        description: "The fallback component rendered when Next.js cannot match a parallel slot on hard reload.",
+        language: "jsx",
+        filename: "src/app/dashboard/@analytics/default.js",
+        code: `// src/app/dashboard/@analytics/default.js
+// Rendered when visiting unmatched sub-routes on full page reload:
+export default function AnalyticsDefault() {
+  return (
+    <div className="p-4 bg-zinc-950 rounded-xl text-xs text-zinc-500">
+      Select an analytical report from the menu above.
+    </div>
+  );
+}`,
         explanation:
-          "Similar to relative file paths (`./` and `../`), intercepting syntax allows you to target routes across different folder levels.",
+          "Always create a default.js file inside every parallel `@slot` folder to prevent Next.js 404 errors during direct browser reloads.",
       },
     ],
 
     multipleWays: [
       {
-        name: "Parallel Routes (@slotName)",
-        syntax: "src/app/dashboard/@analytics/page.tsx",
-        codeSnippet: `export default function Layout({ children, analytics }) { return <div>{children}{analytics}</div>; }`,
-        howItWorks: "Passes named folder slots as props to the parent layout.",
-        pros: ["Independent streaming & Suspense per slot", "Conditional slot rendering"],
-        cons: ["Requires default.tsx for unmatched slots on hard refresh"],
-        whenToUse: "For complex dashboards, split-screen interfaces, and multi-tab layouts.",
+        name: "Parallel Routes (@slots)",
+        syntax: "src/app/dashboard/@analytics/page.js",
+        codeSnippet: "export default function Layout({ children, slotA, slotB }) { return <div>{slotA}{slotB}</div>; }",
+        howItWorks: "Independent slot components rendered concurrently inside a single parent layout.",
+        pros: ["Independent streaming and error boundaries", "No state reset during navigation"],
+        cons: ["Requires default.js for unmatched slots on hard reload"],
+        whenToUse: "Split dashboards, multi-pane editors, side-by-side tabs.",
         isRecommended: true,
       },
       {
-        name: "Intercepting Routes ((.)target)",
-        syntax: "src/app/@modal/(.)login/page.tsx",
-        codeSnippet: `// Intercepts navigation to /login from current page`,
-        howItWorks: "Intercepts client-side link clicks to display content in an overlay while preserving direct URL access.",
-        pros: ["Shareable URLs for modal dialogs", "Preserves underlying page context"],
-        cons: ["Requires understanding folder depth matching"],
-        whenToUse: "For photo galleries, login dialog overlays, and quick-preview drawers.",
+        name: "Intercepting Routes ((.)modals)",
+        syntax: "src/app/@modal/(.)login/page.js",
+        codeSnippet: "// (.)photo/[id]/page.js matches /photo/[id] on same level",
+        howItWorks: "Intercepts client-side link transitions to display an overlay while keeping context.",
+        pros: ["Shareable modal URLs", "Back button closes modal smoothly"],
+        cons: ["More folder conventions to memorize ((.), (..), (..)(..), (...))"],
+        whenToUse: "Photo galleries, login modals, shopping cart drawers.",
         isRecommended: true,
       },
     ],
 
     decisionGuide: {
-      recommendationSummary: "Use Parallel Routes for multi-widget dashboards. Use Intercepting Routes for shareable modal popups.",
+      recommendationSummary: "Use Parallel Routes (@slots) when multiple independent panels live on one dashboard. Use Intercepting Routes ((.)modal) for Instagram-style popup modals.",
       scenarios: [
         {
-          scenario: "You want a photo gallery where clicking a thumbnail opens an Instagram-like modal",
-          recommendedApproach: "Intercepting route `src/app/feed/@modal/(.)photo/[id]/page.tsx`",
-          reason: "Provides shareable link and closes cleanly on browser Back button.",
+          scenario: "Photo gallery where clicking a photo opens an overlay, but refreshing opens a full page",
+          recommendedApproach: "Intercepting route `src/app/feed/@modal/(.)photo/[id]/page.js`",
+          reason: "Enables modal presentation during client navigation and standalone page presentation on direct URL entry.",
+        },
+        {
+          scenario: "University analytics dashboard with 3 independent data feeds",
+          recommendedApproach: "Parallel routes with @metrics, @logs, @traffic",
+          reason: "Each panel streams independently with its own loading skeleton.",
         },
       ],
     },
 
     commonMistakes: [
       {
-        mistakeTitle: "Forgetting to create default.tsx in parallel route slots",
-        badCode: `// ❌ BAD: Missing default.tsx in @analytics slot
-// On hard page refresh of an unrelated sub-route, Next.js throws a 404 error for the slot!`,
-        goodCode: `// ✅ GOOD: Always add src/app/dashboard/@analytics/default.tsx
-export default function DefaultAnalytics() {
-  return <p>Default Analytics View</p>;
-}`,
-        whyItBreaks: "When a user refreshes the page, Next.js needs to know what fallback UI to render in parallel slots that don't match the current URL.",
-        howToFix: "Always create a `default.tsx` file inside every parallel `@slot` folder.",
+        mistakeTitle: "Forgetting to create default.js in parallel route slots",
+        badCode: `// ❌ BAD: Missing default.js in @analytics slot
+src/app/dashboard/@analytics/page.js (no default.js exists)`,
+        goodCode: `// ✅ GOOD: Always add src/app/dashboard/@analytics/default.js
+export default function Default() { return null; }`,
+        whyItBreaks: "When a user refreshes their browser on a subpage like /dashboard/settings, Next.js throws a 404 because it has no fallback component for @analytics.",
+        howToFix: "Always create a `default.js` file inside every parallel `@slot` folder.",
       },
     ],
 
     bestPractices: [
       {
-        title: "Combine Parallel Routes with useRouter().back() for Modal Close",
-        rule: "In your modal close button, call `router.back()` to dismiss the overlay.",
-        explanation: "Restores the previous URL cleanly and unmounts the intercepted slot.",
+        title: "Provide default.js in Every Slot",
+        rule: "Always add a default.js file returning fallback UI or null inside all @slot folders.",
+        explanation: "This prevents unexpected 404 errors during full browser page reloads.",
       },
     ],
 
     exercises: [
       {
         id: "u6-ex-1",
-        title: "Build a Parallel Dashboard Layout Component",
+        title: "Create a Multi-Slot Dashboard Layout",
         difficulty: "medium",
         estimatedMinutes: 8,
         prompt:
-          "Write a `DashboardLayout` component for `src/app/dashboard/layout.tsx` that accepts `children`, `stats`, and `activity` slots and arranges them in a responsive layout.",
-        initialCode: `// src/app/dashboard/layout.tsx
-// TODO: Define layout receiving children, stats, and activity slots
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+          "Write a `DashboardLayout` component for `src/app/dashboard/layout.js` in plain JavaScript that accepts `children`, `stats`, and `activity` slots and arranges them in a responsive layout.",
+        initialCode: `// src/app/dashboard/layout.js
+export default function DashboardLayout({ children }) {
+  // TODO: Accept stats and activity slots
   return <div>{children}</div>;
 }`,
-        expectedOutput: "A multi-slot dashboard layout with responsive grid styling.",
-        hints: ["Accept `{ children, stats, activity }: { children: React.ReactNode; stats: React.ReactNode; activity: React.ReactNode; }`"],
-        solutionCode: `export default function DashboardLayout({
-  children,
-  stats,
-  activity,
-}: {
-  children: React.ReactNode;
-  stats: React.ReactNode;
-  activity: React.ReactNode;
-}) {
+        expectedOutput: "A layout component rendering children, stats, and activity slots.",
+        hints: ["Destructure `{ children, stats, activity }` from props"],
+        solutionCode: `// src/app/dashboard/layout.js
+export default function DashboardLayout({ children, stats, activity }) {
   return (
-    <div className="p-6 space-y-6 max-w-6xl mx-auto">
-      <div>{children}</div>
-      <div className="grid md:grid-cols-[1fr_2fr] gap-6">
-        <div className="p-5 bg-zinc-900 border border-zinc-800 rounded-2xl">
-          <h3 className="text-xs uppercase font-mono text-amber-400 mb-3 font-semibold">Stats Slot</h3>
-          {stats}
-        </div>
-        <div className="p-5 bg-zinc-900 border border-zinc-800 rounded-2xl">
-          <h3 className="text-xs uppercase font-mono text-emerald-400 mb-3 font-semibold">Live Activity Slot</h3>
-          {activity}
-        </div>
+    <div className="space-y-6">
+      {children}
+      <div className="grid grid-cols-2 gap-4">
+        <div>{stats}</div>
+        <div>{activity}</div>
       </div>
     </div>
   );
 }`,
-        solutionExplanation:
-          "Parallel slots `@stats` and `@activity` stream their HTML independently, keeping page response times ultra-fast.",
+        solutionExplanation: "Parallel slots are delivered as props matching the folder names (@stats -> stats, @activity -> activity).",
       },
     ],
 
     quizzes: [
       {
         id: "u6-q1",
-        question: "What is the purpose of default.tsx in Next.js Parallel Routes?",
-        syllabusTopic: "Parallel Routes default.tsx",
+        syllabusTopic: "Parallel Routes default.js",
+        question: "What is the purpose of default.js in Next.js Parallel Routes?",
+        conceptualExplanation: "During full page reloads, Next.js renders default.js for parallel slots that do not have an active route match for the current URL.",
         options: [
           { id: "a", text: "It resets the user's password", isCorrect: false, explanation: "No." },
-          { id: "b", text: "It serves as a fallback UI for a parallel slot when Next.js cannot recover the slot state during a hard page refresh", isCorrect: true, explanation: "Correct! default.tsx provides the fallback component for unmatched slots on direct page loads." },
-          { id: "c", text: "It converts TypeScript into CSS", isCorrect: false, explanation: "No." },
+          { id: "b", text: "It serves as a fallback UI for a parallel slot when Next.js cannot recover the slot state during a hard page refresh", isCorrect: true, explanation: "Correct! default.js provides the fallback component for unmatched slots on direct page loads." },
+          { id: "c", text: "It converts JavaScript into CSS", isCorrect: false, explanation: "No." },
           { id: "d", text: "It only works on Android", isCorrect: false, explanation: "No." },
         ],
-        conceptualExplanation:
-          "During full page reloads, Next.js renders `default.tsx` for parallel slots that do not have an active route match for the current URL.",
       },
     ],
 
     realWorldExample: {
-      domain: "Photo Sharing Social App (Instagram / Unsplash Feed)",
-      description: "How clicking a photo opens an interactive modal with its own shareable URL, while direct visits render the full page.",
+      domain: "Photo Sharing Social App",
+      description: "How Instagram-style feeds render photo modals over feeds without discarding feed scroll position.",
       code: {
-        title: "Photo Modal Intercept Component",
-        description: "Intercepted photo viewer with router.back().",
-        language: "tsx",
-        filename: "src/app/@modal/(.)photo/[id]/page.tsx",
-        code: `"use client";
-
-import { useRouter } from "next/navigation";
-
-export default function PhotoModal({ params }: { params: { id: string } }) {
-  const router = useRouter();
+        title: "Photo Modal Intercepting Component",
+        description: "Modal overlay intercepting photo route in plain JavaScript.",
+        language: "jsx",
+        filename: "src/app/@modal/(.)photo/[id]/page.js",
+        code: `// src/app/@modal/(.)photo/[id]/page.js
+export default async function PhotoModal({ params }) {
+  const { id } = await params;
 
   return (
-    <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-      <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-2xl max-w-lg w-full space-y-4">
-        <h2 className="text-lg font-bold text-zinc-100">Photo #{params.id} (Modal View)</h2>
-        <button
-          onClick={() => router.back()}
-          className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm"
-        >
-          Close Modal
-        </button>
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+      <div className="bg-zinc-900 p-6 rounded-2xl max-w-lg w-full space-y-3">
+        <h2 className="text-xl font-bold">Photo #{id}</h2>
+        <p className="text-zinc-400 text-sm">Modal overlay preserving background feed scroll!</p>
       </div>
     </div>
   );
 }`,
       },
-      keyTakeaway: "Intercepting routes combined with `router.back()` provide fluid native-app modal navigation.",
+      keyTakeaway: "Intercepting routes enable modal overlays that maintain browser history and shareable URLs.",
     },
 
     combinedExample: {
-      combinedTopics: ["Parallel Routes", "Intercepting Routes", "Layouts"],
-      title: "Complete Social Feed Modal Architecture",
-      description: "Combining parallel slots with intercepting routes for seamless modal dialogs.",
+      combinedTopics: ["Parallel Routes", "Intercepting Routes", "Modals"],
+      title: "Complete Modal Feed Architecture",
+      description: "Folder hierarchy demonstrating parallel slots and modal interception.",
       code: {
-        title: "Modal Feed File Tree",
-        description: "Folder structure of intercepted modal architecture.",
-        language: "typescript",
-        filename: "Architecture Tree",
-        code: `src/app/
-├── layout.tsx                # Defines { children, modal } props
-├── page.tsx                  # Main feed list of photos
-├── photo/[id]/page.tsx       # Standalone photo page (direct URL / refresh)
+        title: "Modal Feed Folder Tree",
+        description: "Folder structure in plain text.",
+        language: "bash",
+        filename: "FolderStructure",
+        code: `src/app/feed/
+├── layout.js                # Defines { children, modal } props
+├── page.js                  # Main feed list of photos
+├── photo/[id]/page.js       # Standalone photo page (direct URL / refresh)
 └── @modal/
-    ├── default.tsx           # Returns null when modal is closed
-    └── (.)photo/[id]/
-        └── page.tsx          # Renders modal overlay on client link click`,
+    ├── default.js           # Returns null when modal is closed
+    └── (.)photo/[id]/page.js # Renders modal overlay on client link click`,
       },
       stepByStepFlow: [
-        "User browses `/` feed",
-        "Clicks `<Link href='/photo/42'>`",
-        "Next.js intercepts click and renders `@modal/(.)photo/[id]/page.tsx` as an overlay",
-        "URL bar changes to `/photo/42`",
-        "If user sends link to a friend -> Friend opens `/photo/42` and sees full standalone page",
+        "User scrolls photo feed at /feed",
+        "Clicks link to /feed/photo/5",
+        "Next.js intercepts click and renders @modal/(.)photo/[id]/page.js as an overlay",
+        "URL updates to /feed/photo/5 with zero background scroll reset",
+        "Pressing browser 'Back' closes the modal smoothly",
       ],
     },
   },
@@ -314,278 +304,303 @@ export default function PhotoModal({ params }: { params: { id: string } }) {
   {
     id: "middleware-proxy-edge",
     unitId: "unit-6",
-    title: "Middleware, URL Proxy & Edge Runtime",
-    shortSummary: "Intercept incoming requests, perform URL rewriting and reverse proxying, and execute ultra-fast compute at the global Edge.",
+    title: "Middleware, Edge Runtime & Reverse Proxy",
+    shortSummary: "ADVANCED TOPIC: Master middleware using the Security Gate analogy: intercept requests in 1ms at the edge, handle redirects, and use rewrite() proxying.",
     order: 2,
-    tags: ["Middleware", "Proxy", "URL Rewrite", "Edge Runtime", "Geolocation"],
+    tags: ["Middleware", "Edge", "rewrite()", "redirect()", "Security", "Advanced"],
 
     simpleExplanation:
-      "Imagine an airport security checkpoint: before any passenger boards an airplane, security checks their passport, verifies their ticket, or redirects them to another gate. **Middleware** in Next.js is that airport checkpoint for your website! It runs at the **Edge** (in 300+ data centers worldwide) in under 5 milliseconds *before* any request reaches your page. Middleware can rewrite URLs (Reverse Proxy), inspect incoming headers, check geolocation (e.g. detect if the user is in India or the US), and redirect bot traffic.",
+      "*(Note to students: This is an ADVANCED topic!)*\n\n" +
+      "Imagine the security booth at the entrance of a university campus:\n\n" +
+      "1. **The Campus Security Gate (middleware.js)**:\n" +
+      "Before any car drives onto campus to reach the classrooms or dining hall, it MUST stop at the entrance guard booth. The security officer checks your badge in **1 millisecond**! In Next.js, `middleware.js` is that gatekeeper. It runs BEFORE every single incoming request reaches your pages or APIs!\n\n" +
+      "2. **redirect() vs rewrite() (The Important Difference!)**:\n" +
+      "- **redirect() (Turn your car around!)**: The guard says: 'You are at the wrong gate! Drive over to Gate B.' Your car physically moves, and your phone's GPS address changes to `/login`. (HTTP 307 redirect, browser URL changes!).\n" +
+      "- **rewrite() (The Secret Tunnel / Proxy)**: The guard says: 'Stay right there.' Behind the scenes, the guard brings the package from Building B and hands it to you while your car stays parked at Gate A! The browser's URL bar **NEVER changes**, but the server serves content from another location!\n\n" +
+      "3. **What is the Edge Runtime?**\n" +
+      "Standard servers live in one physical city (like Mumbai or Virginia). The **Edge Runtime** runs lightweight JavaScript on hundreds of mini-servers spread across the globe right next to where the user lives, providing near 0ms latency!",
 
     whyNeeded:
-      "Running authorization or URL rewrites on a centralized server adds latency for global users. Running middleware at the Edge delivers instant routing decisions in under 10 milliseconds anywhere in the world.",
+      "Middleware allows you to enforce authentication, inspect user geo-location, perform A/B test experiments, rewrite paths for multi-tenant SaaS subdomains, and block malicious bots globally before touching your database.",
 
     reactVsNext: {
-      concept: "Request Interception & Reverse Proxy",
+      concept: "Global Request Interception",
       reactWay: {
-        title: "Nginx / Apache Server Configuration",
-        code: `# In traditional React, you must configure Nginx reverse proxy files:
-server {
-  listen 80;
-  server_name example.com;
-
-  location /api/backend/ {
-    proxy_pass https://external-api.corp.internal/;
-    proxy_set_header X-Custom-Header "proxy-val";
-  }
-}`,
+        title: "Client-Side Route Redirection",
+        code: `// Traditional client-side approach:
+// There is NO middleware! The browser must download the whole page
+// before JavaScript can check anything:
+useEffect(() => {
+  if (!user) navigate("/login"); // ⚠️ Page already downloaded and parsed!
+}, []);`,
         explanation:
-          "In vanilla React, developers have to configure complex Nginx reverse proxy configurations or Cloudflare worker scripts manually.",
+          "Client-side routing has no concept of a pre-flight request interceptor. Requests always reach the client before any code can run.",
         drawbacks: [
-          "Requires DevOps server management (Nginx/Apache)",
-          "Cannot write proxy logic in standard TypeScript",
-          "Hard to test locally in development",
+          "Zero ability to modify HTTP headers or cookies before response",
+          "Cannot perform server-side reverse proxying",
+          "Cannot intercept requests based on IP location or bot signatures",
         ],
       },
       nextjsWay: {
-        title: "Next.js TypeScript middleware.ts & NextResponse.rewrite",
-        code: `// File: src/middleware.ts (Runs at the Edge in TypeScript!)
+        title: "Next.js Edge Middleware (middleware.js)",
+        code: `// middleware.js (Root of your project - Pure JavaScript!)
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 
-export function middleware(request: NextRequest) {
-  // 1. Inspect Geolocation (Country):
-  const country = request.geo?.country || "US";
+export function middleware(request) {
+  const token = request.cookies.get("token");
 
-  // 2. Reverse Proxy / URL Rewrite:
-  // Rewrites URL internally without changing the browser's address bar!
-  if (request.nextUrl.pathname.startsWith("/old-path")) {
-    return NextResponse.rewrite(new URL("/new-target", request.url));
+  // 1. Guard check:
+  if (!token && request.nextUrl.pathname.startsWith("/admin")) {
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // 3. Set Custom Response Headers:
+  // 2. Add custom security header to all responses:
   const response = NextResponse.next();
-  response.headers.set("x-user-country", country);
-  return response;
-}`,
-        explanation:
-          "Next.js middleware provides programmatic Edge routing, proxying, and header manipulation using standard Web APIs in pure TypeScript.",
-        benefits: [
-          "Written in standard TypeScript with full autocomplete",
-          "Executes globally at Edge nodes (<10ms latency)",
-          "Reverse proxying with `NextResponse.rewrite()`",
-        ],
-      },
-      whyDifferent:
-        "Next.js executes `middleware.ts` in the V8 Edge Runtime prior to routing, unifying proxy configuration directly in application code.",
-      mentalShiftSummary:
-        "Don't manage Nginx configs. Write `src/middleware.ts` with `NextResponse.rewrite()` and `NextResponse.redirect()`.",
-    },
-
-    basicExample: {
-      title: "URL Rewrite & Geolocation Header Injection",
-      description: "Detecting user location and adding custom headers in middleware.",
-      language: "typescript",
-      filename: "src/middleware.ts",
-      code: `// src/middleware.ts
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-
-export function middleware(request: NextRequest) {
-  // Read request details:
-  const pathname = request.nextUrl.pathname;
-  const userAgent = request.headers.get("user-agent") || "unknown";
-
-  console.log(\`Edge Intercept: \${request.method} \${pathname}\`);
-
-  // Create response and set custom security headers:
-  const response = NextResponse.next();
-  response.headers.set("x-powered-by-int257", "NextMastery");
-  response.headers.set("x-client-device", userAgent.includes("Mobile") ? "mobile" : "desktop");
-
+  response.headers.set("X-Security-Gate", "Passed");
   return response;
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/admin/:path*", "/dashboard/:path*"],
+};`,
+        explanation:
+          "A single `middleware.js` file at the root of your project intercepts all matched routes globally in under 2 milliseconds.",
+        benefits: [
+          "Global protection with clean URL pattern matchers",
+          "Blazing fast Edge execution (under 2ms TTFB)",
+          "Inspects cookies, rewrites URLs, and sets custom headers seamlessly",
+        ],
+      },
+      whyDifferent:
+        "Next.js middleware runs on edge servers before routing resolution, acting as a programmable reverse proxy.",
+      mentalShiftSummary:
+        "Use `middleware.js` for fast global gatekeeping (auth redirects, geo-blocking, reverse proxying). Keep business logic in Server Actions.",
+    },
+
+    basicExample: {
+      title: "Global Authentication Guard Middleware in Plain JavaScript",
+      description: "Intercepting /admin and /dashboard routes globally to enforce authentication.",
+      language: "javascript",
+      filename: "middleware.js",
+      code: `// middleware.js (Pure JavaScript!)
+import { NextResponse } from "next/server";
+
+export function middleware(request) {
+  // Read session cookie:
+  const sessionToken = request.cookies.get("auth_session")?.value;
+  const { pathname } = request.nextUrl;
+
+  // If unauthenticated and visiting a protected route:
+  if (!sessionToken && (pathname.startsWith("/dashboard") || pathname.startsWith("/admin"))) {
+    // Redirect to login page:
+    const loginUrl = new URL("/login", request.url);
+    // Preserve where they were trying to go:
+    loginUrl.searchParams.set("from", pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  // Allow request to proceed:
+  return NextResponse.next();
+}
+
+// Only run middleware on dashboard, admin, and api routes:
+export const config = {
+  matcher: ["/dashboard/:path*", "/admin/:path*"],
 };`,
       explanation:
-        "This middleware runs for all incoming page requests, injecting custom headers before HTML rendering begins.",
-      outputPreview: "HTTP responses enriched with x-powered-by-int257 and x-client-device headers.",
+        "Line-by-line explanation:\n- Line 2: import { NextResponse } from 'next/server'; imports Next.js response helper tools.\n- Line 4: export function middleware(request) is the magic function that runs before incoming requests.\n- Line 6: request.cookies.get(...) reads the student's cookie wristband in 1 millisecond.\n- Line 10-16: If no cookie exists and the user is trying to enter /dashboard, the guard turns the car around with NextResponse.redirect(loginUrl).\n- Line 19: NextResponse.next() tells Next.js: 'All clear! Let them through to their page.'\n- Line 23-25: export const config = { matcher: [...] } restricts this check to only /dashboard and /admin routes so public images and CSS load instantly with zero delay!\n\nWhat happens in the browser?\n1. A logged-out user tries to access /dashboard/grades.\n2. Before the dashboard server component is even loaded, middleware.js intercepts the request at the edge.\n3. The user is redirected to /login?from=/dashboard/grades in under 2ms!\n4. Zero private HTML was generated or leaked!",
+      outputPreview: "Unauthenticated visits to /dashboard immediately redirect to /login with URL callback parameter.",
     },
 
     moreExamples: [
       {
-        title: "Edge Runtime vs Node.js Runtime",
-        description: "Configuring individual route handlers or pages to run at the Edge.",
-        language: "typescript",
-        filename: "src/app/api/edge-geo/route.ts",
-        code: `// Export runtime to run this API on global Edge compute:
-export const runtime = "edge";
+        title: "Reverse Proxy with NextResponse.rewrite() in Plain JavaScript",
+        description: "Serving content from another internal route while keeping the user's browser URL intact.",
+        language: "javascript",
+        filename: "middleware.js",
+        code: `// middleware.js (Pure JavaScript!)
+import { NextResponse } from "next/server";
 
-import { NextRequest, NextResponse } from "next/server";
+export function middleware(request) {
+  const { pathname } = request.nextUrl;
 
-export async function GET(request: NextRequest) {
-  return NextResponse.json({
-    message: "Computed at the Edge in <5ms",
-    ip: request.headers.get("x-forwarded-for") || "127.0.0.1",
-    timestamp: Date.now(),
-  });
+  // Multi-tenant subdomain rewrite:
+  // If user visits /university, silently serve /campus/main without changing URL!
+  if (pathname === "/university") {
+    return NextResponse.rewrite(new URL("/campus/main", request.url));
+  }
+
+  return NextResponse.next();
 }`,
         explanation:
-          "`export const runtime = 'edge'` shifts execution from Node.js serverless functions to ultra-lightweight V8 Edge isolates with near-zero cold starts.",
+          "Unlike `redirect()`, which changes the browser address bar, `rewrite()` keeps the URL unchanged while quietly serving HTML from another path behind the scenes.",
       },
     ],
 
     multipleWays: [
       {
-        name: "NextResponse.rewrite (Reverse Proxy)",
-        syntax: "return NextResponse.rewrite(new URL('/target', req.url))",
-        codeSnippet: `// Shows content from /target without changing browser URL`,
-        howItWorks: "Internally routes to a different page while keeping original URL in the browser address bar.",
-        pros: ["Seamless A/B testing and multi-tenant subdomains", "Invisible proxying"],
-        cons: ["Can cause caching confusion if headers are not set correctly"],
-        whenToUse: "For subdomains (tenant.app.com -> app.com/tenants/tenant) and URL aliasing.",
+        name: "NextResponse.redirect() (URL Changes)",
+        syntax: "NextResponse.redirect(new URL('/login', req.url))",
+        codeSnippet: "return NextResponse.redirect(new URL('/login', request.url));",
+        howItWorks: "Sends an HTTP 307 or 308 redirect status to the browser.",
+        pros: ["Browser address bar updates", "User clearly sees the new URL destination"],
+        cons: ["Forces the browser to initiate a new network roundtrip"],
+        whenToUse: "Unauthorized login redirects, permanent URL migrations.",
         isRecommended: true,
       },
       {
-        name: "NextResponse.redirect (HTTP 307/308)",
-        syntax: "return NextResponse.redirect(new URL('/new-url', req.url))",
-        codeSnippet: `// Redirects browser to /new-url`,
-        howItWorks: "Sends an HTTP redirect response instructing the browser to change URLs.",
-        pros: ["Browser address bar updates", "Standard SEO redirect"],
-        cons: ["Causes an extra network roundtrip"],
-        whenToUse: "For unauthorized access redirects, maintenance pages, or migrated URLs.",
+        name: "NextResponse.rewrite() (URL Stays Same)",
+        syntax: "NextResponse.rewrite(new URL('/target', req.url))",
+        codeSnippet: "return NextResponse.rewrite(new URL('/internal/feed', request.url));",
+        howItWorks: "Acts as a reverse proxy: serves another route's content without updating the browser URL.",
+        pros: ["Keeps clean, custom URLs", "Great for multi-tenant SaaS subdomains and A/B tests"],
+        cons: ["Can be harder to debug if you lose track of internal paths"],
+        whenToUse: "Custom domain mapping, multi-tenant subdomains, A/B testing variants.",
         isRecommended: true,
       },
     ],
 
     decisionGuide: {
-      recommendationSummary: "Use `rewrite()` when you want the browser URL to stay the same. Use `redirect()` when you want the browser URL to change.",
+      recommendationSummary: "Use redirect() when the user should see their URL change (like navigating to /login). Use rewrite() when serving subdomains or internal proxy paths without changing the browser URL.",
       scenarios: [
         {
-          scenario: "A user visits `ishika.platform.com` and you want to render `/profiles/ishika` internally",
-          recommendedApproach: "`NextResponse.rewrite(new URL('/profiles/ishika', req.url))`",
-          reason: "Preserves custom vanity domain in browser bar while serving internal route.",
+          scenario: "Logged-out visitor trying to access account billing",
+          recommendedApproach: "NextResponse.redirect(new URL('/login', req.url))",
+          reason: "User needs to know they are on the login screen.",
+        },
+        {
+          scenario: "Serving university subdomains: student.portal.com vs admin.portal.com",
+          recommendedApproach: "NextResponse.rewrite() based on hostname header",
+          reason: "Keeps the clean custom domain in the browser address bar.",
         },
       ],
     },
 
     commonMistakes: [
       {
-        mistakeTitle: "Using unsupported Node.js APIs (e.g. fs or crypto.createHash) in Edge Middleware",
-        badCode: `// ❌ BAD in middleware.ts:
-import fs from "fs"; // Runtime Error: 'fs' module not found in Edge Runtime!`,
-        goodCode: `// ✅ GOOD: Use standard Web APIs (fetch, crypto.subtle, TextEncoder)
-const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("data"));`,
-        whyItBreaks: "Middleware runs on the V8 Edge Runtime which supports Web standards (fetch, Request, Response), not Node.js native filesystem modules.",
-        howToFix: "Use standard Web APIs inside `middleware.ts`.",
+        mistakeTitle: "Running heavy database queries or Node.js fs modules inside middleware.js",
+        badCode: `// ❌ BAD: Trying to query Prisma or read filesystem inside middleware.js
+import { db } from "@/lib/db";
+export async function middleware() {
+  const user = await db.user.findFirst(); // 💥 Error: Edge runtime does not support TCP sockets!
+}`,
+        goodCode: `// ✅ GOOD: Keep middleware lightweight; inspect cookies and headers only
+export function middleware(request) {
+  const token = request.cookies.get("session");
+  if (!token) return NextResponse.redirect(new URL("/login", request.url));
+}`,
+        whyItBreaks: "Middleware runs on the lightweight Edge runtime, which lacks Node.js filesystem modules and heavy database connection drivers.",
+        howToFix: "Only inspect cookies, headers, and URL paths in middleware. Run heavy database queries inside Server Components or Server Actions.",
       },
     ],
 
     bestPractices: [
       {
-        title: "Use Negative Regex Matchers to Skip Static Assets",
-        rule: "Configure `matcher: ['/((?!_next/static|_next/image|favicon.ico).*)']` in middleware.",
-        explanation: "Prevents middleware from running unnecessarily on static CSS, JS, and image assets, saving compute costs.",
+        title: "Always Use Explicit Matchers",
+        rule: "Configure export const config = { matcher: [...] } to exclude static assets, favicon, and public images.",
+        explanation: "This avoids wasting edge execution compute on static image files.",
       },
     ],
 
     exercises: [
       {
         id: "u6-ex-2",
-        title: "Build an Edge Security Header Middleware",
+        title: "Build a Custom Header Middleware",
         difficulty: "easy",
         estimatedMinutes: 6,
         prompt:
-          "Write a middleware function that adds `X-Frame-Options: DENY` and `X-Content-Type-Options: nosniff` headers to every response.",
-        initialCode: `import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+          "Write a middleware function in middleware.js in plain JavaScript that adds a custom response header 'X-Campus-Region': 'Asia-South' to every request using `NextResponse.next()`.",
+        initialCode: `// middleware.js
+import { NextResponse } from "next/server";
 
-export function middleware(request: NextRequest) {
-  // TODO: Add security headers to response
+export function middleware(request) {
+  // TODO: Add custom response header
   return NextResponse.next();
 }`,
-        expectedOutput: "A middleware function applying HTTP security headers.",
-        hints: ["`const response = NextResponse.next();`", "`response.headers.set('X-Frame-Options', 'DENY');`"],
-        solutionCode: `import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+        expectedOutput: "Middleware adding a custom header to all outgoing responses.",
+        hints: ["Create `const res = NextResponse.next();` and call `res.headers.set(...)`"],
+        solutionCode: `// middleware.js
+import { NextResponse } from "next/server";
 
-export function middleware(request: NextRequest) {
+export function middleware(request) {
   const response = NextResponse.next();
-
-  response.headers.set("X-Frame-Options", "DENY");
-  response.headers.set("X-Content-Type-Options", "nosniff");
-  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-
+  response.headers.set("X-Campus-Region", "Asia-South");
   return response;
-}
-
-export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
-};`,
-        solutionExplanation:
-          "Applying security headers at the Edge protects the application against clickjacking and MIME-type sniffing attacks.",
+}`,
+        solutionExplanation: "NextResponse.next() continues request execution while allowing response header injection.",
       },
     ],
 
     quizzes: [
       {
         id: "u6-q2",
-        question: "What is the difference between NextResponse.rewrite() and NextResponse.redirect()?",
-        syllabusTopic: "Middleware Rewrite vs Redirect",
+        syllabusTopic: "Middleware & Reverse Proxy",
+        question: "What is the key difference between NextResponse.rewrite() and NextResponse.redirect()?",
+        conceptualExplanation: "rewrite() serves alternate content internally without modifying the browser URL (reverse proxy), whereas redirect() sends an HTTP redirect that changes the browser URL.",
         options: [
           { id: "a", text: "rewrite() changes the rendered content internally without modifying the browser URL; redirect() instructs the browser to navigate to a new URL", isCorrect: true, explanation: "Correct! rewrite is a reverse proxy (URL stays same); redirect sends a 307/308 status (URL changes)." },
           { id: "b", text: "rewrite() is only for CSS files", isCorrect: false, explanation: "No." },
           { id: "c", text: "redirect() deletes the user's cookies", isCorrect: false, explanation: "No." },
           { id: "d", text: "They are 100% identical", isCorrect: false, explanation: "No." },
         ],
-        conceptualExplanation:
-          "`NextResponse.rewrite()` performs a server-side reverse proxy without altering the browser address bar. `NextResponse.redirect()` sends an HTTP redirect header that updates the client URL.",
       },
     ],
 
     realWorldExample: {
-      domain: "Global Multi-Region SaaS Multi-Tenancy",
-      description: "How platforms map custom subdomains (`acme.saas.com` -> `/tenants/acme`) using Edge rewrites.",
+      domain: "Global SaaS Subdomain Multi-Tenancy",
+      description: "How platforms like Notion or Slack route custom team subdomains to appropriate accounts.",
       code: {
-        title: "Subdomain Multi-Tenant Rewriter",
-        description: "Dynamic subdomain proxying in middleware.",
-        language: "typescript",
-        filename: "src/middleware.ts",
-        code: `export function middleware(req: any) {
-  const hostname = req.headers.get("host") || "";
+        title: "Subdomain Tenant Router",
+        description: "Middleware routing subdomains to tenant folders in plain JavaScript.",
+        language: "javascript",
+        filename: "middleware.js",
+        code: `import { NextResponse } from "next/server";
+
+export function middleware(request) {
+  const hostname = request.headers.get("host") || "";
   const subdomain = hostname.split(".")[0];
 
-  if (subdomain && subdomain !== "www" && subdomain !== "localhost:3000") {
-    return NextResponse.rewrite(new URL(\`/tenants/\${subdomain}\${req.nextUrl.pathname}\`, req.url));
+  // If visiting student.domain.com, rewrite to /tenants/student:
+  if (subdomain && subdomain !== "www") {
+    return NextResponse.rewrite(new URL(\`/tenants/\${subdomain}\`, request.url));
   }
+
   return NextResponse.next();
 }`,
       },
-      keyTakeaway: "Subdomain rewrites allow building multi-tenant SaaS platforms on a single unified Next.js codebase.",
+      keyTakeaway: "Reverse proxy rewrites enable clean multi-tenant architectures without managing hundreds of individual DNS server records.",
     },
 
     combinedExample: {
-      combinedTopics: ["Middleware", "Edge Runtime", "Security Headers"],
-      title: "Edge Gateway Architecture",
-      description: "How Edge Middleware serves as the single secure entry point for all application traffic.",
+      combinedTopics: ["Middleware", "Authentication", "Edge"],
+      title: "Edge Security Gate with Route Filtering",
+      description: "A complete production middleware securing /admin routes.",
       code: {
-        title: "Edge Gateway Flow",
-        description: "Architectural overview.",
-        language: "typescript",
-        filename: "Edge Gateway",
-        code: `// Client Browser Request -> [Edge Middleware (5ms)]
-// 1. Verifies Auth Cookies
-// 2. Injects Security Headers
-// 3. Performs Subdomain / Path Rewrites
-// -> Dispatches to Server Components / Route Handlers`,
+        title: "Production Gatekeeper",
+        description: "Edge authentication check with matcher configuration.",
+        language: "javascript",
+        filename: "middleware.js",
+        code: `import { NextResponse } from "next/server";
+
+export function middleware(request) {
+  const token = request.cookies.get("auth_token");
+
+  if (!token) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: ["/admin/:path*"],
+};`,
       },
       stepByStepFlow: [
-        "Client sends request to `app.com/dashboard`",
-        "Edge Middleware intercepts in nearest data center (<10ms)",
-        "Applies security headers and checks session validity",
-        "Passes to Server Component for HTML generation",
+        "Incoming HTTP request hits Cloudflare / Vercel Edge node",
+        "middleware.js executes in 1ms",
+        "Checks for presence of auth_token cookie",
+        "If missing, immediately redirects to /login",
       ],
     },
   },
@@ -593,289 +608,301 @@ export const config = {
   {
     id: "i18n-and-architecture",
     unitId: "unit-6",
-    title: "Internationalization (i18n) & Project Architecture",
-    shortSummary: "Master multi-language routing with dictionaries (/[lang]/page.tsx) and scalable feature-driven folder architecture.",
+    title: "Internationalization (i18n) & Feature Architecture",
+    shortSummary: "ADVANCED TOPIC: Learn multi-language routing with dictionaries (/[lang]/page.js) and clean, scalable feature folder architecture in plain JavaScript.",
     order: 3,
-    tags: ["i18n", "Localization", "Architecture", "Folder Organization", "Clean Code"],
+    tags: ["i18n", "Localization", "Architecture", "Dictionaries", "Feature Folders", "Advanced"],
 
     simpleExplanation:
-      "If you want your website to be used by students in India, Japan, France, and Germany, you need **Internationalization (i18n)**. In Next.js App Router, you do this by creating a dynamic route folder named `[lang]`. When someone visits `/en/units`, they see English; when they visit `/es/units`, they see Spanish! You load lightweight JSON translation dictionaries on the server without shipping megabytes of client translation packages. **Scalable Architecture** means organizing your codebase by features (`features/courses`, `features/quizzes`) so your project stays clean as it grows to 50,000 lines of code.",
+      "*(Note to students: This is an ADVANCED topic!)*\n\n" +
+      "Imagine visiting an international airport:\n\n" +
+      "1. **The Multilingual Tour Guide (i18n Dictionaries)**:\n" +
+      "When travelers arrive from different countries, the airport doesn't rebuild the entire building for each language! The airport simply has signboards with translation dictionaries: English (\`en\`), Spanish (\`es\`), and Hindi (\`hi\`). In Next.js, we put our pages in an \`app/[lang]/\` folder! The server reads simple JSON dictionary files (\`en.json\`, \`hi.json\`) and renders the page in the visitor's preferred language with 0 KB client bundle penalty!\n\n" +
+      "2. **Scalable Feature-Driven Architecture**:\n" +
+      "When a project grows to 100+ files, dumping all components into one giant \`components/\` folder is like throwing all your clothes into one messy laundry pile! Instead, we organize code by **Features**:\n" +
+      "  \`src/features/courses/\` (components, actions, hooks for courses)\n" +
+      "  \`src/features/students/\` (components, actions, hooks for students)\n" +
+      "  \`src/features/auth/\` (components, actions, hooks for auth)\n" +
+      "Everything related to a feature lives in its own neat backpack!",
 
     whyNeeded:
-      "Unstructured spaghetti codebases slow down team development and make refactoring terrifying. Proper architecture and native i18n support make web applications world-ready and maintainable.",
+      "Enterprise web applications serve users across multiple countries and languages. Server-side i18n dictionaries ensure 100% SEO indexing for each language while keeping client bundle sizes ultra-small.",
 
     reactVsNext: {
-      concept: "Multi-Language Localization",
+      concept: "Multi-Language & Architecture Strategy",
       reactWay: {
-        title: "React i18next (Heavy Client Bundle)",
-        code: `// Traditional React i18next:
+        title: "Client-Bundled Translation Dictionaries",
+        code: `// Traditional client-side approach:
 import i18n from "i18next";
-import { useTranslation } from "react-i18next";
-
-// Downloads ALL translation dictionaries for all languages to user's browser:
-function Header() {
-  const { t } = useTranslation();
-  return <h1>{t("welcome_message")}</h1>;
-}`,
+// ⚠️ Mobile users download English, French, Japanese, and Hindi dictionaries
+// even if they only read English! (Adds 300KB+ of unused JSON to phone bundle)`,
         explanation:
-          "In vanilla React, localization libraries often bundle all language JSON files into the client bundle, increasing download size for every user.",
+          "Traditional client-side i18n libraries download giant translation dictionaries into the user's browser, slowing down initial load time.",
         drawbacks: [
-          "Wasted mobile bandwidth downloading unused languages",
-          "URL does not reflect language (/about instead of /en/about or /es/about)",
-          "Search engines cannot crawl language variants properly",
+          "Users download translation bundles for languages they don't even speak",
+          "Search engines cannot index localized URLs properly",
+          "Messy monolithic folder structures",
         ],
       },
       nextjsWay: {
-        title: "Next.js Server-Side Dictionary i18n",
-        code: `// File: src/app/[lang]/page.tsx
-// Zero client bundle impact! Loads ONLY the requested language dictionary on the server.
-
+        title: "Next.js Server Dictionaries (0 KB Client Bundle)",
+        code: `// src/app/[lang]/page.js (Pure JavaScript!)
+// 1. Simple server translation dictionary loader:
 const dictionaries = {
-  en: () => import("@/dictionaries/en.json").then((m) => m.default),
-  es: () => import("@/dictionaries/es.json").then((m) => m.default),
+  en: () => import("@/dictionaries/en.json").then(m => m.default),
+  hi: () => import("@/dictionaries/hi.json").then(m => m.default),
 };
 
-export default async function HomePage({ params }: { params: Promise<{ lang: "en" | "es" }> }) {
+export default async function LocalizedPage({ params }) {
   const { lang } = await params;
+  // Load ONLY the dictionary for the requested language on the server:
   const dict = await dictionaries[lang]();
 
-  return <h1>{dict.welcomeMessage}</h1>;
+  return (
+    <div>
+      <h1>{dict.welcome}</h1>
+      <p>{dict.description}</p>
+    </div>
+  );
 }`,
         explanation:
-          "Next.js loads only the dictionary for the active language on the server, sending translated HTML to the browser with zero client i18n library overhead.",
+          "Next.js loads the exact translation dictionary requested on the server, injecting translated text into the HTML with 0 KB extra client JavaScript.",
         benefits: [
-          "0 KB client localization bundle size",
-          "Clean subpath routing (`/en`, `/es`, `/hi`) for top SEO indexability",
-          "Instant server-rendered translations",
+          "Zero client bundle weight for translation libraries",
+          "Each language gets its own indexed URL (e.g. /en/about vs /hi/about)",
+          "Clean scalable feature-based folder organization",
         ],
       },
       whyDifferent:
-        "Next.js combines dynamic route segments (`[lang]`) with dynamic server imports, eliminating client-side translation overhead.",
+        "Next.js handles internationalization on the server using dynamic route folders (`[lang]`) and dynamic JSON imports.",
       mentalShiftSummary:
-        "Use `app/[lang]/` folder and load language JSON files server-side with `import('@/dictionaries/' + lang)`.",
+        "Don't download heavy i18n libraries to the browser. Use `app/[lang]/` and load language dictionaries on the server.",
     },
 
     basicExample: {
-      title: "Dictionary-Based Multi-Language Component",
-      description: "Loading localized copy server-side with TypeScript dictionaries.",
-      language: "tsx",
-      filename: "src/app/[lang]/units/page.tsx",
-      code: `// src/app/[lang]/units/page.tsx
-interface PageProps {
-  params: Promise<{ lang: "en" | "es" | "hi" }>;
-}
+      title: "Multilingual Course Page with Server Dictionaries in Plain JavaScript",
+      description: "A complete localized Server Component loading dictionary phrases based on the [lang] route param.",
+      language: "jsx",
+      filename: "src/app/[lang]/courses/page.js",
+      code: `// src/app/[lang]/courses/page.js
 
-const mockDict = {
-  en: { title: "INT257 Syllabus", subtitle: "Learn Next.js App Router" },
-  es: { title: "Programa INT257", subtitle: "Aprende Next.js App Router" },
-  hi: { title: "INT257 पाठ्यक्रम", subtitle: "Next.js ऐप राउटर सीखें" },
+// Simple in-memory translation dictionaries:
+const dictionaries = {
+  en: {
+    title: "University Courses",
+    subtitle: "Explore our accredited degree programs.",
+    exploreBtn: "Explore Syllabus",
+  },
+  es: {
+    title: "Cursos Universitarios",
+    subtitle: "Explora nuestros programas de grado acreditados.",
+    exploreBtn: "Explorar Plan de Estudios",
+  },
+  hi: {
+    title: "विश्वविद्यालय पाठ्यक्रम",
+    subtitle: "हमारे मान्यता प्राप्त डिग्री कार्यक्रमों को देखें।",
+    exploreBtn: "पाठ्यक्रम देखें",
+  },
 };
 
-export default async function UnitsI18nPage({ params }: PageProps) {
-  const { lang } = await params;
-  const dict = mockDict[lang] || mockDict.en;
+export default async function LocalizedCoursesPage({ params }) {
+  const { lang = "en" } = await params;
+  const dict = dictionaries[lang] || dictionaries.en;
 
   return (
-    <div className="p-6 bg-zinc-900 border border-zinc-800 rounded-2xl space-y-3">
-      <span className="text-xs font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400">
-        Locale: {lang.toUpperCase()}
-      </span>
-      <h1 className="text-2xl font-bold text-zinc-100">{dict.title}</h1>
-      <p className="text-zinc-400 text-sm">{dict.subtitle}</p>
+    <div className="max-w-2xl mx-auto p-8 space-y-6">
+      <div className="border-b border-zinc-800 pb-4">
+        <span className="text-xs font-mono uppercase text-emerald-400">
+          Language: {lang.toUpperCase()}
+        </span>
+        <h1 className="text-3xl font-extrabold text-zinc-100 mt-1">{dict.title}</h1>
+        <p className="text-zinc-400 text-sm mt-1">{dict.subtitle}</p>
+      </div>
+
+      <button className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-medium transition-colors">
+        {dict.exploreBtn}
+      </button>
     </div>
   );
 }`,
       explanation:
-        "When visiting `/hi/units`, the server renders Hindi headings; when visiting `/en/units`, it renders English, all from the same page component.",
-      outputPreview: "Localized syllabus card rendered dynamically based on URL language prefix.",
+        "Line-by-line explanation:\n- Line 4-21: Plain JavaScript dictionary objects for English, Spanish, and Hindi.\n- Line 23: export default async function LocalizedCoursesPage({ params }) receives the [lang] folder parameter.\n- Line 25: const dict = dictionaries[lang] || dictionaries.en; selects the matching translation with an English fallback.\n- Line 28-40: Renders the pre-translated HTML directly on the server!\n\nWhat happens in the browser?\n1. A student navigates to /hi/courses.\n2. The server loads the Hindi dictionary and generates HTML with Hindi text.\n3. The browser receives translated HTML with ZERO translation library bytes downloaded to their phone!",
+      outputPreview: "Clean course page rendered in the selected language with zero client bundle overhead.",
     },
 
     moreExamples: [
       {
-        title: "Enterprise Project Folder Architecture",
-        description: "Best practice folder structure for large-scale Next.js full-stack applications.",
-        language: "typescript",
-        filename: "Scalable Project Architecture",
-        code: `src/
-├── app/                  # Routing & Layouts ONLY (Keep thin!)
-│   ├── (marketing)/      # Route Group for public pages
-│   ├── (dashboard)/      # Route Group for app pages
-│   └── api/              # Route Handlers
-├── components/           # Reusable UI Design System
-│   ├── ui/               # Atomic buttons, inputs, modals, cards
-│   └── layout/           # Header, Footer, Sidebar, Navigation
-├── features/             # Feature-Driven Modules (Clean Code!)
-│   ├── courses/          # Course components, hooks, types, actions
-│   ├── quizzes/          # Quiz widgets, state machines, quiz actions
-│   └── auth/             # Session helpers, guards, permission models
-├── lib/                  # Shared utilities, database client, Supabase
-├── types/                # Core TypeScript interfaces
-└── actions/              # Server Actions (Mutations)`,
+        title: "Scalable Feature-Driven Folder Structure",
+        description: "How to structure large-scale production Next.js repositories.",
+        language: "bash",
+        filename: "ProjectStructure",
+        code: `my-enterprise-app/
+├── src/
+│   ├── app/                     # Routing Only (Thin wrappers!)
+│   │   ├── [lang]/
+│   │   │   ├── courses/page.js
+│   │   │   └── students/page.js
+│   ├── features/                # Domain-Driven Feature Modules:
+│   │   ├── courses/
+│   │   │   ├── components/CourseCard.js
+│   │   │   ├── actions/courseActions.js
+│   │   │   └── lib/queries.js
+│   │   └── students/
+│   │       ├── components/StudentTable.js
+│   │       └── actions/studentActions.js
+│   ├── components/ui/           # Shared generic UI (Button, Modal, Input)
+│   └── lib/                     # Global utilities (db.js, supabase.js)`,
         explanation:
-          "Organizing code into `features/` isolates related components, Server Actions, and types together, making codebases easy to scale.",
+          "Keeping page.js files thin and placing business logic inside feature folders (`src/features/`) ensures maintainability as teams grow.",
       },
     ],
 
     multipleWays: [
       {
-        name: "Subpath Routing (/[lang]/... - Recommended)",
-        syntax: "src/app/[lang]/page.tsx",
-        codeSnippet: `export default async function Page({ params }) { ... }`,
-        howItWorks: "Embeds locale directly into URL path.",
-        pros: ["Best for SEO", "Shareable localized links", "Server Component friendly"],
-        cons: ["Requires wrapping top-level routes in [lang] folder"],
-        whenToUse: "For all multi-language public websites and portals.",
+        name: "Route-Based i18n (/[lang]/page.js - Recommended)",
+        syntax: "src/app/[lang]/page.js",
+        codeSnippet: "export default async function Page({ params }) { const { lang } = await params; }",
+        howItWorks: "Language code lives in the URL path, loading server dictionaries on demand.",
+        pros: ["100% SEO friendly (Google indexes each language separately)", "0 KB client bundle"],
+        cons: ["Requires wrapping top-level routes inside a [lang] directory"],
+        whenToUse: "Global websites, marketing portals, multi-country documentation.",
         isRecommended: true,
+      },
+      {
+        name: "Cookie-Based Localization",
+        syntax: "cookies().get('preferred_language')",
+        codeSnippet: "const lang = (await cookies()).get('lang')?.value || 'en';",
+        howItWorks: "Inspects cookie to determine language without changing URL path.",
+        pros: ["Clean URLs without /en/ or /es/ prefixes"],
+        cons: ["Worse for SEO because search engines see only one default language at root URL"],
+        whenToUse: "Internal private intranets and authenticated dashboards.",
       },
     ],
 
     decisionGuide: {
-      recommendationSummary: "Use `[lang]` subpath routing with server-side dictionary loading for modern multilingual web applications.",
+      recommendationSummary: "Use route-based `app/[lang]/` for public websites needing multi-language SEO. Use feature-driven folder structures (`src/features/`) for projects with more than 15 pages.",
       scenarios: [
         {
-          scenario: "You need to support English and Hindi for university students",
-          recommendedApproach: "Subpath `src/app/[lang]/` with dictionary imports",
-          reason: "Delivers pre-rendered HTML in the student's chosen language with zero client bundle penalty.",
+          scenario: "Public university website serving international students in English, French, and Spanish",
+          recommendedApproach: "app/[lang]/ with server dictionaries",
+          reason: "Enables Google to index localized pages separately for optimal regional search rankings.",
+        },
+        {
+          scenario: "Refactoring a messy 50-file React codebase",
+          recommendedApproach: "Feature folders: src/features/{auth, courses, billing}",
+          reason: "Groups related components, actions, and utilities together for easy maintenance.",
         },
       ],
     },
 
     commonMistakes: [
       {
-        mistakeTitle: "Putting all business logic and database queries directly in page.tsx",
-        badCode: `// ❌ BAD: 500 lines of SQL, form handling, and UI jammed in page.tsx`,
-        goodCode: `// ✅ GOOD: Keep page.tsx thin; extract logic to actions/ and components/`,
-        whyItBreaks: "Monolithic page files are difficult to test, impossible to reuse, and hard to maintain.",
-        howToFix: "Delegate data mutations to `src/actions/` and reusable UI to `src/components/`.",
+        mistakeTitle: "Putting all database queries and business logic directly in page.js",
+        badCode: `// ❌ BAD: 400 lines of SQL, form handlers, and raw styles jammed in page.js`,
+        goodCode: `// ✅ GOOD: Keep page.js thin; extract logic to actions/ and components/
+import { StudentTable } from "@/features/students/components/StudentTable";
+export default async function Page() { return <StudentTable />; }`,
+        whyItBreaks: "Fat page files are difficult to test, impossible to reuse, and lead to merge conflicts in team environments.",
+        howToFix: "Keep `page.js` files under 40 lines. Delegate logic to dedicated feature modules.",
       },
     ],
 
     bestPractices: [
       {
-        title: "Use Route Groups (parentheses) to Organize Without Affecting URLs",
-        rule: "Use `(marketing)` and `(dashboard)` folders to group layouts without adding `/marketing` to the URL.",
-        explanation: "Keeps your folder structure organized while maintaining clean public URLs.",
+        title: "Group by Feature, Not by File Type",
+        rule: "Colocate components, actions, and tests inside feature folders (src/features/courses/) rather than dumping them into a global actions/ directory.",
+        explanation: "Feature grouping makes deleting or refactoring entire features effortless.",
       },
     ],
 
     exercises: [
       {
         id: "u6-ex-3",
-        title: "Create a Language Switcher Component",
+        title: "Build a Localized Welcome Header",
         difficulty: "easy",
         estimatedMinutes: 6,
         prompt:
-          "Create a Client Component `LanguageSwitcher` that replaces the current `[lang]` segment in the URL using `usePathname()` and `<Link>`.",
-        initialCode: `// TODO: Create LanguageSwitcher component
-"use client";
-
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-
-export function LanguageSwitcher() {
-  const pathname = usePathname();
-
-  // TODO: Render links for EN, ES, HI
-  return <div className="flex gap-2">{/* Add links */}</div>;
+          "Write a Server Component in src/app/[lang]/welcome/page.js in plain JavaScript that reads `params.lang` and renders 'Welcome' if 'en' or 'Bienvenido' if 'es'.",
+        initialCode: `// src/app/[lang]/welcome/page.js
+export default async function WelcomePage({ params }) {
+  // TODO: Check lang and render greeting
+  return <h1>Greeting</h1>;
 }`,
-        expectedOutput: "A pill selector switching language prefixes in the URL.",
-        hints: ["Replace the first segment of `pathname` with the new locale"],
-        solutionCode: `"use client";
+        expectedOutput: "A component returning localized greetings based on route parameter.",
+        hints: ["Destructure `{ lang }` from `await params`"],
+        solutionCode: `// src/app/[lang]/welcome/page.js
+export default async function WelcomePage({ params }) {
+  const { lang } = await params;
+  const greeting = lang === "es" ? "Bienvenido" : "Welcome";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-
-export function LanguageSwitcher() {
-  const pathname = usePathname();
-
-  const getLocalizedPath = (targetLang: string) => {
-    if (!pathname) return \`/\${targetLang}\`;
-    const segments = pathname.split("/");
-    segments[1] = targetLang; // Replace locale segment
-    return segments.join("/") || \`/\${targetLang}\`;
-  };
-
-  return (
-    <div className="flex items-center gap-1.5 p-1 bg-zinc-900 border border-zinc-800 rounded-xl">
-      {["en", "es", "hi"].map((lang) => (
-        <Link
-          key={lang}
-          href={getLocalizedPath(lang)}
-          className="px-2.5 py-1 text-xs font-mono uppercase rounded-lg text-zinc-300 hover:bg-zinc-800 hover:text-zinc-100 transition-colors"
-        >
-          {lang}
-        </Link>
-      ))}
-    </div>
-  );
+  return <h1 className="text-2xl font-bold">{greeting}</h1>;
 }`,
-        solutionExplanation:
-          "This component updates the locale prefix in the URL dynamically, triggering Next.js server-side re-rendering with the new language dictionary.",
+        solutionExplanation: "The route param [lang] is read asynchronously on the server to select the greeting.",
       },
     ],
 
     quizzes: [
       {
         id: "u6-q3",
-        question: "Why is server-side dictionary localization better than client-side i18next in Next.js?",
-        syllabusTopic: "Next.js i18n Architecture",
+        syllabusTopic: "Internationalization (i18n)",
+        question: "Why is server-side dictionary loading (app/[lang]/) superior to client-side i18n libraries?",
+        conceptualExplanation: "Server dictionaries load only the requested language on the server, avoiding sending massive multi-language JSON bundles to the client while preserving perfect SEO.",
         options: [
           { id: "a", text: "It only downloads the active language on the server, resulting in 0 KB client i18n bundle size and complete SEO indexing", isCorrect: true, explanation: "Correct! Next.js loads the exact translation dictionary on the server and delivers pre-rendered HTML." },
           { id: "b", text: "Because English is the only language permitted on the web", isCorrect: false, explanation: "No." },
           { id: "c", text: "Because JSON files are encrypted by the browser", isCorrect: false, explanation: "No." },
           { id: "d", text: "To turn off the database", isCorrect: false, explanation: "No." },
         ],
-        conceptualExplanation:
-          "Server-side dictionary loading eliminates client localization libraries and sends ready-to-display localized HTML for maximum speed and SEO crawlability.",
       },
     ],
 
     realWorldExample: {
-      domain: "Global University Online Education",
-      description: "How international course platforms serve course outlines in 12 languages with zero latency.",
+      domain: "Global Learning Management System",
+      description: "How an educational portal serves 20 languages with zero client bundle overhead.",
       code: {
-        title: "Localized Course Module",
-        description: "Dynamic dictionary loader.",
-        language: "typescript",
-        filename: "src/lib/getDictionary.ts",
-        code: `export async function getDictionary(locale: string) {
-  switch (locale) {
-    case "es": return import("@/dictionaries/es.json").then(m => m.default);
-    case "hi": return import("@/dictionaries/hi.json").then(m => m.default);
-    default: return import("@/dictionaries/en.json").then(m => m.default);
-  }
+        title: "Localized Course Directory Page",
+        description: "Server dictionary loading based on language param in plain JavaScript.",
+        language: "jsx",
+        filename: "src/app/[lang]/courses/page.js",
+        code: `export default async function LocalizedCourseCatalog({ params }) {
+  const { lang } = await params;
+  const dictionary = await import(\`@/dictionaries/\${lang}.json\`).then(m => m.default);
+
+  return (
+    <div>
+      <h1>{dictionary.catalogHeading}</h1>
+      <p>{dictionary.catalogDescription}</p>
+    </div>
+  );
 }`,
       },
-      keyTakeaway: "Dynamic module imports allow bundling each language dictionary into its own tiny independent chunk.",
+      keyTakeaway: "Dynamic server dictionary imports load only the requested language for each visitor.",
     },
 
     combinedExample: {
-      combinedTopics: ["i18n Subpaths", "Route Groups", "Feature Architecture"],
-      title: "Full Internationalized Enterprise Directory",
-      description: "Combining clean feature folders with multi-language routing.",
+      combinedTopics: ["i18n", "Metadata", "Layouts"],
+      title: "Multilingual Layout with HTML Lang Attribute",
+      description: "Root layout setting proper HTML lang attribute dynamically.",
       code: {
-        title: "Architectural Layout",
-        description: "Full directory tree.",
-        language: "typescript",
-        filename: "Enterprise Architecture",
-        code: `src/
-├── app/
-│   └── [lang]/
-│       ├── layout.tsx         # Injects <html lang={params.lang}>
-│       ├── page.tsx           # Home view in selected language
-│       └── units/
-│           └── [unitId]/
-│               └── page.tsx   # Localized lesson content
-├── dictionaries/
-│   ├── en.json
-│   ├── es.json
-│   └── hi.json`,
+        title: "Localized HTML Shell",
+        description: "Injecting params.lang into HTML tag in plain JavaScript.",
+        language: "jsx",
+        filename: "src/app/[lang]/layout.js",
+        code: `export default async function RootLayout({ children, params }) {
+  const { lang } = await params;
+
+  return (
+    <html lang={lang}>
+      <body className="bg-zinc-950 text-zinc-100">{children}</body>
+    </html>
+  );
+}`,
       },
       stepByStepFlow: [
-        "User navigates to `/hi/units/unit-1`",
-        "Root layout sets `<html lang='hi'>`",
-        "`getDictionary('hi')` loads Hindi string mappings on server",
-        "User receives fast, fully translated HTML with zero client overhead",
+        "Visitor enters /es/courses",
+        "Layout receives lang = 'es' from params",
+        "HTML shell renders with <html lang='es'>",
+        "Screen readers and search bots adapt instantly to Spanish",
       ],
     },
   },
@@ -883,292 +910,286 @@ export function LanguageSwitcher() {
   {
     id: "security-and-testing",
     unitId: "unit-6",
-    title: "Security Hardening & Testing Strategies",
-    shortSummary: "Master web security (XSS, CSRF, CSP headers, rate limiting) and testing overview (Unit testing with Vitest, Component testing, and E2E with Playwright).",
+    title: "Security Hardening, Sanitization & Unit Testing",
+    shortSummary: "ADVANCED TOPIC: Learn web security using the Castle Moat analogy: XSS auto-escaping in JSX, CSRF prevention, CSP headers, and unit testing in plain JavaScript.",
     order: 4,
-    tags: ["Security", "Testing", "XSS", "CSRF", "CSP", "Vitest", "Playwright", "Rate Limiting"],
+    tags: ["Security", "XSS", "CSRF", "Testing", "Vitest", "Jest", "Advanced"],
 
     simpleExplanation:
-      "Building a web application is only half the battle; ensuring it is secure against hackers and doesn't break when you release new code is the other half! **Web Security** involves protecting your app against Cross-Site Scripting (XSS), SQL Injection, and Cross-Site Request Forgery (CSRF). Next.js provides built-in protections like JSX auto-escaping, Server Actions CSRF tokens, and Content Security Policy (CSP) headers. **Testing** ensures confidence: **Unit Tests** test single functions (like a price calculator), **Component Tests** test UI buttons and forms (React Testing Library), and **End-to-End (E2E) Tests** (Playwright) automate a robot browser that clicks through your entire website to verify everything works before deployment!",
+      "*(Note to students: This is an ADVANCED topic!)*\n\n" +
+      "Imagine protecting a royal medieval castle:\n\n" +
+      "1. **The Castle Moat (XSS Defense)**:\n" +
+      "Cross-Site Scripting (XSS) is when a malicious hacker tries to type `<script>stealPasswords()</script>` into a comment box. In Next.js JSX, the template engine acts like a **bulletproof glass shield**! If someone enters `<script>`, React automatically converts it into harmless text string `&lt;script&gt;` so the browser never runs the script! The only dangerous exception is if you mistakenly use `dangerouslySetInnerHTML`.\n\n" +
+      "2. **The Guard Dog (CSRF Defense in Server Actions)**:\n" +
+      "Cross-Site Request Forgery (CSRF) is when a hacker tricks you into clicking a link on an evil website that submits a form to your bank. Next.js Server Actions automatically inspect the `Origin` and `Host` headers to verify that the form was truly submitted from YOUR website!\n\n" +
+      "3. **The Fire Drill (Unit Testing in Plain JavaScript)**:\n" +
+      "Before an airplane flies with 300 passengers, engineers test every engine bolt in a lab. In web development, **Unit Testing** means writing simple JavaScript checks: 'If I calculate student grade for 95%, does it return A? If I pass empty string, does it return an error?'\n\n" +
+      "Testing in plain JavaScript with tools like Vitest or Jest is as simple as writing:\n" +
+      "`expect(calculateGrade(95)).toBe('A')`!",
 
     whyNeeded:
-      "Security vulnerabilities lead to leaked student records and compromised databases. Untested applications crash in production when edge cases occur. Security hardening and automated testing are essential engineering practices.",
+      "A single security vulnerability can compromise student records, expose credit cards, and cause catastrophic data theft. Automated testing guarantees that adding new features doesn't secretly break existing calculations.",
 
     reactVsNext: {
-      concept: "Security & Testing Pipeline",
+      concept: "Security Hardening & Testing",
       reactWay: {
-        title: "Manual Frontend CSRF & Vitest Setup",
-        code: `// Traditional React requires manual CSRF token management:
-// Must fetch CSRF token from backend and inject into every fetch header!
-fetch('/api/submit', {
-  method: 'POST',
-  headers: {
-    'X-CSRF-Token': getCsrfTokenFromCookie(),
-  },
-  body: JSON.stringify(data)
+        title: "Manual Server Security Headers",
+        code: `// Traditional client-side approach:
+// You must manually configure security headers on Nginx or Apache
+// and manually wire up CSRF tokens for every fetch call:
+fetch("/api/transfer", {
+  headers: { "X-CSRF-Token": getCsrfToken() }, // ⚠️ Easy to forget!
 });`,
         explanation:
-          "In traditional client-only React, developers must manually coordinate anti-CSRF tokens with an Express server and configure complex mock servers for testing.",
+          "Traditional frontend apps require manual CSRF token plumbing and custom server security configurations.",
         drawbacks: [
-          "Manual CSRF token synchronization",
-          "Difficult to test Server-Side Rendering output in standard client test runners",
+          "Easy to forget CSRF tokens on custom fetch requests",
+          "No built-in security header helper in SPA bundlers",
+          "Complicated test setup requiring jsdom configuration",
         ],
       },
       nextjsWay: {
-        title: "Next.js Built-in Security & Unified Testing",
-        code: `// 1. Built-in Server Action CSRF Protection:
-// Next.js automatically verifies Origin and Host headers for all Server Actions!
-// Zero manual CSRF token code needed!
+        title: "Next.js Automated Security Hardening (Built-In Origin Verification)",
+        code: `// 1. Next.js Server Actions have BUILT-IN CSRF protection!
+// They automatically compare the incoming 'Origin' header against the 'Host' header.
+// If an evil website tries to invoke your action, Next.js blocks it automatically!
 
-// 2. Playwright End-to-End (E2E) Test:
-// tests/syllabus.spec.ts
-import { test, expect } from "@playwright/test";
-
-test("should navigate to Unit 1 and display syllabus heading", async ({ page }) => {
-  await page.goto("http://localhost:3000/units");
-  await page.click("text=Unit 1");
-  await expect(page.locator("h1")).toContainText("Next.js Fundamentals");
-});`,
+// 2. Security Headers in next.config.js (Pure JavaScript!):
+const securityHeaders = [
+  { key: "X-Frame-Options", value: "DENY" }, // Prevents clickjacking!
+  { key: "X-Content-Type-Options", value: "nosniff" },
+];`,
         explanation:
-          "Next.js provides automatic CSRF defense for Server Actions, built-in XSS JSX escaping, and seamless integration with Playwright for full-stack E2E testing.",
+          "Next.js provides built-in origin verification for Server Actions, automatic JSX string escaping, and declarative HTTP security header configuration in next.config.js.",
         benefits: [
-          "Automatic CSRF protection for Server Actions",
-          "Automated Content Security Policy (CSP) header support",
-          "Test real server-rendered HTML and client interactions in Playwright",
+          "Automatic CSRF origin verification on all Server Actions",
+          "JSX escapes strings automatically to prevent XSS",
+          "Simple declarative security headers in next.config.js",
         ],
       },
       whyDifferent:
-        "Next.js enforces security checks at both the Edge and Node.js layers, and allows end-to-end testing of complete server-rendered flows.",
+        "Next.js enforces security at both the compiler layer (JSX string escaping) and the server layer (HTTP header enforcement and CSRF origin checks).",
       mentalShiftSummary:
-        "Rely on Server Actions for automatic CSRF protection. Write Playwright E2E tests to verify full user journeys.",
+        "Never use `dangerouslySetInnerHTML` on untrusted user comments. Write automated unit tests for critical business functions using Vitest or Jest.",
     },
 
     basicExample: {
-      title: "Content Security Policy (CSP) Configuration in Middleware",
-      description: "Restricting external script execution to prevent XSS attacks.",
-      language: "typescript",
-      filename: "src/middleware.ts",
-      code: `// src/middleware.ts
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+      title: "Unit Testing a Grade Calculation Function in Plain JavaScript",
+      description: "Testing business logic with simple Vitest / Jest assertions in plain JavaScript.",
+      language: "javascript",
+      filename: "src/lib/grades.test.js",
+      code: `// src/lib/grades.test.js
+// 1. The pure JavaScript function we want to test:
+export function calculateGrade(score) {
+  if (typeof score !== "number" || isNaN(score)) return "INVALID";
+  if (score < 0 || score > 100) return "OUT_OF_RANGE";
+  if (score >= 90) return "A";
+  if (score >= 80) return "B";
+  if (score >= 70) return "C";
+  if (score >= 60) return "D";
+  return "F";
+}
 
-export function middleware(request: NextRequest) {
-  // Define strict Content Security Policy:
-  const cspHeader = \`
-    default-src 'self';
-    script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net;
-    style-src 'self' 'unsafe-inline';
-    img-src 'self' blob: data: https://images.unsplash.com https://*.supabase.co;
-    font-src 'self';
-    object-src 'none';
-    base-uri 'self';
-    form-action 'self';
-    frame-ancestors 'none';
-  \`.replace(/\\s{2,}/g, " ").trim();
+// 2. The automated test suite (Vitest or Jest syntax):
+// Run with: npx vitest run
+describe("calculateGrade() unit tests", () => {
+  test("returns A for scores 90 and above", () => {
+    expect(calculateGrade(95)).toBe("A");
+    expect(calculateGrade(90)).toBe("A");
+  });
 
-  const response = NextResponse.next();
-  response.headers.set("Content-Security-Policy", cspHeader);
+  test("returns B for scores between 80 and 89", () => {
+    expect(calculateGrade(85)).toBe("B");
+    expect(calculateGrade(80)).toBe("B");
+  });
 
-  return response;
-}`,
+  test("handles edge cases and invalid inputs gracefully", () => {
+    expect(calculateGrade(-5)).toBe("OUT_OF_RANGE");
+    expect(calculateGrade(105)).toBe("OUT_OF_RANGE");
+    expect(calculateGrade("ninety")).toBe("INVALID");
+    expect(calculateGrade(null)).toBe("INVALID");
+  });
+});`,
       explanation:
-        "CSP headers instruct the student's browser to reject any unauthorized third-party scripts or injected malicious iframe objects.",
-      outputPreview: "HTTP responses fortified with strict Content Security Policy headers.",
+        "Line-by-line explanation:\n- Line 2-10: calculateGrade(score) is a pure JavaScript function that calculates letter grades from numbers.\n- Line 14: describe(...) groups our test cases together.\n- Line 15-18: test('returns A...') asserts that 95 and 90 correctly produce 'A'.\n- Line 25-30: Tests defensive edge cases: negative scores, scores above 100, and non-number types!\n\nWhat happens when you run tests?\n1. In your terminal, you type 'npx vitest run'.\n2. The test runner executes all assertions in 10 milliseconds.\n3. All green checkmarks appear, giving you 100% confidence that student grades will never be miscalculated in production!",
+      outputPreview: "✓ calculateGrade() unit tests (3 tests passed) in 12ms.",
     },
 
     moreExamples: [
       {
-        title: "Unit Testing a Helper with Vitest",
-        description: "Testing a utility function for calculating student grade averages.",
-        language: "typescript",
-        filename: "src/lib/gradeCalculator.test.ts",
-        code: `import { describe, it, expect } from "vitest";
-import { calculateCourseGrade } from "./gradeCalculator";
-
-describe("calculateCourseGrade", () => {
-  it("should return 'A+' for score >= 90", () => {
-    const grade = calculateCourseGrade(94);
-    expect(grade).toBe("A+");
-  });
-
-  it("should return 'F' for score < 50", () => {
-    const grade = calculateCourseGrade(42);
-    expect(grade).toBe("F");
-  });
-});`,
-        explanation:
-          "Unit tests execute in milliseconds, validating core algorithmic calculations before deploying.",
-      },
+        title: "Configuring Security Headers in next.config.js in Plain JavaScript",
+        description: "Hardening HTTP headers to prevent Clickjacking and MIME sniffing.",
+        language: "javascript",
+        filename: "next.config.js",
+        code: `// next.config.js (Pure JavaScript!)
+module.exports = {
+  async headers() {
+    return [
       {
-        title: "Rate Limiting with Token Bucket Algorithm",
-        description: "Preventing brute-force attacks and API abuse in Route Handlers.",
-        language: "typescript",
-        filename: "src/lib/rateLimit.ts",
-        code: `// Simple in-memory rate limiter for demo:
-const rateLimitMap = new Map<string, { count: number; lastReset: number }>();
-
-export function isRateLimited(ip: string, limit = 10, windowMs = 60000): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(ip) || { count: 0, lastReset: now };
-
-  if (now - entry.lastReset > windowMs) {
-    entry.count = 1;
-    entry.lastReset = now;
-  } else {
-    entry.count += 1;
-  }
-
-  rateLimitMap.set(ip, entry);
-  return entry.count > limit;
-}`,
+        source: "/(.*)",
+        headers: [
+          // Prevents your website from being embedded inside an evil iframe (Clickjacking defense):
+          { key: "X-Frame-Options", value: "DENY" },
+          // Prevents browsers from guessing file MIME types:
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          // Referrer privacy:
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+        ],
+      },
+    ];
+  },
+};`,
         explanation:
-          "Rate limiting prevents malicious bots from hammering your API endpoints with thousands of requests per second.",
+          "These headers instruct modern web browsers to strictly enforce security boundaries, preventing malicious websites from framing your pages.",
       },
     ],
 
     multipleWays: [
       {
-        name: "Playwright E2E Testing (Recommended for Next.js)",
-        syntax: "npx playwright test",
-        codeSnippet: `test('homepage loads', async ({ page }) => { await page.goto('/'); });`,
-        howItWorks: "Launches real headless browsers (Chromium, Firefox, WebKit) and clicks through pages.",
-        pros: ["Tests real server rendering, database queries, and client hydration", "Catches real-world user bugs"],
-        cons: ["Slightly slower than unit tests"],
-        whenToUse: "For all critical user journeys: authentication, checkout, form submissions.",
+        name: "Automated Unit Tests (Vitest / Jest - Recommended)",
+        syntax: "expect(fn(input)).toBe(expected)",
+        codeSnippet: "test('adds numbers', () => { expect(add(2, 3)).toBe(5); });",
+        howItWorks: "Runs isolated JavaScript functions in milliseconds without launching a browser.",
+        pros: ["Blazing fast (thousands of tests in 1s)", "Catch calculation bugs instantly"],
+        cons: ["Does not test full browser DOM rendering"],
+        whenToUse: "Form validators, grade calculators, price calculations, utility functions.",
         isRecommended: true,
       },
       {
-        name: "Vitest / Jest Unit Testing",
-        syntax: "npm run test",
-        codeSnippet: `expect(formatDate('2026-08-16')).toBe('Aug 16, 2026');`,
-        howItWorks: "Runs isolated JavaScript functions in Node.js.",
-        pros: ["Blazing fast execution (milliseconds)", "Ideal for pure math, formatting, and validation logic"],
-        cons: ["Does not test browser DOM rendering"],
-        whenToUse: "For utility libraries, data mappers, and validation schemas.",
-        isRecommended: true,
+        name: "End-to-End (E2E) Browser Tests (Playwright)",
+        syntax: "await page.click('button'); await expect(page).toHaveText('Welcome')",
+        codeSnippet: "await page.goto('/login'); await page.fill('#email', 'u@test.com');",
+        howItWorks: "Launches an actual headless Chrome browser to click buttons like a real user.",
+        pros: ["Tests full end-to-end user journeys"],
+        cons: ["Slower execution time (seconds instead of milliseconds)"],
+        whenToUse: "Critical user flows: login, checkout, registration.",
       },
     ],
 
     decisionGuide: {
-      recommendationSummary: "Use Vitest for helper utilities and validation schemas. Use Playwright for full page flows and form submissions.",
+      recommendationSummary: "Use Vitest unit tests for business logic functions. Rely on Next.js built-in origin checks and JSX auto-escaping for day-to-day security.",
       scenarios: [
         {
-          scenario: "You want to ensure clicking 'Enroll' submits the form and updates the course list",
-          recommendedApproach: "Playwright E2E Test",
-          reason: "Verifies the entire Server Action + UI revalidation flow end-to-end.",
+          scenario: "Testing an algorithm that computes tuition fee discounts",
+          recommendedApproach: "Unit test with Vitest (test/fees.test.js)",
+          reason: "Financial calculations must have 100% test coverage with immediate feedback.",
+        },
+        {
+          scenario: "Displaying user comments submitted in a discussion forum",
+          recommendedApproach: "Standard JSX `{comment.text}`",
+          reason: "React automatically escapes HTML entities, making XSS injection impossible.",
         },
       ],
     },
 
     commonMistakes: [
       {
-        mistakeTitle: "Using dangerouslySetInnerHTML with unsanitized user inputs",
-        badCode: `// ❌ CRITICAL XSS VULNERABILITY:
-<div dangerouslySetInnerHTML={{ __html: userComment }} /> // Executes malicious <script> tags!`,
-        goodCode: `// ✅ GOOD: Render plain text (React auto-escapes HTML!) or sanitize with DOMPurify
-<p>{userComment}</p>`,
-        whyItBreaks: "Injecting unescaped user-generated HTML allows attackers to execute arbitrary JavaScript in victim browsers.",
-        howToFix: "Avoid `dangerouslySetInnerHTML` or sanitize strings with a trusted library like `isomorphic-dompurify`.",
+        mistakeTitle: "Using dangerouslySetInnerHTML on user-submitted text",
+        badCode: `// ❌ CRITICAL SECURITY VULNERABILITY: XSS Injection!
+<div dangerouslySetInnerHTML={{ __html: userComment }} />`,
+        goodCode: `// ✅ SAFE: Let React auto-escape the user text!
+<div>{userComment}</div>`,
+        whyItBreaks: "dangerouslySetInnerHTML bypasses React's security moat and executes any script tags submitted by malicious visitors.",
+        howToFix: "Always render text inside normal JSX curly braces `{text}`. If you must render HTML, sanitize it first with DOMPurify.",
       },
     ],
 
     bestPractices: [
       {
-        title: "Sanitize and Validate All Server Action Arguments",
-        rule: "Treat every piece of data coming from the client as untrusted.",
-        explanation: "Always parse inputs with Zod schemas before interacting with database tables.",
+        title: "Never Disable Built-In CSRF Origin Checks",
+        rule: "Keep Server Actions on their default configuration to enforce strict same-origin verification.",
+        explanation: "Automatic origin verification prevents third-party websites from executing unauthorized mutations.",
       },
     ],
 
     exercises: [
       {
         id: "u6-ex-4",
-        title: "Write a Rate-Limited Route Handler",
-        difficulty: "medium",
-        estimatedMinutes: 8,
+        title: "Write a Test for an Email Validator",
+        difficulty: "easy",
+        estimatedMinutes: 6,
         prompt:
-          "Write a `POST` handler for `src/app/api/feedback/route.ts` that checks if the client IP is rate-limited. If so, return HTTP 429 Too Many Requests; otherwise return 200 OK.",
-        initialCode: `import { NextRequest, NextResponse } from "next/server";
-
-export async function POST(request: NextRequest) {
-  // TODO: Check rate limit and return 429 or 200
-}`,
-        expectedOutput: "A Route Handler enforcing HTTP 429 rate limiting.",
-        hints: ["Check client IP using `request.headers.get('x-forwarded-for')`", "Return `NextResponse.json({ error: 'Too many requests' }, { status: 429 })`"],
-        solutionCode: `import { NextRequest, NextResponse } from "next/server";
-import { isRateLimited } from "@/lib/rateLimit";
-
-export async function POST(request: NextRequest) {
-  const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
-
-  if (isRateLimited(ip, 5, 60000)) {
-    return NextResponse.json(
-      { error: "Too many feedback submissions. Please wait 1 minute." },
-      { status: 429 }
-    );
-  }
-
-  const body = await request.json();
-  return NextResponse.json({ success: true, received: body }, { status: 200 });
-}`,
-        solutionExplanation:
-          "Returning HTTP 429 Too Many Requests protects backend services from abuse and spam.",
+          "Write a test assertion in plain JavaScript using `expect` that verifies `isValidEmail('student@university.edu')` returns `true` and `isValidEmail('invalid')` returns `false`.",
+        initialCode: `// src/lib/email.test.js
+// TODO: Write test assertions
+`,
+        expectedOutput: "A test checking valid and invalid email returns.",
+        hints: ["Use `expect(isValidEmail('student@university.edu')).toBe(true)`"],
+        solutionCode: `// src/lib/email.test.js
+test("validates email correctly", () => {
+  expect(isValidEmail("student@university.edu")).toBe(true);
+  expect(isValidEmail("invalid-email")).toBe(false);
+});`,
+        solutionExplanation: "The assertions test positive and negative branches of the email validation utility.",
       },
     ],
 
     quizzes: [
       {
         id: "u6-q4",
-        question: "How does React in Next.js automatically prevent Cross-Site Scripting (XSS) when rendering variables?",
-        syllabusTopic: "React XSS Protection",
+        syllabusTopic: "Security Hardening (XSS, CSRF)",
+        question: "How does React protect against Cross-Site Scripting (XSS) when rendering user input inside JSX curly braces `{userInput}`?",
+        conceptualExplanation: "React automatically converts special characters like '<' and '>' into harmless HTML entities (&lt; &gt;) before inserting them into the DOM.",
         options: [
           { id: "a", text: "By auto-escaping strings rendered in JSX (e.g. converting '<script>' into '&lt;script&gt;') before inserting into the DOM", isCorrect: true, explanation: "Correct! React safely escapes all variable values rendered inside JSX curly braces." },
           { id: "b", text: "By turning off JavaScript on user laptops", isCorrect: false, explanation: "No." },
           { id: "c", text: "By requiring an antivirus subscription", isCorrect: false, explanation: "No." },
           { id: "d", text: "It does not protect against XSS", isCorrect: false, explanation: "No." },
         ],
-        conceptualExplanation:
-          "React automatically treats everything rendered inside JSX `{variable}` as plain strings and escapes HTML entities, making accidental script execution impossible.",
       },
     ],
 
     realWorldExample: {
-      domain: "FinTech Banking & Payment Security",
-      description: "How financial platforms implement strict CSP, rate limiting, and automated E2E testing for compliance.",
+      domain: "Banking & Financial Services",
+      description: "How financial platforms configure Content Security Policy (CSP) headers to prevent unauthorized script injection.",
       code: {
-        title: "Secure Transfer Route Handler with Rate Limiting",
-        description: "Rate-limited financial operation.",
-        language: "typescript",
-        filename: "src/app/api/transfer/route.ts",
-        code: `export async function POST(req: any) {
-  // 1. Rate limit verification
-  // 2. Strict Zod schema parsing
-  // 3. Audit log recording
-  return NextResponse.json({ status: "processed" });
-}`,
+        title: "Content Security Policy Header",
+        description: "Strict CSP header definition in next.config.js in plain JavaScript.",
+        language: "javascript",
+        filename: "next.config.js",
+        code: `module.exports = {
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value: "default-src 'self'; script-src 'self' https://trusted-cdn.com;",
+          },
+        ],
       },
-      keyTakeaway: "Multi-layered defense (CSP, Rate Limiting, Schema Validation, E2E Testing) ensures high system reliability.",
+    ];
+  },
+};`,
+      },
+      keyTakeaway: "Content Security Policy headers prevent browsers from loading unauthorized third-party scripts.",
     },
 
     combinedExample: {
-      combinedTopics: ["Security Headers", "Rate Limiting", "Testing", "Server Actions"],
-      title: "Production Security & Testing Architecture",
-      description: "The complete security shield protecting modern Next.js applications.",
+      combinedTopics: ["Security", "Testing", "Server Actions"],
+      title: "Hardened Student Enrollment Action with Tests",
+      description: "Server Action with input sanitization and corresponding unit tests.",
       code: {
-        title: "Complete Security Shield",
-        description: "Overview of security layers.",
-        language: "typescript",
-        filename: "Security Defense in Depth",
-        code: `// Layer 1: Edge Middleware (CSP Headers, Bot Filtering, Rate Limiting)
-// Layer 2: Next.js Compiler (JSX XSS auto-escaping, Server Action CSRF validation)
-// Layer 3: Server Actions (Zod schema validation, RLS database enforcement)
-// Layer 4: Playwright CI Pipeline (Automated testing before production merge)`,
+        title: "Sanitized Action and Test Suite",
+        description: "Action validation and test in plain JavaScript.",
+        language: "javascript",
+        filename: "src/lib/sanitize.test.js",
+        code: `export function sanitizeInput(input) {
+  if (typeof input !== "string") return "";
+  return input.trim().replace(/<[^>]*>?/gm, "");
+}
+
+test("strips malicious HTML tags", () => {
+  const dirty = "<script>alert(1)</script>Rahul";
+  expect(sanitizeInput(dirty)).toBe("alert(1)Rahul");
+});`,
       },
       stepByStepFlow: [
-        "Incoming traffic is inspected and filtered by Edge Middleware",
-        "Requests pass through Server Actions with automatic CSRF defense",
-        "Data is strictly validated with Zod before touching database",
-        "Continuous Integration runs Playwright tests to ensure 100% test pass rate",
+        "User submits input string",
+        "sanitizeInput strips dangerous HTML markup",
+        "Unit test verifies that tags are stripped cleanly",
+        "Safe string is persisted to the database",
       ],
     },
   },

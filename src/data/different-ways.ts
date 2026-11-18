@@ -24,14 +24,14 @@ export const differentWaysMatrix: DifferentWaysCategory[] = [
         name: "1. Server Component (Direct async/await)",
         badge: "Recommended Standard",
         isRecommended: true,
-        codeExample: `// src/app/courses/page.tsx
+        codeExample: `// app/courses/page.js (Pure JavaScript)
 export default async function CoursesPage() {
   const res = await fetch("https://api.university.com/courses", {
-    next: { revalidate: 3600 } // ISR caching
+    next: { revalidate: 3600 } // ISR caching: re-bake every hour
   });
   const courses = await res.json();
 
-  return <ul>{courses.map((c: any) => <li key={c.id}>{c.title}</li>)}</ul>;
+  return <ul>{courses.map((c) => <li key={c.id}>{c.title}</li>)}</ul>;
 }`,
         howItWorks:
           "Runs on the server before HTML is sent to the client. Uses native Web `fetch` with Next.js caching extensions.",
@@ -53,7 +53,7 @@ export default async function CoursesPage() {
         codeExample: `"use client";
 import useSWR from "swr";
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+const fetcher = (url) => fetch(url).then((r) => r.json());
 
 export function LiveStockTicker() {
   const { data, error, isLoading } = useSWR("/api/stocks", fetcher, {
@@ -79,10 +79,10 @@ export function LiveStockTicker() {
       {
         name: "3. Route Handler (REST API Endpoint)",
         badge: "External Clients & Webhooks",
-        codeExample: `// src/app/api/courses/route.ts
-import { NextRequest, NextResponse } from "next/server";
+        codeExample: `// app/api/courses/route.js (Pure JavaScript)
+import { NextResponse } from "next/server";
 
-export async function GET(request: NextRequest) {
+export async function GET(request) {
   const courses = await db.courses.findMany();
   return NextResponse.json(courses);
 }`,
@@ -103,14 +103,14 @@ export async function GET(request: NextRequest) {
         badge: "User Gestures & Filters",
         codeExample: `"use server";
 
-export async function filterCoursesAction(category: string) {
+export async function filterCoursesAction(category) {
   return await db.courses.findMany({ where: { category } });
 }`,
         howItWorks:
           "Executes as an RPC function on the server called directly from client event handlers (e.g. search filter dropdown).",
         advantages: [
           "No API route needed",
-          "Full end-to-end TypeScript autocomplete",
+          "Clean direct JavaScript execution",
           "Executes securely on the server with direct DB access",
         ],
         disadvantages: [
@@ -130,13 +130,13 @@ export async function filterCoursesAction(category: string) {
         name: "1. Server Actions with Native <form action={...}>",
         badge: "Recommended Standard",
         isRecommended: true,
-        codeExample: `// Server Action form in Server Component
+        codeExample: `// Server Action form in Server Component (Pure JavaScript)
 import { revalidatePath } from "next/cache";
 
 export default function AddStudentPage() {
-  async function addStudent(formData: FormData) {
+  async function addStudent(formData) {
     "use server";
-    const name = formData.get("name") as string;
+    const name = formData.get("name");
     await db.students.create({ name });
     revalidatePath("/students");
   }
@@ -214,7 +214,7 @@ export function OldForm() {
         howItWorks:
           "Client intercepts form submit with `e.preventDefault()` and sends a manual JSON fetch request to `/api/students`.",
         advantages: [
-          "Familiar to developers coming from traditional React + Express",
+          "Familiar to developers coming from standard Express backend architecture",
         ],
         disadvantages: [
           "Requires 3x more code (Route Handler + state + fetch + error handling)",
@@ -235,8 +235,8 @@ export function OldForm() {
         name: "1. URL Search Parameters (?query=nextjs&page=2)",
         badge: "Recommended for Shareable UI",
         isRecommended: true,
-        codeExample: `// Reading in Server Component:
-export default async function Page({ searchParams }: { searchParams: Promise<{ query?: string }> }) {
+        codeExample: `// Reading in Server Component (Pure JavaScript):
+export default async function Page({ searchParams }) {
   const { query } = await searchParams;
   const filtered = await searchDb(query);
   return <div>Results for: {query}</div>;

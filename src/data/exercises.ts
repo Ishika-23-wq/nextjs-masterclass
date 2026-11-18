@@ -1,9 +1,19 @@
 import { PracticeExercise } from "@/types";
+import { allTopics } from "@/data/topics";
+
+// Collect all topic-specific sample implementation questions across all 25 syllabus topics
+const topicExercises: PracticeExercise[] = allTopics.flatMap((topic) =>
+  topic.exercises.map((ex) => ({
+    ...ex,
+    title: `${ex.title} • [${topic.title}]`,
+  }))
+);
 
 export const allCodingChallenges: PracticeExercise[] = [
+  ...topicExercises,
   {
     id: "ch-1-basic-page",
-    title: "1. Create a Basic Server Page (JavaScript)",
+    title: "Milestone: Create a Basic Server Page (JavaScript)",
     difficulty: "very-easy",
     estimatedMinutes: 5,
     prompt:

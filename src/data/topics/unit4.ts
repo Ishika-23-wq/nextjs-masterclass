@@ -4,305 +4,367 @@ export const unit4Topics: TopicContent[] = [
   {
     id: "auth-and-protected-routes-concepts",
     unitId: "unit-4",
-    title: "Authentication Architecture & Protected Routes",
-    shortSummary: "Understand how authentication works in Next.js: Cookies vs JWTs, session strategies, middleware route guards, and Role-Based Access Control (RBAC).",
+    title: "Authentication, Authorization & Protected Routes",
+    shortSummary: "Learn web security step-by-step from simple logins to cookies, sessions, protected routes, and Role-Based Access Control in plain JavaScript.",
     order: 1,
-    tags: ["Auth Concepts", "JWT", "Cookies", "Protected Routes", "RBAC", "Middleware"],
+    tags: ["Auth", "Cookies", "Protected Routes", "RBAC", "JWT", "Security"],
 
     simpleExplanation:
-      "When a user logs into a website, how does the server remember who they are when they click to the next page? In web development, HTTP is stateless. The server sends back a small encrypted 'badge' (called a **Cookie** or **JWT Token**) that the browser stores securely. Every time the user visits a new page (like `/dashboard`), Next.js checks this badge on the server or in `middleware.ts`. If the badge is missing or expired, Next.js redirects them away to `/login` before rendering any private data. Role-Based Access Control (RBAC) means checking if the user is a 'Student', 'Teacher', or 'Admin' before granting access to specific buttons.",
+      "Think of web security like a VIP concert venue: you show your ticket once at the entrance, receive a tamper-proof wristband (cookie), and the security guard at each stage door checks your wristband before opening the curtain! Next.js verifies your session directly on the server, keeping private data 100% safe with zero client-side screen flicker.",
 
     whyNeeded:
-      "Without authentication architecture, private user data (grades, billing records, medical files) would be exposed to anyone who guesses a URL. Learning how cookies, sessions, middleware guards, and RBAC work is essential for building real-world software.",
+      "Without authentication, anyone on the internet could access your private dashboard, change other students' grades, or delete your entire database. Next.js Server Components allow you to inspect cookies directly on the server and redirect unauthorized visitors before a single line of private HTML is transmitted.",
 
     reactVsNext: {
-      concept: "Protected Routes Architecture",
+      concept: "Route Protection & Auth Model",
       reactWay: {
-        title: "Client-Side Route Guard (Vite / CRA)",
-        code: `// Traditional React Client-Side Protection:
-function ProtectedRoute({ children }) {
-  const token = localStorage.getItem("token"); // Insecure: prone to XSS attacks!
+        title: "Client-Side Token Storage in localStorage",
+        code: `// Traditional client-side approach:
+function Dashboard() {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
-  if (!token) {
-    return <Navigate to="/login" replace />;
-  }
-  return children;
+  useEffect(() => {
+    // ⚠️ Security Risk: localStorage is vulnerable to XSS theft!
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/login"); // ⚠️ Notice: private screen flashes before redirect!
+    } else {
+      fetchUser(token).then(u => { setUser(u); setLoading(false); });
+    }
+  }, []);
+
+  if (loading) return <p>Checking access...</p>;
+  return <h1>Secret Financial Dashboard</h1>;
 }`,
         explanation:
-          "In vanilla React, route protection happens on the client using `localStorage`. The entire JavaScript bundle and HTML shell are still downloaded by unauthorized users.",
+          "Client-side auth stores tokens in localStorage where hackers can steal them via malicious scripts. Furthermore, private HTML components can flash on screen before the client redirect takes place.",
         drawbacks: [
-          "`localStorage` is vulnerable to Cross-Site Scripting (XSS) token theft",
-          "Unauthorized users briefly see a flash of private UI before the client redirect fires",
-          "Search engine crawlers might index placeholder protected pages",
+          "Tokens in localStorage are vulnerable to XSS script injection",
+          "Private dashboard flashes on screen before client router redirects",
+          "Search engines can index private page templates",
         ],
       },
       nextjsWay: {
-        title: "Next.js Server-Side Middleware Guard",
-        code: `// File: src/middleware.ts
-// Runs at the Edge BEFORE any page or API route renders!
+        title: "Next.js Server-Side Cookie Guard (Zero Flash, 100% Secure)",
+        code: `// src/app/dashboard/page.js (Server Component - Pure JavaScript!)
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+export default async function DashboardPage() {
+  // 1. The Security Guard inspects the cookie wristband ON THE SERVER:
+  const cookieStore = await cookies();
+  const sessionToken = cookieStore.get("session_token");
 
-export function middleware(request: NextRequest) {
-  // Read httpOnly cookie (100% immune to JavaScript XSS theft!):
-  const sessionToken = request.cookies.get("session_token")?.value;
-
-  // If visiting /dashboard without a valid session, redirect immediately:
-  if (request.nextUrl.pathname.startsWith("/dashboard") && !sessionToken) {
-    return NextResponse.redirect(new URL("/login", request.url));
+  // 2. If no wristband, redirect BEFORE any HTML is sent:
+  if (!sessionToken) {
+    redirect("/login");
   }
 
-  return NextResponse.next();
-}
-
-export const config = {
-  matcher: ["/dashboard/:path*", "/admin/:path*"],
-};`,
+  // 3. Render private content securely:
+  return <h1>🔒 Welcome to Your Private Student Portal</h1>;
+}`,
         explanation:
-          "Next.js `middleware.ts` intercepts the HTTP request before it reaches the page. If unauthorized, the server responds with a redirect header immediately. Zero private HTML or JavaScript is ever transmitted.",
+          "In Next.js, authentication runs on the backend server before HTML generation. Unauthorized users are intercepted instantly with zero UI flash.",
         benefits: [
-          "`httpOnly` cookies prevent client JavaScript from stealing auth tokens",
-          "Zero flash of unauthorized content (FOUC)",
-          "Centralized route protection in a single file",
+          "Zero client flash of private dashboard content",
+          "Cookies with httpOnly cannot be stolen by client JavaScript",
+          "Clean redirect logic directly inside Server Components",
         ],
       },
       whyDifferent:
-        "Next.js enforces route protection on the server and Edge before rendering, whereas React does it after the browser has already downloaded the page.",
+        "Next.js inspects incoming HTTP request headers and cookies directly on the server, redirecting unauthorized users before sending any page content.",
       mentalShiftSummary:
-        "Protect routes in `middleware.ts` using `httpOnly` cookies, not in client `useEffect` hooks with `localStorage`.",
+        "Never store auth tokens in localStorage. Use httpOnly cookies and protect routes on the server using cookies() and redirect().",
     },
 
     basicExample: {
-      title: "Role-Based Access Control (RBAC) Check in a Server Component",
-      description: "Checking user role on the server before rendering admin controls.",
-      language: "tsx",
-      filename: "src/app/admin/page.tsx",
-      code: `// src/app/admin/page.tsx
+      title: "Protected Admin Route with Role-Based Access Control in Plain JavaScript",
+      description: "A secure Server Component page verifying authentication and checking the admin role.",
+      language: "jsx",
+      filename: "src/app/admin/page.js",
+      code: `// src/app/admin/page.js
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-// Conceptual helper to inspect user session on server:
-async function getSessionUser() {
-  // In a real app, this reads cookies and validates the session:
-  return { id: "u1", name: "Professor Mehta", role: "admin" };
+// Simulated server auth helper:
+async function getCurrentUser() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("auth_token")?.value;
+
+  if (!token) return null;
+
+  // Level 6 RBAC: Inspect role from session:
+  return { id: 1, name: "Professor Mehta", role: "admin" };
 }
 
 export default async function AdminPage() {
-  const user = await getSessionUser();
+  // Step 1: Who are you? (Authentication)
+  const user = await getCurrentUser();
 
-  // Enforce RBAC on the server:
-  if (!user || user.role !== "admin") {
-    redirect("/unauthorized"); // Instantly redirects non-admins!
+  if (!user) {
+    // Security Guard stops visitor: redirect to login!
+    redirect("/login");
   }
 
-  return (
-    <div className="p-6 bg-zinc-900 border border-zinc-800 rounded-2xl space-y-4">
-      <div className="flex items-center gap-2">
-        <span className="text-xs px-2.5 py-1 bg-rose-500/20 text-rose-400 rounded font-mono">
-          Admin Portal
-        </span>
-        <span className="text-xs text-zinc-400">Authenticated as: {user.name}</span>
+  // Step 2: What are you allowed to do? (Role-Based Authorization)
+  if (user.role !== "admin") {
+    return (
+      <div className="p-8 text-center space-y-3">
+        <h1 className="text-2xl font-bold text-rose-400">⛔ Access Denied</h1>
+        <p className="text-zinc-400">
+          This room is reserved for University Administrators. You are logged in as {user.name} ({user.role}).
+        </p>
       </div>
-      <h1 className="text-2xl font-bold text-zinc-100">Course Management Console</h1>
-      <p className="text-zinc-400 text-sm">
-        You have full administrative privileges to edit syllabus modules and review grades.
-      </p>
+    );
+  }
+
+  // Step 3: Authorized access granted!
+  return (
+    <div className="p-8 max-w-4xl mx-auto space-y-6">
+      <div className="flex justify-between items-center border-b border-zinc-800 pb-4">
+        <div>
+          <h1 className="text-2xl font-bold text-zinc-100">Administrator Console</h1>
+          <p className="text-zinc-400 text-sm">Welcome back, {user.name}</p>
+        </div>
+        <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full text-xs font-mono">
+          Role: ADMIN
+        </span>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-xl">
+          <p className="text-xs text-zinc-500">Total Students</p>
+          <p className="text-2xl font-bold text-zinc-100 mt-1">1,420</p>
+        </div>
+        <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-xl">
+          <p className="text-xs text-zinc-500">Active Courses</p>
+          <p className="text-2xl font-bold text-zinc-100 mt-1">28</p>
+        </div>
+        <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-xl">
+          <p className="text-xs text-zinc-500">System Status</p>
+          <p className="text-2xl font-bold text-emerald-400 mt-1">Online</p>
+        </div>
+      </div>
     </div>
   );
 }`,
       explanation:
-        "The server checks `user.role === 'admin'`. If unauthorized, it terminates execution and redirects before generating any HTML.",
-      outputPreview: "Admin console card displaying user badge and permissions banner.",
+        "Line-by-line explanation:\n- Line 2: import { cookies } from 'next/headers'; gives us secure access to HTTP cookies on the server.\n- Line 3: import { redirect } from 'next/navigation'; lets us navigate users to another page on the server.\n- Line 7: const cookieStore = await cookies(); reads incoming request cookies.\n- Line 19: if (!user) redirect('/login'); acts as the Security Guard! If no valid session cookie exists, the user is redirected to /login immediately.\n- Line 25-33: RBAC check: if user.role !== 'admin', we render an Access Denied screen instead of private admin stats.\n- Line 36-62: If authenticated AND authorized as an admin, the dashboard renders with full access.\n\nWhat happens in the browser?\n1. An unauthenticated visitor types 'http://localhost:3000/admin'.\n2. The request reaches the Next.js server.\n3. The server runs AdminPage, notices no auth cookie, and sends back an HTTP 307 redirect to /login.\n4. The visitor's browser lands on /login in 10ms without ever seeing the admin numbers or layout!",
+      outputPreview: "Clean Administrator Console showing user greeting, role badge, and 3 metric cards.",
     },
 
     moreExamples: [
       {
-        title: "Cookies vs JWT Comparison",
-        description: "Understanding the two main session storage patterns in modern web engineering.",
-        language: "typescript",
-        filename: "Auth Conceptual Comparison",
-        code: `// 1. Session ID Cookie (Stateful):
-// Browser Cookie: session_id=abc-123-xyz
-// Server checks Redis / PostgreSQL: SELECT * FROM sessions WHERE id = 'abc-123-xyz';
-// Pros: Can instantly revoke a user's session by deleting the database row.
-// Cons: Requires database lookup on every request.
+        title: "Login Server Action Setting an httpOnly Cookie in Plain JavaScript",
+        description: "How to authenticate credentials and issue a secure cookie wristband.",
+        language: "jsx",
+        filename: "src/actions/authActions.js",
+        code: `// src/actions/authActions.js
+"use server";
 
-// 2. JSON Web Token (JWT) Cookie (Stateless):
-// Browser Cookie: jwt=eyJhbGciOi... (contains encrypted { userId: 101, role: 'student', exp: 1735689600 })
-// Server verifies token signature with a secret key without querying database.
-// Pros: Ultra-fast, zero database lookups needed at Edge.
-// Cons: Harder to invalidate before expiration time.`,
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+
+export async function loginAction(formData) {
+  const email = formData.get("email");
+  const password = formData.get("password");
+
+  // Level 1: Verify credentials (in production, query database with hashed password):
+  if (email === "student@university.edu" && password === "learnNext123") {
+    const cookieStore = await cookies();
+
+    // Level 2: Give the student their ID card wristband (Cookie):
+    cookieStore.set("auth_token", "sample_secure_session_token", {
+      httpOnly: true, // Prevents hackers from reading the cookie via JavaScript!
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7, // Valid for 7 days
+    });
+
+    // Level 4: Redirect to protected dashboard:
+    redirect("/dashboard");
+  }
+
+  return { error: "Invalid email or password. Please try again." };
+}`,
         explanation:
-          "Both patterns use secure `httpOnly` cookies in Next.js to safeguard user identities against browser script injection.",
+          "Setting `httpOnly: true` protects the cookie from XSS attacks. The user's browser automatically carries this cookie on every subsequent request.",
       },
     ],
 
     multipleWays: [
       {
-        name: "Middleware Route Guard (Recommended for Route Protection)",
-        syntax: "middleware.ts with request.cookies",
-        codeSnippet: `export function middleware(req: NextRequest) {
-  if (!req.cookies.get('token')) return NextResponse.redirect(new URL('/login', req.url));
-}`,
-        howItWorks: "Runs before request reaches pages.",
-        pros: ["Blocks unauthorized requests before page rendering begins", "Protects entire route subtrees with matchers"],
-        cons: ["Runs on Edge runtime (limited Node APIs)"],
-        whenToUse: "For guarding `/dashboard/*`, `/settings/*`, and `/admin/*` routes.",
+        name: "Server Component Check (Recommended for simplicity)",
+        syntax: "if (!user) redirect('/login') inside page.js",
+        codeSnippet: `const cookieStore = await cookies();
+if (!cookieStore.get('token')) redirect('/login');`,
+        howItWorks: "Evaluates auth inside individual page Server Components before rendering.",
+        pros: ["Simple to read and trace", "Direct access to full page context and database"],
+        cons: ["Must be repeated on each protected page if you have dozens of routes"],
+        whenToUse: "Pages needing specific user profile data or role checks.",
         isRecommended: true,
       },
       {
-        name: "Server Component Direct Guard",
-        syntax: "if (!user) redirect('/login'); inside page.tsx",
-        codeSnippet: `export default async function Page() {
-  const user = await getUser();
-  if (!user) redirect('/login');
-  return <div>Welcome</div>;
+        name: "Middleware Check (For broad route protection)",
+        syntax: "export function middleware(request) in middleware.js",
+        codeSnippet: `export function middleware(req) {
+  if (!req.cookies.has('token')) return NextResponse.redirect(new URL('/login', req.url));
 }`,
-        howItWorks: "Evaluated during server rendering of that specific page.",
-        pros: ["Full access to Node.js database clients (Prisma, Supabase)", "Fine-grained permissions check"],
-        cons: ["Runs per-page rather than globally across route folders"],
-        whenToUse: "For page-level data authorization and role checks.",
-        isRecommended: true,
+        howItWorks: "Intercepts incoming requests at the edge before route handlers or pages execute.",
+        pros: ["Protects entire folder trees (e.g. /dashboard/*) with one file"],
+        cons: ["Runs on lightweight Edge runtime (cannot run heavy database queries)"],
+        whenToUse: "Protecting entire URL paths (/admin/*, /dashboard/*) globally.",
       },
     ],
 
     decisionGuide: {
-      recommendationSummary: "Use `middleware.ts` for fast binary checks ('Is user logged in?'). Use Server Component checks for role permissions ('Is user an Admin?').",
+      recommendationSummary: "Use middleware.js to protect entire URL trees like /dashboard/* from unauthorized traffic. Use Server Component checks inside page.js for fine-grained role checks (Admin vs Student).",
       scenarios: [
         {
-          scenario: "You want to prevent any non-logged-in user from visiting `/dashboard/*`",
-          recommendedApproach: "`middleware.ts` matcher checking for auth cookie",
-          reason: "Fastest response with zero database compute.",
+          scenario: "Preventing logged-out visitors from seeing any page under /dashboard/*",
+          recommendedApproach: "middleware.js cookie check",
+          reason: "Runs in 1ms at the edge before any route component is touched.",
         },
         {
-          scenario: "Checking if a user owns a specific student assignment ID before rendering the edit page",
-          recommendedApproach: "Server Component check inside `src/app/assignments/[id]/edit/page.tsx`",
-          reason: "Requires querying the database to verify document ownership.",
+          scenario: "Allowing teachers to grade assignments, but restricting students to view-only",
+          recommendedApproach: "Server Component RBAC check inside src/app/assignments/[id]/page.js",
+          reason: "Needs full database access to check whether the logged-in user is the teacher of that course.",
         },
       ],
     },
 
     commonMistakes: [
       {
-        mistakeTitle: "Storing auth tokens in localStorage or sessionStorage in Next.js",
-        badCode: `// ❌ BAD: Storing tokens in client localStorage
-localStorage.setItem("authToken", token); // Server cannot read this during SSR!`,
-        goodCode: `// ✅ GOOD: Store tokens in httpOnly Cookies
-// Sent automatically to both server components and middleware on every request!`,
-        whyItBreaks: "Server Components and `middleware.ts` run on the server and have ZERO access to browser `localStorage`.",
-        howToFix: "Always store session tokens in `httpOnly` secure cookies.",
+        mistakeTitle: "Storing authentication passwords or secrets in localStorage",
+        badCode: `// ❌ BAD: Storing secret tokens in localStorage in the browser
+localStorage.setItem("user_secret_token", token);`,
+        goodCode: `// ✅ GOOD: Use httpOnly cookies set by Server Actions
+cookieStore.set("auth_token", token, { httpOnly: true, secure: true });`,
+        whyItBreaks: "Any third-party script or malicious npm package can read localStorage, allowing hackers to steal user sessions.",
+        howToFix: "Always use httpOnly cookies set on the server.",
       },
     ],
 
     bestPractices: [
       {
-        title: "Always Set httpOnly and Secure Flags on Auth Cookies",
-        rule: "Configure cookies with `httpOnly: true`, `secure: true`, and `sameSite: 'lax'`.",
-        explanation: "Prevents malicious JavaScript from reading the cookie and protects against CSRF attacks.",
+        title: "Always Use httpOnly and Secure Cookies",
+        rule: "Configure all auth cookies with httpOnly: true, secure: true, and sameSite: 'lax'.",
+        explanation: "This locks the cookie in the browser's secure vault, preventing cross-site scripting (XSS) and cross-site request forgery (CSRF) attacks.",
       },
     ],
 
     exercises: [
       {
         id: "u4-ex-1",
-        title: "Write a Route Protection Middleware Matcher",
+        title: "Build a Server-Guarded Profile Page",
         difficulty: "easy",
-        estimatedMinutes: 8,
+        estimatedMinutes: 6,
         prompt:
-          "Write a `middleware.ts` function that checks for a cookie named `auth_token`. If missing on any `/portal/*` path, redirect the visitor to `/login`.",
-        initialCode: `// src/middleware.ts
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+          "Write a Server Component in src/app/profile/page.js in plain JavaScript that reads the 'session_id' cookie. If it does not exist, redirect to '/login'. Otherwise, show 'Welcome to your Profile!'.",
+        initialCode: `// src/app/profile/page.js
+// TODO: Read cookies and protect this page
+export default async function ProfilePage() {
+  return <div>Profile</div>;
+}`,
+        expectedOutput: "A protected Server Component redirecting unauthorized visitors to /login.",
+        hints: ["Import `cookies` from 'next/headers' and `redirect` from 'next/navigation'"],
+        solutionCode: `// src/app/profile/page.js
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
-export function middleware(request: NextRequest) {
-  // TODO: Check auth_token and redirect if missing
-  return NextResponse.next();
-}
+export default async function ProfilePage() {
+  const cookieStore = await cookies();
+  const session = cookieStore.get("session_id");
 
-export const config = {
-  // TODO: Define matcher for /portal routes
-};`,
-        expectedOutput: "A functional Next.js middleware intercepting /portal routes and redirecting unauthorized users.",
-        hints: ["Use `request.cookies.get('auth_token')?.value`", "Use `NextResponse.redirect(new URL('/login', request.url))`"],
-        solutionCode: `import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-
-export function middleware(request: NextRequest) {
-  const token = request.cookies.get("auth_token")?.value;
-
-  if (!token && request.nextUrl.pathname.startsWith("/portal")) {
-    return NextResponse.redirect(new URL("/login", request.url));
+  if (!session) {
+    redirect("/login");
   }
 
-  return NextResponse.next();
-}
-
-export const config = {
-  matcher: ["/portal/:path*"],
-};`,
-        solutionExplanation:
-          "This middleware intercepts every request matching `/portal/:path*` at the Edge, ensuring zero unauthorized access.",
+  return (
+    <div className="p-6 max-w-md mx-auto space-y-2">
+      <h1 className="text-xl font-bold text-zinc-100">Welcome to your Profile!</h1>
+      <p className="text-zinc-400 text-sm">Your session is active and secure.</p>
+    </div>
+  );
+}`,
+        solutionExplanation: "The cookies() function inspects incoming headers on the server, redirecting unauthorized users before HTML is rendered.",
       },
     ],
 
     quizzes: [
       {
         id: "u4-q1",
-        question: "Why can't Server Components in Next.js read tokens stored in browser localStorage?",
-        syllabusTopic: "Auth Storage Concepts",
+        syllabusTopic: "Authentication & Protected Routes",
+        question: "Why can't Server Components read authentication tokens stored in browser localStorage?",
+        conceptualExplanation: "Server Components execute on the server in a Node.js or Edge runtime where the browser window and localStorage objects do not exist.",
         options: [
           { id: "a", text: "Because localStorage is only for mobile applications", isCorrect: false, explanation: "localStorage is a browser API." },
           { id: "b", text: "Because Server Components execute on the server before the HTML reaches the browser, where localStorage does not exist", isCorrect: true, explanation: "Correct! The server runtime has no concept of the browser's window or localStorage object." },
           { id: "c", text: "Because React disabled localStorage in version 19", isCorrect: false, explanation: "localStorage is still supported in client components." },
           { id: "d", text: "To make CSS load faster", isCorrect: false, explanation: "Unrelated." },
         ],
-        conceptualExplanation:
-          "Server Components execute in a server environment (Node.js or Edge) where browser-only globals like `window` and `localStorage` do not exist. Cookies, however, are sent in HTTP headers on every request.",
       },
     ],
 
     realWorldExample: {
       domain: "Healthcare Patient Portal",
-      description: "How patient medical record systems enforce HIPAA-compliant multi-tier RBAC for Doctors, Nurses, and Patients.",
+      description: "How a medical portal verifies doctor permissions before displaying sensitive patient records.",
       code: {
-        title: "Medical Record Permission Guard",
-        description: "RBAC verification in Server Component.",
-        language: "tsx",
-        filename: "src/app/patients/[id]/page.tsx",
-        code: `export default async function PatientRecord({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const user = await getAuthenticatedStaff();
+        title: "Patient Medical Record Guard",
+        description: "Server Component verifying doctor role before rendering patient history in plain JavaScript.",
+        language: "jsx",
+        filename: "src/app/patients/[id]/page.js",
+        code: `import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
-  if (!user || (user.role !== "doctor" && user.role !== "specialist")) {
-    return <div className="p-4 bg-rose-500/20 text-rose-300">Access Denied: Doctor clearance required.</div>;
+export default async function PatientRecordPage({ params }) {
+  const { id } = await params;
+  const cookieStore = await cookies();
+  const role = cookieStore.get("user_role")?.value;
+
+  if (role !== "doctor") {
+    redirect("/unauthorized");
   }
 
-  return <div>Viewing Medical Chart for Patient #{id}</div>;
+  return (
+    <div className="p-6 bg-zinc-900 rounded-xl space-y-2">
+      <h1 className="text-xl font-bold text-zinc-100">Patient Medical History #{id}</h1>
+      <p className="text-zinc-400 text-sm">Confidential HIPAA Protected Record.</p>
+    </div>
+  );
 }`,
       },
-      keyTakeaway: "Server-side role verification guarantees that sensitive records cannot be accessed through client-side spoofing.",
+      keyTakeaway: "Role-Based Access Control on the server ensures sensitive records are only exposed to authorized personnel.",
     },
 
     combinedExample: {
-      combinedTopics: ["Middleware Protection", "Role Validation", "Server Redirect"],
-      title: "Complete Two-Tier Authentication Architecture",
-      description: "Middleware handles broad authentication; Server Components handle fine-grained RBAC permissions.",
+      combinedTopics: ["Authentication", "Server Actions", "Cookies"],
+      title: "Complete Logout Action",
+      description: "Server Action clearing auth cookies and redirecting to the login screen.",
       code: {
-        title: "Two-Tier Auth Flow",
-        description: "Architecture flow diagram.",
-        language: "typescript",
-        filename: "Auth Pipeline",
-        code: `// Tier 1: Middleware (Edge)
-// Checks if user is logged in -> If NO, redirects to /login
+        title: "Logout Server Action",
+        description: "Invalidating the session cookie in plain JavaScript.",
+        language: "jsx",
+        filename: "src/actions/authActions.js",
+        code: `"use server";
 
-// Tier 2: Server Component (Node.js)
-// Checks if user has specific permissions for requested resource -> If NO, renders 403 Forbidden`,
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+
+export async function logoutAction() {
+  const cookieStore = await cookies();
+  // Cut off the wristband:
+  cookieStore.delete("auth_token");
+  redirect("/login");
+}`,
       },
       stepByStepFlow: [
-        "User visits `/admin/grades`",
-        "Middleware checks cookie: valid token exists -> allows request to proceed",
-        "Page component loads user role: role === 'student' (not 'admin')",
-        "Page calls `redirect('/forbidden')`",
+        "User clicks 'Sign Out' button",
+        "logoutAction Server Action runs on backend",
+        "Server instructs browser to delete auth_token cookie",
+        "User is immediately redirected to /login",
       ],
     },
   },
@@ -310,332 +372,352 @@ export const config = {
   {
     id: "database-and-orm-concepts",
     unitId: "unit-4",
-    title: "Databases, ORMs & Supabase Architecture",
-    shortSummary: "Master relational vs non-relational databases, SQL vs ORMs (Prisma, Drizzle), and the Supabase PostgreSQL platform architecture.",
+    title: "Database Fundamentals, SQL & ORMs",
+    shortSummary: "Learn databases using the School Register analogy, tables/rows/columns, SQL queries, and how ORMs translate JavaScript to database records.",
     order: 2,
-    tags: ["Databases", "SQL", "PostgreSQL", "Supabase", "ORM", "Prisma"],
+    tags: ["Database", "SQL", "ORM", "Prisma", "SQLite", "PostgreSQL"],
 
     simpleExplanation:
-      "A database is a specialized software that safely stores and organizes your application's data (users, blog posts, comments) permanently on disk. **PostgreSQL** is the world's most popular open-source relational database that stores data in structured tables with rows and columns. **Supabase** is an open-source platform that gives you a hosted PostgreSQL database, instant auto-generated APIs, real-time subscriptions, and file storage in one easy package. An **ORM (Object-Relational Mapper)** like Prisma or Drizzle allows you to query your database using clean TypeScript code instead of writing raw SQL strings.",
+      "Imagine the principal's office in a school:\n\n" +
+      "1. **What is a Database?**\nIf you write student names on sticky notes, they blow away when the fan turns on (that is in-memory JavaScript). A **Database** is a heavy steel filing cabinet with locked drawers. Even if the school loses power or your computer restarts, the records inside stay safe forever!\n\n" +
+      "2. **Tables, Columns & Rows (The Register Book)**:\n" +
+      "- **Table**: A specific register book named \`students\`.\n" +
+      "- **Columns (Headings)**: \`id\`, \`name\`, \`course\`.\n" +
+      "- **Rows (Each Student's Entry)**:\n" +
+      "  - Row 1: \`1 | Rahul Kumar | Computer Science\`\n" +
+      "  - Row 2: \`2 | Priya Sharma | Computer Science\`\n" +
+      "  - Row 3: \`3 | Aman Gupta   | Information Technology\`\n\n" +
+      "3. **What is SQL?**\nSQL (Structured Query Language) is the language the database speaks: \`SELECT * FROM students WHERE course = 'Computer Science'\`.\n\n" +
+      "4. **What is an ORM (Object-Relational Mapper)?**\nAn ORM is a **Bilingual Translator**! You don't want to write messy raw SQL queries in your JavaScript files. Instead, you write clean JavaScript: \`db.students.findMany()\`. The ORM translates your JavaScript into database SQL commands automatically:\n" +
+      "  \`Frontend -> Next.js -> ORM (Translator) -> Database\`\n\n" +
+      "5. **Where does the database actually live?**\nIn development, tools like SQLite store your entire database as a REAL file right inside your project directory (for example, \`prisma/dev.db\`)! In production, cloud databases like Supabase or Neon host PostgreSQL on powerful cloud servers.",
 
     whyNeeded:
-      "Writing raw SQL queries directly inside web apps can be prone to syntax typos and SQL Injection vulnerabilities. Understanding how Supabase and ORMs structure database tables, relations (one-to-many, many-to-many), and foreign keys is the bedrock of full-stack engineering.",
+      "Full-stack applications require permanent, reliable data persistence. An ORM provides type-safety, automated schema migrations, and readable JavaScript syntax for performing complex relational database queries.",
 
     reactVsNext: {
-      concept: "Connecting to a Database",
+      concept: "Database Access Architecture",
       reactWay: {
-        title: "React Cannot Connect to Databases Directly",
-        code: `// ❌ IMPOSSIBLE in vanilla React:
-// If you import a database client inside a React component in the browser,
-// your secret database passwords would be sent to every user!
-import { Client } from "pg"; // FATAL SECURITY RISK IN BROWSER!
-
-export function StudentList() {
-  // Browser CANNOT connect directly to PostgreSQL!
-  return <div>Cannot query DB from browser</div>;
-}`,
+        title: "Client-Side Database Calls via REST APIs",
+        code: `// Traditional client-side approach:
+// If you write database code in React:
+import { db } from "./db"; // 💥 CRITICAL ERROR!
+// The database password would be sent to every user's browser,
+// allowing any visitor to delete your entire database!`,
         explanation:
-          "In vanilla React (client-side), you can NEVER connect directly to a database because your database connection string and password would be exposed to the public.",
+          "Browsers cannot maintain TCP socket connections to database servers, and putting database credentials in client code is a fatal security disaster.",
         drawbacks: [
-          "Requires building and deploying a separate Express backend server",
-          "High latency: Browser -> Express API -> Database -> Express API -> Browser",
+          "Zero direct database access from frontend React components",
+          "Requires a separate backend API server (Express/NestJS)",
+          "Exposes secret database credentials if accidentally imported",
         ],
       },
       nextjsWay: {
-        title: "Next.js Direct Server-Side Database Access",
-        code: `// File: src/app/students/page.tsx (Server Component)
-// Runs securely on the server with zero client credential leaks!
-
-import { supabase } from "@/lib/supabase";
+        title: "Next.js Server Direct Database Access (Safe & Fast)",
+        code: `// src/app/students/page.js (Server Component - Pure JavaScript!)
+// Database query runs strictly on the backend:
+import { db } from "@/lib/db";
 
 export default async function StudentsPage() {
-  // Query Supabase PostgreSQL directly inside the component:
-  const { data: students, error } = await supabase
-    .from("students")
-    .select("id, name, course, grade")
-    .order("name", { ascending: true });
-
-  if (error) return <p>Failed to load students.</p>;
+  // Directly query your database! Zero client exposure:
+  const students = await db.student.findMany({
+    where: { course: "Computer Science" },
+  });
 
   return (
-    <ul className="space-y-2">
+    <ul>
       {students.map((s) => (
-        <li key={s.id} className="p-3 bg-zinc-900 rounded-lg">
-          {s.name} - {s.course} ({s.grade})
-        </li>
+        <li key={s.id}>{s.name} - {s.course}</li>
       ))}
     </ul>
   );
 }`,
         explanation:
-          "Because Next.js Server Components run on the server, you can query Supabase or PostgreSQL directly with 0ms server-to-db latency and zero credential leaks.",
+          "Because Next.js Server Components run on the server, you can query databases directly inside your components with zero API routes and zero credential leakage.",
         benefits: [
-          "Direct, secure database queries with zero intermediate Express API server needed",
-          "Full TypeScript autocomplete for database column names",
-          "Ultra-fast query execution right in the server datacenter",
+          "Direct database querying with zero REST boilerplate",
+          "Database connection strings and passwords remain completely private",
+          "Ultra-fast: queries execute right next to the database server",
         ],
       },
       whyDifferent:
-        "Next.js Server Components run in a secure Node.js environment where backend database drivers (PostgreSQL, Supabase client, Prisma) operate natively.",
+        "Next.js Server Components run in Node.js on the backend, allowing direct database access using Prisma, Drizzle, or Supabase.",
       mentalShiftSummary:
-        "Query Supabase directly inside your async Server Components or Server Actions. No middleman API needed!",
+        "You don't need to create an API route just to read from your database. Query your ORM directly inside async Server Components.",
     },
 
     basicExample: {
-      title: "Querying Supabase Table in a Server Component",
-      description: "Fetching posts from a Supabase PostgreSQL table with error handling.",
-      language: "tsx",
-      filename: "src/app/posts/page.tsx",
-      code: `import { supabase, initialMockDb } from "@/lib/supabase";
+      title: "Querying Students with an ORM Translator in Plain JavaScript",
+      description: "Direct database access in an async Server Component using clean JavaScript.",
+      language: "jsx",
+      filename: "src/app/students/page.js",
+      code: `// src/app/students/page.js
+// Simulated ORM client (e.g. Prisma or Supabase):
+import { db } from "@/lib/db";
 
-interface Post {
-  id: number;
-  title: string;
-  category: string;
-  views: number;
-}
-
-export default async function PostsPage() {
-  // Query Supabase table:
-  const { data, error } = await supabase
-    .from("posts")
-    .select("*")
-    .order("created_at", { ascending: false });
-
-  // Graceful fallback to rich mock data if Supabase credentials are not connected:
-  const posts: Post[] = data && data.length > 0 ? data : initialMockDb.posts;
+export default async function StudentsPage() {
+  // The ORM translates this JavaScript method into:
+  // "SELECT id, name, course FROM students WHERE enrolled = true;"
+  const students = await db.student.findMany({
+    where: { enrolled: true },
+    orderBy: { name: "asc" },
+  });
 
   return (
-    <div className="p-6 max-w-2xl mx-auto space-y-4">
-      <h1 className="text-2xl font-bold text-zinc-100">Database Posts</h1>
-      <div className="space-y-3">
-        {posts.map((post) => (
-          <div key={post.id} className="p-4 bg-zinc-900 border border-zinc-800 rounded-xl flex justify-between items-center">
-            <div>
-              <h2 className="font-semibold text-zinc-200">{post.title}</h2>
-              <span className="text-xs text-amber-400 font-mono">{post.category}</span>
-            </div>
-            <span className="text-xs px-2 py-1 bg-zinc-800 text-zinc-400 rounded font-mono">
-              👁 {post.views}
-            </span>
-          </div>
-        ))}
+    <div className="p-6 max-w-3xl mx-auto space-y-6">
+      <div className="border-b border-zinc-800 pb-4">
+        <h1 className="text-2xl font-bold text-zinc-100">School Student Register</h1>
+        <p className="text-zinc-400 text-sm mt-1">
+          Queried directly from the database using our ORM translator.
+        </p>
+      </div>
+
+      <div className="overflow-hidden border border-zinc-800 rounded-2xl">
+        <table className="w-full text-left text-sm">
+          <thead className="bg-zinc-900 border-b border-zinc-800 text-zinc-400 uppercase text-xs">
+            <tr>
+              <th className="p-4">Roll ID</th>
+              <th className="p-4">Student Name</th>
+              <th className="p-4">Course</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-zinc-800 bg-zinc-950">
+            {students.map((student) => (
+              <tr key={student.id} className="hover:bg-zinc-900/50">
+                <td className="p-4 font-mono text-xs text-amber-400">#{student.id}</td>
+                <td className="p-4 font-medium text-zinc-100">{student.name}</td>
+                <td className="p-4 text-zinc-400">{student.course}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
 }`,
       explanation:
-        "The Supabase query `.from('posts').select('*')` returns typed data from PostgreSQL on the server.",
-      outputPreview: "Rendered list of database posts with views and categories.",
+        "Line-by-line explanation:\n- Line 3: import { db } from '@/lib/db'; imports our server-side database translator.\n- Line 8-11: db.student.findMany(...) is clean plain JavaScript! We don't have to write raw SQL strings with quotes and semicolons. The ORM translates it for us.\n- Line 13-44: The component receives the data array directly and renders the HTML table.\n\nWhat happens in the browser?\n1. The visitor requests /students.\n2. The Next.js server executes the findMany query against the database file/server.\n3. The database returns the matching student rows in 2 milliseconds.\n4. Next.js generates the complete HTML table with all names filled in and transmits it to the browser with zero loading spinners!",
+      outputPreview: "A styled table showing Roll ID, Student Name, and Course columns with live records.",
     },
 
     moreExamples: [
       {
-        title: "Relational Foreign Keys (SQL vs Supabase)",
-        description: "Joining students with courses using foreign key relationships.",
-        language: "sql",
-        filename: "Schema Definition (PostgreSQL)",
-        code: `-- Creating relational tables with a foreign key:
-CREATE TABLE courses (
-  id SERIAL PRIMARY KEY,
-  code VARCHAR(20) UNIQUE NOT NULL,
-  name TEXT NOT NULL
-);
+        title: "Creating a Student with an ORM inside a Server Action",
+        description: "Inserting a new student record into the database table in plain JavaScript.",
+        language: "jsx",
+        filename: "src/actions/studentDbActions.js",
+        code: `// src/actions/studentDbActions.js
+"use server";
 
-CREATE TABLE enrollments (
-  id SERIAL PRIMARY KEY,
-  student_name TEXT NOT NULL,
-  course_id INT REFERENCES courses(id) ON DELETE CASCADE,
-  enrolled_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);`,
+import { db } from "@/lib/db";
+import { revalidatePath } from "next/cache";
+
+export async function addStudentToRegister(formData) {
+  const name = formData.get("name");
+  const course = formData.get("course");
+
+  if (!name || !course) return;
+
+  // The ORM translates this to:
+  // "INSERT INTO students (name, course, enrolled) VALUES (...);"
+  await db.student.create({
+    data: {
+      name: name.trim(),
+      course: course.trim(),
+      enrolled: true,
+    },
+  });
+
+  // Refresh student register page:
+  revalidatePath("/students");
+}`,
         explanation:
-          "Foreign keys (`REFERENCES courses(id)`) ensure relational integrity, preventing orphan enrollment records if a course is deleted.",
+          "Server Actions can write to the database directly via your ORM. Calling revalidatePath ensures the updated register is displayed instantly.",
       },
     ],
 
     multipleWays: [
       {
-        name: "Supabase Client SDK (Recommended for Supabase)",
-        syntax: "supabase.from('table').select()",
-        codeSnippet: `const { data } = await supabase.from('students').select('*');`,
-        howItWorks: "Uses PostgREST under the hood to translate JavaScript calls into optimized PostgreSQL queries.",
-        pros: ["No schema compilation step needed", "Built-in Row Level Security", "Instant real-time features"],
-        cons: ["Requires learning Supabase SDK syntax"],
-        whenToUse: "When using Supabase as your primary backend.",
+        name: "ORM (Prisma / Drizzle - Recommended)",
+        syntax: "await db.model.findMany()",
+        codeSnippet: "const students = await db.student.findMany({ where: { active: true } });",
+        howItWorks: "Translates intuitive JavaScript object syntax into safe, optimized SQL queries.",
+        pros: ["No raw SQL injection bugs", "Clean auto-completion", "Automated migrations"],
+        cons: ["Requires learning ORM method conventions"],
+        whenToUse: "Default for modern Next.js applications.",
         isRecommended: true,
       },
       {
-        name: "Prisma / Drizzle ORM",
-        syntax: "await db.student.findMany()",
-        codeSnippet: `const students = await prisma.student.findMany();`,
-        howItWorks: "Type-safe ORM connecting to raw PostgreSQL/MySQL databases via connection pooler.",
-        pros: ["100% type-safe schema definitions", "Auto-generated database migrations"],
-        cons: ["Requires running migration CLI tools"],
-        whenToUse: "For enterprise apps managing complex multi-table SQL schemas.",
+        name: "Raw SQL Queries",
+        syntax: "await db.query('SELECT * FROM students')",
+        codeSnippet: "const res = await pool.query('SELECT * FROM students WHERE id = $1', [id]);",
+        howItWorks: "Sends raw SQL command strings directly to the database engine.",
+        pros: ["Maximum raw database performance for ultra-complex analytics joins"],
+        cons: ["Prone to SQL injection if parameters are not parameterized correctly"],
+        whenToUse: "High-performance reporting dashboards with massive joins.",
       },
     ],
 
     decisionGuide: {
-      recommendationSummary: "Use Supabase SDK for quick full-stack apps with built-in auth, storage, and database. Use Prisma/Drizzle for custom PostgreSQL setups.",
+      recommendationSummary: "Use an ORM like Prisma or Supabase SDK for all standard CRUD operations. Only drop into raw SQL for complex multi-table analytical reporting.",
       scenarios: [
         {
-          scenario: "You want a serverless PostgreSQL database with zero setup and instant web dashboard",
-          recommendedApproach: "Supabase with `@supabase/supabase-js`",
-          reason: "Instant free database with auto-generated APIs and simple client library.",
+          scenario: "Standard student course enrollment and profile updates",
+          recommendedApproach: "ORM (e.g. Prisma or Supabase)",
+          reason: "Safe, readable JavaScript syntax with zero SQL injection risk.",
+        },
+        {
+          scenario: "Generating complex university-wide statistical correlations across 15 tables",
+          recommendedApproach: "Raw SQL query ($queryRaw)",
+          reason: "Complex subqueries and window functions can be written with custom SQL optimization.",
         },
       ],
     },
 
     commonMistakes: [
       {
-        mistakeTitle: "Exposing the Supabase Service Role Key to the client",
-        badCode: `// ❌ FATAL SECURITY FLAW:
-NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY=eyJh... // Anyone can bypass RLS and delete your whole database!`,
-        goodCode: `// ✅ GOOD: Use NEXT_PUBLIC_SUPABASE_ANON_KEY on the client; keep SERVICE_ROLE_KEY server-only!`,
-        whyItBreaks: "The service role key bypasses all Row Level Security policies. If prefixed with `NEXT_PUBLIC_`, it is sent to all browser visitors.",
-        howToFix: "Only use the `anon` key in public code. Keep `service_role` strictly in server-only files.",
+        mistakeTitle: "Instantiating a new database client on every single request in development",
+        badCode: `// ❌ BAD: Re-creating new PrismaClient() on every page request!
+import { PrismaClient } from "@prisma/client";
+const prisma = new PrismaClient(); // Exhausts database connections quickly in development!`,
+        goodCode: `// ✅ GOOD: Save PrismaClient to globalThis in development
+// src/lib/db.js
+import { PrismaClient } from "@prisma/client";
+const globalForPrisma = globalThis;
+export const db = globalForPrisma.prisma || new PrismaClient();
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = db;`,
+        whyItBreaks: "Next.js hot module reloading re-runs files, creating hundreds of unused database connections that quickly crash your database server.",
+        howToFix: "Use the standard singleton pattern attaching the client to globalThis.",
       },
     ],
 
     bestPractices: [
       {
-        title: "Enable Row Level Security (RLS) on Every Supabase Table",
-        rule: "Always run `ALTER TABLE tableName ENABLE ROW LEVEL SECURITY;`.",
-        explanation: "Ensures users can only read or modify rows they are authorized to touch.",
+        title: "Use Database Migrations",
+        rule: "Always track database schema changes through migration files (e.g. npx prisma migrate dev).",
+        explanation: "Migrations document every table and column change so your teammates and production servers stay synchronized.",
       },
     ],
 
     exercises: [
       {
         id: "u4-ex-2",
-        title: "Query Supabase Products with Filtering",
+        title: "Write an ORM Find Query",
         difficulty: "easy",
-        estimatedMinutes: 8,
+        estimatedMinutes: 6,
         prompt:
-          "Write an async Server Component that queries the `'products'` table from Supabase, filters for products where `price <= 100`, and renders them.",
-        initialCode: `import { supabase, initialMockDb } from "@/lib/supabase";
+          "Write an async Server Component in src/app/courses/page.js that uses `db.course.findMany()` in plain JavaScript to retrieve all courses with `credits: 4`.",
+        initialCode: `// src/app/courses/page.js
+import { db } from "@/lib/db";
 
-export default async function BudgetProductsPage() {
-  // TODO: Query products where price is <= 100
+export default async function CoursesPage() {
+  // TODO: Query courses with credits: 4
+  return <div>Courses</div>;
+}`,
+        expectedOutput: "A component querying courses by credit count.",
+        hints: ["Pass `{ where: { credits: 4 } }` into `findMany`"],
+        solutionCode: `// src/app/courses/page.js
+import { db } from "@/lib/db";
+
+export default async function CoursesPage() {
+  const courses = await db.course.findMany({
+    where: { credits: 4 },
+  });
+
   return (
-    <div>
-      {/* Render products */}
+    <div className="p-6 space-y-2">
+      <h1 className="text-xl font-bold">4-Credit Modules</h1>
+      {courses.map((c) => (
+        <p key={c.id}>{c.title} ({c.code})</p>
+      ))}
     </div>
   );
 }`,
-        expectedOutput: "A list of affordable products filtered by price from Supabase.",
-        hints: ["Use `.from('products').select('*').lte('price', 100)`"],
-        solutionCode: `import { supabase, initialMockDb } from "@/lib/supabase";
-
-export default async function BudgetProductsPage() {
-  const { data } = await supabase
-    .from("products")
-    .select("*")
-    .lte("price", 100);
-
-  const products = data && data.length > 0 ? data : initialMockDb.products.filter(p => p.price <= 100);
-
-  return (
-    <div className="p-6 bg-zinc-900 border border-zinc-800 rounded-2xl space-y-4">
-      <h1 className="text-xl font-bold text-zinc-100">Budget Hardware Items</h1>
-      <div className="grid gap-3">
-        {products.map((p) => (
-          <div key={p.id} className="p-4 bg-zinc-950 border border-zinc-800 rounded-xl flex justify-between items-center">
-            <span className="font-medium text-zinc-200">{p.name}</span>
-            <span className="text-emerald-400 font-mono font-bold">\${p.price}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}`,
-        solutionExplanation:
-          "The `.lte('price', 100)` filter is translated into SQL (`WHERE price <= 100`) and executed inside the PostgreSQL database engine.",
+        solutionExplanation: "The ORM where filter translates to an SQL WHERE clause in the backend query.",
       },
     ],
 
     quizzes: [
       {
         id: "u4-q2",
-        question: "What is the primary underlying database engine that powers Supabase?",
-        syllabusTopic: "Supabase Architecture",
+        syllabusTopic: "Database & ORM Fundamentals",
+        question: "What is the primary role of an ORM (Object-Relational Mapper)?",
+        conceptualExplanation: "An ORM acts as a bilingual translator between your JavaScript code and the database SQL commands.",
         options: [
-          { id: "a", text: "MongoDB", isCorrect: false, explanation: "MongoDB is a document NoSQL store." },
-          { id: "b", text: "PostgreSQL", isCorrect: true, explanation: "Correct! Supabase is built directly on top of open-source PostgreSQL." },
-          { id: "c", text: "SQLite in browser memory", isCorrect: false, explanation: "Supabase is a cloud relational database." },
-          { id: "d", text: "Microsoft Excel", isCorrect: false, explanation: "No." },
+          { id: "a", text: "To make your website styling look like Instagram", isCorrect: false, explanation: "Styling is CSS." },
+          { id: "b", text: "To translate plain JavaScript objects and methods into database SQL queries automatically", isCorrect: true, explanation: "Correct! The ORM bridges JavaScript application code and relational SQL tables." },
+          { id: "c", text: "To replace JavaScript with C++", isCorrect: false, explanation: "No." },
+          { id: "d", text: "To delete the hard drive", isCorrect: false, explanation: "No." },
         ],
-        conceptualExplanation:
-          "Supabase provides an enterprise-grade PostgreSQL database with PostgREST, Auth, and Storage layers built on top.",
       },
     ],
 
     realWorldExample: {
-      domain: "Online Course Registration & Enrollment System",
-      description: "How universities query relational databases to verify prerequisite courses before allowing student enrollment.",
+      domain: "University Library System",
+      description: "How a university library tracks book checkouts with relational database models.",
       code: {
-        title: "Prerequisite Course Query",
-        description: "Checking student completed credits.",
-        language: "typescript",
-        filename: "src/lib/prerequisites.ts",
-        code: `export async function verifyPrerequisites(studentId: string, courseCode: string) {
-  const { data: student } = await supabase
-    .from("students")
-    .select("id, completed_courses")
-    .eq("id", studentId)
-    .single();
+        title: "Library Catalog Database Query",
+        description: "Relational query joining books and student checkouts in plain JavaScript.",
+        language: "jsx",
+        filename: "src/app/library/page.js",
+        code: `import { db } from "@/lib/db";
 
-  return student?.completed_courses?.includes("INT219");
+export default async function LibraryPage() {
+  const books = await db.book.findMany({
+    include: { checkedOutBy: true },
+  });
+
+  return (
+    <div className="p-6 space-y-3">
+      <h1 className="text-xl font-bold text-zinc-100">Library Catalog</h1>
+      {books.map((b) => (
+        <div key={b.id} className="p-3 bg-zinc-900 rounded-lg">
+          <p className="font-semibold">{b.title}</p>
+          <p className="text-xs text-zinc-400">
+            {b.checkedOutBy ? \`Checked out by: \${b.checkedOutBy.name}\` : "Available on shelf"}
+          </p>
+        </div>
+      ))}
+    </div>
+  );
 }`,
       },
-      keyTakeaway: "Relational queries ensure rigorous business logic checks occur on the server before mutating data.",
+      keyTakeaway: "Relational ORM includes automatically fetch joined tables without writing complicated manual SQL JOIN statements.",
     },
 
     combinedExample: {
-      combinedTopics: ["Supabase Query", "Server Component", "TypeScript Types"],
-      title: "Complete Server-Rendered Database Grid",
-      description: "Fetching students and rendering a responsive data table.",
+      combinedTopics: ["Database", "Server Components", "Tailwind CSS"],
+      title: "Interactive Student Table with Live DB Data",
+      description: "Full student directory backed by database records.",
       code: {
-        title: "Typed Supabase Table Component",
-        description: "Server Component with typed query results.",
-        language: "tsx",
-        filename: "src/app/students-table/page.tsx",
-        code: `import { supabase, initialMockDb } from "@/lib/supabase";
+        title: "Student Roster Table",
+        description: "Responsive table populated directly by database query.",
+        language: "jsx",
+        filename: "src/app/students-table/page.js",
+        code: `import { db } from "@/lib/db";
 
-export default async function StudentsTable() {
-  const { data } = await supabase.from("students").select("*");
-  const students = data && data.length > 0 ? data : initialMockDb.students;
+export default async function StudentsTablePage() {
+  const students = await db.student.findMany();
 
   return (
-    <div className="overflow-x-auto border border-zinc-800 rounded-xl">
-      <table className="w-full text-left text-sm text-zinc-300">
-        <thead className="bg-zinc-900 text-xs uppercase font-mono text-zinc-400 border-b border-zinc-800">
-          <tr>
-            <th className="p-3">ID</th>
-            <th className="p-3">Name</th>
-            <th className="p-3">Course</th>
-            <th className="p-3">Grade</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-zinc-800 bg-zinc-950">
-          {students.map((s) => (
-            <tr key={s.id}>
-              <td className="p-3 font-mono text-zinc-500">#{s.id}</td>
-              <td className="p-3 font-medium text-zinc-100">{s.name}</td>
-              <td className="p-3 text-zinc-400">{s.course}</td>
-              <td className="p-3 font-bold text-emerald-400">{s.grade}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4">Enrolled Students ({students.length})</h1>
+      <ul className="space-y-2">
+        {students.map((s) => (
+          <li key={s.id} className="p-3 bg-zinc-900 rounded-lg border border-zinc-800">
+            {s.name} - {s.course}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }`,
       },
       stepByStepFlow: [
-        "Server queries Supabase PostgreSQL",
-        "Constructs clean HTML table",
-        "Transmits 0 KB client JavaScript bundle to browser",
+        "Server executes db.student.findMany()",
+        "Records arrive in 2ms",
+        "Server renders complete HTML list",
+        "Browser displays student directory instantly",
       ],
     },
   },
@@ -643,311 +725,402 @@ export default async function StudentsTable() {
   {
     id: "supabase-crud-operations",
     unitId: "unit-4",
-    title: "Full CRUD Operations with Supabase",
-    shortSummary: "Perform Create, Read, Update, and Delete operations on Supabase PostgreSQL tables using Server Actions and Server Components.",
+    title: "Supabase Database & Full CRUD Operations",
+    shortSummary: "Master full CRUD operations on a Student entity (Create, Read, Update, Delete) using Supabase PostgreSQL and Server Actions in plain JavaScript.",
     order: 3,
-    tags: ["CRUD", "Supabase", "Insert", "Update", "Delete", "PostgreSQL"],
+    tags: ["Supabase", "CRUD", "PostgreSQL", "Server Actions", "Database"],
 
     simpleExplanation:
-      "**CRUD** stands for the 4 fundamental operations of any database application: **Create** (adding new records), **Read** (fetching and viewing records), **Update** (modifying existing records), and **Delete** (removing records). In Next.js with Supabase, you do: `.insert()` to create, `.select()` to read, `.update()` to edit, and `.delete()` to remove. When combined with Server Actions and `revalidatePath()`, full CRUD operations require zero API boilerplate!",
+      "**CRUD** represents the 4 essential actions every web app performs on data:\n\n" +
+      "1. **C - CREATE (Add a new student)**:\n" +
+      "   A new student arrives at school. You write their name in the register:\n" +
+      "   \`await supabase.from('students').insert([{ name: 'Rahul', course: 'CSE' }])\`\n\n" +
+      "2. **R - READ (Show the student list)**:\n" +
+      "   The teacher opens the book to see everyone enrolled:\n" +
+      "   \`const { data } = await supabase.from('students').select('*')\`\n\n" +
+      "3. **U - UPDATE (Edit student information)**:\n" +
+      "   Rahul switches his major from CSE to AI Engineering:\n" +
+      "   \`await supabase.from('students').update({ course: 'AI' }).eq('id', 1)\`\n\n" +
+      "4. **D - DELETE (Remove student upon graduation)**:\n" +
+      "   A student graduates and leaves the school:\n" +
+      "   \`await supabase.from('students').delete().eq('id', 1)\`\n\n" +
+      "**What is Supabase?**\nSupabase is an open-source, cloud-hosted PostgreSQL database. It gives you a clean JavaScript SDK to perform all 4 CRUD actions in plain JavaScript without running a local database engine!",
 
     whyNeeded:
-      "Virtually all modern web applications (e-commerce carts, task managers, blogs, social networks, school portals) are fundamentally CRUD applications. Mastering CRUD operations in Next.js is essential for building real-world projects.",
+      "Virtually all web applications (social media feeds, e-commerce stores, learning portals, banking apps) are built on CRUD operations. Mastering CRUD with Supabase gives you the ability to build any full-stack web product.",
 
     reactVsNext: {
-      concept: "Executing Database CRUD",
+      concept: "Supabase CRUD Architecture",
       reactWay: {
-        title: "React -> REST API -> Express -> SQL",
-        code: `// Traditional React requires 4 separate API endpoints in Express:
-// 1. app.get('/api/todos')
-// 2. app.post('/api/todos')
-// 3. app.put('/api/todos/:id')
-// 4. app.delete('/api/todos/:id')
-// Plus 4 manual fetch() calls in the React frontend!`,
+        title: "Client-Side Database Operations",
+        code: `// Client-side database execution in the browser:
+function StudentList() {
+  const [students, setStudents] = useState([]);
+
+  useEffect(() => {
+    // ⚠️ Network request initiated from user's laptop:
+    supabase.from("students").select("*")
+      .then(({ data }) => setStudents(data));
+  }, []);
+
+  return <div>{students.map(s => <p key={s.id}>{s.name}</p>)}</div>;
+}`,
         explanation:
-          "In vanilla React, you have to write dozens of lines of route handlers in Express and corresponding `fetch` wrapper functions in React.",
+          "When database operations run from the client browser, you must rely entirely on complex Row Level Security rules and expose database endpoints to browser network inspection.",
         drawbacks: [
-          "High maintenance burden with 4 distinct API endpoints",
-          "Duplicate validation logic",
+          "Network waterfalls: browser must load React before querying database",
+          "Shows blank loading spinners on initial page view",
+          "Database endpoints visible in browser DevTools network tab",
         ],
       },
       nextjsWay: {
-        title: "Next.js + Supabase Direct CRUD Actions",
-        code: `// Direct Server Actions using Supabase SDK:
+        title: "Next.js Server-Side Supabase CRUD (Direct & Fast)",
+        code: `// src/app/students/page.js (Server Component - Pure JavaScript!)
+import { supabase } from "@/lib/supabase";
+import { deleteStudentAction } from "@/actions/studentActions";
+
+export default async function StudentsPage() {
+  // READ directly on the server:
+  const { data: students } = await supabase
+    .from("students")
+    .select("*")
+    .order("id", { ascending: true });
+
+  return (
+    <ul>
+      {students.map((s) => (
+        <li key={s.id}>
+          {s.name} ({s.course})
+          {/* DELETE via Server Action: */}
+          <form action={async () => { "use server"; await deleteStudentAction(s.id); }}>
+            <button>Delete</button>
+          </form>
+        </li>
+      ))}
+    </ul>
+  );
+}`,
+        explanation:
+          "In Next.js, READ operations execute on the server during page rendering, while CREATE, UPDATE, and DELETE operations execute securely through Server Actions.",
+        benefits: [
+          "Instant HTML rendering: complete student list delivered in the initial response",
+          "Zero client-side waterfalls or blank loading screens",
+          "Database operations run securely on the server",
+        ],
+      },
+      whyDifferent:
+        "Next.js separates data reading (in Server Components) from data mutating (in Server Actions), creating a clean and secure full-stack workflow.",
+      mentalShiftSummary:
+        "Read Supabase data inside async Server Components with .select('*'). Mutate Supabase data inside Server Actions with .insert(), .update(), and .delete().",
+    },
+
+    basicExample: {
+      title: "Complete Student CRUD in Plain JavaScript with Supabase",
+      description: "A complete CRUD dashboard demonstrating Create, Read, Update, and Delete on students.",
+      language: "jsx",
+      filename: "src/app/students/page.js",
+      code: `// src/app/students/page.js
+import { supabase } from "@/lib/supabase";
+import { addStudentAction, deleteStudentAction } from "@/actions/studentActions";
+
+export default async function StudentCrudPage() {
+  // 1. READ (R): Fetch all students from Supabase:
+  const { data: students, error } = await supabase
+    .from("students")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  return (
+    <div className="max-w-3xl mx-auto p-6 space-y-8">
+      <div>
+        <h1 className="text-3xl font-extrabold text-zinc-100">Student Directory (CRUD)</h1>
+        <p className="text-zinc-400 text-sm mt-1">
+          Powered by Supabase PostgreSQL and Next.js Server Actions in plain JavaScript.
+        </p>
+      </div>
+
+      {/* 2. CREATE (C): Form to add a new student */}
+      <div className="p-6 bg-zinc-900 border border-zinc-800 rounded-2xl space-y-4">
+        <h2 className="text-lg font-bold text-zinc-100">Enroll New Student</h2>
+        <form action={addStudentAction} className="flex flex-col sm:flex-row gap-3">
+          <input
+            name="name"
+            placeholder="Student Name"
+            className="flex-1 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-zinc-100 text-sm"
+            required
+          />
+          <input
+            name="course"
+            placeholder="Course (e.g. CSE)"
+            className="flex-1 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-zinc-100 text-sm"
+            required
+          />
+          <button
+            type="submit"
+            className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-medium transition-colors"
+          >
+            Enroll
+          </button>
+        </form>
+      </div>
+
+      {/* READ list with DELETE buttons */}
+      <div className="space-y-3">
+        <h2 className="text-lg font-bold text-zinc-100">Enrolled Students ({students?.length || 0})</h2>
+        <div className="grid gap-3">
+          {students?.map((student) => (
+            <div
+              key={student.id}
+              className="p-4 bg-zinc-900 border border-zinc-800 rounded-xl flex items-center justify-between"
+            >
+              <div>
+                <h3 className="font-semibold text-zinc-100">{student.name}</h3>
+                <span className="text-xs font-mono text-emerald-400">{student.course}</span>
+              </div>
+
+              {/* 3. DELETE (D): Form triggering Server Action */}
+              <form action={async () => {
+                "use server";
+                await deleteStudentAction(student.id);
+              }}>
+                <button
+                  type="submit"
+                  className="px-3 py-1 bg-zinc-950 hover:bg-rose-500/20 text-zinc-400 hover:text-rose-400 border border-zinc-800 rounded-lg text-xs transition-colors"
+                >
+                  Delete
+                </button>
+              </form>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}`,
+      explanation:
+        "Line-by-line explanation:\n- Line 2: import { supabase } from '@/lib/supabase'; imports the initialized Supabase client.\n- Line 7-10: await supabase.from('students').select('*') reads all student records from PostgreSQL on the server.\n- Line 22-40: The Create form passes user inputs directly to addStudentAction.\n- Line 46-75: Maps over the student array. Each item has a delete button wired to deleteStudentAction.\n\nWhat happens in the browser?\n1. The page loads with all students pre-rendered into HTML in milliseconds.\n2. A teacher types 'Aman Gupta' and 'CSE' and clicks 'Enroll'.\n3. The addStudentAction inserts the record into Supabase and calls revalidatePath('/students').\n4. The page refreshes automatically, displaying Aman in the list without a manual page reload!",
+      outputPreview: "Full student management interface showing enrollment form and list of student cards with delete actions.",
+    },
+
+    moreExamples: [
+      {
+        title: "CRUD Server Actions for Supabase in Plain JavaScript",
+        description: "The backend Server Actions handling Create, Update, and Delete in Supabase.",
+        language: "jsx",
+        filename: "src/actions/studentActions.js",
+        code: `// src/actions/studentActions.js
 "use server";
 
 import { supabase } from "@/lib/supabase";
 import { revalidatePath } from "next/cache";
 
-// CREATE:
-export async function createTodo(title: string) {
-  await supabase.from("todos").insert([{ title, completed: false }]);
-  revalidatePath("/todos");
+// 1. CREATE: Insert a new student
+export async function addStudentAction(formData) {
+  const name = formData.get("name");
+  const course = formData.get("course");
+
+  if (!name || !course) return;
+
+  const { error } = await supabase
+    .from("students")
+    .insert([{ name: name.trim(), course: course.trim() }]);
+
+  if (error) console.error("Error adding student:", error.message);
+  revalidatePath("/students");
 }
 
-// UPDATE:
-export async function updateTodo(id: number, completed: boolean) {
-  await supabase.from("todos").update({ completed }).eq("id", id);
-  revalidatePath("/todos");
+// 2. UPDATE: Change a student's course
+export async function updateStudentCourse(id, newCourse) {
+  const { error } = await supabase
+    .from("students")
+    .update({ course: newCourse })
+    .eq("id", id);
+
+  if (error) console.error("Error updating student:", error.message);
+  revalidatePath("/students");
 }
 
-// DELETE:
-export async function deleteTodo(id: number) {
-  await supabase.from("todos").delete().eq("id", id);
-  revalidatePath("/todos");
+// 3. DELETE: Remove a student
+export async function deleteStudentAction(id) {
+  const { error } = await supabase
+    .from("students")
+    .delete()
+    .eq("id", id);
+
+  if (error) console.error("Error deleting student:", error.message);
+  revalidatePath("/students");
 }`,
         explanation:
-          "Server Actions call the Supabase client directly and purge the cache with `revalidatePath()`. The UI updates instantly.",
-        benefits: [
-          "Zero manual API endpoints to configure",
-          "One single function per CRUD operation",
-          "Direct integration with form actions and optimistic UI",
-        ],
-      },
-      whyDifferent:
-        "Next.js lets you call Supabase functions directly on the server without creating boilerplate REST controllers.",
-      mentalShiftSummary:
-        "Write 1 Server Action per database mutation. Call `revalidatePath()` after `.insert()`, `.update()`, or `.delete()`.",
-    },
-
-    basicExample: {
-      title: "Interactive Supabase Task Manager (Full CRUD)",
-      description: "Creating, toggling, and deleting tasks with Supabase in Next.js.",
-      language: "tsx",
-      filename: "src/actions/todoCrud.ts",
-      code: `"use server";
-
-import { supabase } from "@/lib/supabase";
-import { revalidatePath } from "next/cache";
-
-// 1. CREATE: Insert a new task
-export async function addTodoAction(formData: FormData) {
-  const title = formData.get("title") as string;
-  if (!title) return;
-
-  await supabase.from("todos").insert([{ title, completed: false, priority: "medium" }]);
-  revalidatePath("/todos");
-}
-
-// 2. UPDATE: Toggle task completion
-export async function toggleTodoAction(id: number, completed: boolean) {
-  await supabase.from("todos").update({ completed }).eq("id", id);
-  revalidatePath("/todos");
-}
-
-// 3. DELETE: Remove a task
-export async function deleteTodoAction(id: number) {
-  await supabase.from("todos").delete().eq("id", id);
-  revalidatePath("/todos");
-}`,
-      explanation:
-        "Each action performs a single clean database mutation via Supabase and immediately invalidates the page cache.",
-      outputPreview: "Full CRUD actions ready to power any interactive task management UI.",
-    },
-
-    moreExamples: [
-      {
-        title: "Supabase Row Level Security (RLS) SQL Policies",
-        description: "Enforcing security rules at the PostgreSQL database level.",
-        language: "sql",
-        filename: "RLS Policies Example",
-        code: `-- Enable RLS on the table:
-ALTER TABLE todos ENABLE ROW LEVEL SECURITY;
-
--- Allow public to read tasks:
-CREATE POLICY "Public Read Tasks" ON todos
-  FOR SELECT USING (true);
-
--- Allow authenticated users to only delete their own tasks:
-CREATE POLICY "Users Delete Own Tasks" ON todos
-  FOR DELETE USING (auth.uid() = user_id);`,
-        explanation:
-          "RLS policies act as security guardrails directly inside PostgreSQL, ensuring no user can tamper with someone else's data even if client code is modified.",
+          "All mutations happen on the server. Calling .eq('id', id) ensures only that specific record is updated or deleted.",
       },
     ],
 
     multipleWays: [
       {
-        name: "Direct Supabase Server Actions (Recommended)",
-        syntax: "supabase.from('table').insert/update/delete inside 'use server'",
-        codeSnippet: `export async function deleteItem(id) {
-  await supabase.from('items').delete().eq('id', id);
-  revalidatePath('/items');
-}`,
-        howItWorks: "Executes inside Next.js Server Action.",
-        pros: ["Instant UI refresh", "Zero API routes", "Type safety"],
-        cons: ["Requires server environment"],
-        whenToUse: "For all application forms, delete buttons, and inline toggles.",
+        name: "Supabase JS SDK (Recommended)",
+        syntax: "supabase.from('table').select/insert/update/delete",
+        codeSnippet: "const { data } = await supabase.from('students').select('*');",
+        howItWorks: "Chainable JavaScript methods that map to PostgreSQL operations.",
+        pros: ["Clean, expressive syntax", "Automatic type formatting", "Built-in error reporting"],
+        cons: ["Requires learning Supabase chain syntax (.select(), .eq(), .order())"],
+        whenToUse: "Default for Supabase database applications.",
         isRecommended: true,
       },
       {
-        name: "Route Handlers (REST API)",
-        syntax: "export async function DELETE(req) { ... }",
-        codeSnippet: `export async function DELETE(req: NextRequest) {
-  const { id } = await req.json();
-  await supabase.from('items').delete().eq('id', id);
-  return NextResponse.json({ success: true });
-}`,
-        howItWorks: "Standard HTTP endpoint.",
-        pros: ["Callable by third-party services and mobile apps"],
-        cons: ["Requires client fetch call + manual UI state refresh"],
-        whenToUse: "When building APIs for native mobile apps.",
+        name: "Direct Prisma over Supabase PostgreSQL",
+        syntax: "prisma.student.findMany()",
+        codeSnippet: "const students = await prisma.student.findMany();",
+        howItWorks: "Using Prisma ORM connected to Supabase's PostgreSQL connection pooler.",
+        pros: ["Shared schema across services", "Complex relation queries"],
+        cons: ["Requires running Prisma migration CLI tools"],
+        whenToUse: "Large enterprise teams with multi-table relational models.",
       },
     ],
 
     decisionGuide: {
-      recommendationSummary: "Use Server Actions for all your website's CRUD operations. Use Route Handlers when building public API endpoints.",
+      recommendationSummary: "Use the Supabase JavaScript SDK inside Server Components for reads, and inside Server Actions for mutations.",
       scenarios: [
         {
-          scenario: "Adding a 'Delete' button next to a student record",
-          recommendedApproach: "Server Action calling `supabase.from('students').delete().eq('id', id)`",
-          reason: "Simple button action with automatic table revalidation.",
+          scenario: "Adding a new student to the database from a web form",
+          recommendedApproach: "Server Action with supabase.from('students').insert()",
+          reason: "Secures database mutations on the server and enables automatic cache revalidation.",
+        },
+        {
+          scenario: "Displaying public course listings on the homepage",
+          recommendedApproach: "Server Component with supabase.from('courses').select('*')",
+          reason: "Delivers fast, pre-rendered HTML without client loading waterfalls.",
         },
       ],
     },
 
     commonMistakes: [
       {
-        mistakeTitle: "Forgetting the .eq('id', id) filter on UPDATE or DELETE",
-        badCode: `// ❌ DISASTER: Deletes EVERY ROW in the entire database table!
-await supabase.from("todos").delete();`,
-        goodCode: `// ✅ GOOD: Always specify which exact row to delete
-await supabase.from("todos").delete().eq("id", targetId);`,
-        whyItBreaks: "Without a filter like `.eq('id', id)`, SQL executes `DELETE FROM todos;`, wiping out all records in the table.",
-        howToFix: "Always verify that your `.update()` and `.delete()` statements contain an `.eq()` condition.",
+        mistakeTitle: "Calling .delete() or .update() without an .eq() filter",
+        badCode: `// ❌ DANGEROUS: Deletes every single row in the students table!
+await supabase.from("students").delete();`,
+        goodCode: `// ✅ SAFE: Specify the exact student ID to delete!
+await supabase.from("students").delete().eq("id", studentId);`,
+        whyItBreaks: "Without an .eq('id', ...) condition, an update or delete command targets ALL rows in the table.",
+        howToFix: "Always append .eq('column', value) to identify the specific record to update or delete.",
       },
     ],
 
     bestPractices: [
       {
-        title: "Always Handle the { error } Object Returned by Supabase",
-        rule: "Check `const { data, error } = await supabase...; if (error) throw error;`.",
-        explanation: "Prevents silent database write failures.",
+        title: "Always Call revalidatePath After Mutations",
+        rule: "Immediately after a Supabase insert, update, or delete, call revalidatePath('/your-route').",
+        explanation: "This forces Next.js to regenerate the cached page so users see the latest data immediately.",
       },
     ],
 
     exercises: [
       {
         id: "u4-ex-3",
-        title: "Write a Supabase Insert Action with Revalidation",
+        title: "Create a Supabase Insert Server Action",
         difficulty: "easy",
         estimatedMinutes: 8,
         prompt:
-          "Write a Server Action `createProductAction` that accepts `name` and `price`, inserts them into the `'products'` table in Supabase, and revalidates `/products`.",
-        initialCode: `// src/actions/createProduct.ts
-export async function createProductAction(name: string, price: number) {
-  // TODO: Add 'use server', insert into Supabase, and revalidate
+          "Write a Server Action in src/actions/taskActions.js in plain JavaScript that inserts a new task into the 'tasks' Supabase table using `supabase.from('tasks').insert([{ title }])` and calls `revalidatePath('/tasks')`.",
+        initialCode: `// src/actions/taskActions.js
+"use server";
+
+import { supabase } from "@/lib/supabase";
+
+export async function addTask(formData) {
+  // TODO: Insert into Supabase and revalidate
 }`,
-        expectedOutput: "A functional Server Action adding items to Supabase.",
-        hints: ["Add `'use server';`", "Call `await supabase.from('products').insert([{ name, price }]);`"],
-        solutionCode: `"use server";
+        expectedOutput: "A Server Action inserting a task into Supabase.",
+        hints: ["Use `await supabase.from('tasks').insert([{ title }])` and `revalidatePath('/tasks')`"],
+        solutionCode: `// src/actions/taskActions.js
+"use server";
 
 import { supabase } from "@/lib/supabase";
 import { revalidatePath } from "next/cache";
 
-export async function createProductAction(name: string, price: number) {
-  if (!name || price <= 0) {
-    return { success: false, error: "Invalid product name or price." };
-  }
+export async function addTask(formData) {
+  const title = formData.get("title");
+  if (!title || title.trim() === "") return;
 
-  const { error } = await supabase.from("products").insert([
-    { name: name.trim(), price, stock: 10, category: "General" }
-  ]);
-
-  if (error) {
-    return { success: false, error: error.message };
-  }
-
-  revalidatePath("/products");
-  return { success: true };
+  await supabase.from("tasks").insert([{ title: title.trim(), completed: false }]);
+  revalidatePath("/tasks");
 }`,
-        solutionExplanation:
-          "This Server Action validates input, inserts a new row into Supabase PostgreSQL, and triggers a cache purge to display the new product.",
+        solutionExplanation: "The action reads form data, performs a Supabase insert, and invalidates the cache so the task appears instantly.",
       },
     ],
 
     quizzes: [
       {
         id: "u4-q3",
-        question: "What happens if you run supabase.from('students').delete() without an .eq() filter?",
-        syllabusTopic: "Supabase CRUD Safety",
+        syllabusTopic: "Supabase CRUD Operations",
+        question: "What happens if you run `await supabase.from('students').delete()` without an `.eq()` condition?",
+        conceptualExplanation: "Without a filter condition like .eq('id', id), an SQL delete command matches all rows in the table.",
         options: [
-          { id: "a", text: "It deletes only the first student in the list", isCorrect: false, explanation: "No, SQL delete without a WHERE clause targets all rows." },
-          { id: "b", text: "It attempts to delete all rows in the table (unless blocked by RLS policies)", isCorrect: true, explanation: "Correct! Without a filter condition, delete commands match the entire table." },
+          { id: "a", text: "It deletes only the first student in the list", isCorrect: false, explanation: "SQL delete without a WHERE clause targets all rows." },
+          { id: "b", text: "It attempts to delete all rows in the table (unless blocked by Row Level Security)", isCorrect: true, explanation: "Correct! Without a filter condition, delete commands target the entire table." },
           { id: "c", text: "It renames the database", isCorrect: false, explanation: "No." },
           { id: "d", text: "It downloads the database as a CSV", isCorrect: false, explanation: "No." },
         ],
-        conceptualExplanation:
-          "In SQL and Supabase, omitting a `.eq()` filter condition causes the operation to apply globally to all rows.",
       },
     ],
 
     realWorldExample: {
-      domain: "Course Enrollment & Waitlist System",
-      description: "How universities insert student course selections into database tables with atomic constraints.",
+      domain: "E-Commerce Product Catalog",
+      description: "How an online store manages product inventory using Supabase CRUD operations.",
       code: {
-        title: "Course Enrollment Mutation",
-        description: "Insert enrollment record with duplicate prevention.",
-        language: "typescript",
-        filename: "src/actions/enroll.ts",
+        title: "Product Inventory Manager",
+        description: "Supabase CRUD for updating product stock in plain JavaScript.",
+        language: "jsx",
+        filename: "src/actions/inventory.js",
         code: `"use server";
 
-export async function enrollStudentInCourse(studentId: number, courseId: string) {
-  const { data, error } = await supabase.from("enrollments").insert([
-    { student_id: studentId, course_code: courseId }
-  ]);
+import { supabase } from "@/lib/supabase";
+import { revalidatePath } from "next/cache";
 
-  if (error) return { error: "Already enrolled in this course!" };
-  revalidatePath("/my-courses");
-  return { success: true };
+export async function updateStock(productId, newStock) {
+  const { error } = await supabase
+    .from("products")
+    .update({ stock: newStock })
+    .eq("id", productId);
+
+  if (!error) revalidatePath("/inventory");
 }`,
       },
-      keyTakeaway: "Database constraints (such as UNIQUE keys on student_id + course_code) prevent accidental double enrollment.",
+      keyTakeaway: "Direct Supabase mutations in Server Actions keep inventory counts synchronized across all shoppers.",
     },
 
     combinedExample: {
-      combinedTopics: ["Supabase CRUD", "Server Actions", "Optimistic UI"],
-      title: "Interactive Full-Stack Task Board",
-      description: "Combining Supabase database mutations with instant optimistic feedback.",
+      combinedTopics: ["Supabase", "Server Actions", "Optimistic UI"],
+      title: "Interactive Task List with Supabase",
+      description: "Todo list connected to real Supabase database tables with optimistic UI toggling.",
       code: {
-        title: "Full Task Board Architecture",
-        description: "Server Component fetching tasks + Client Component with optimistic toggles.",
-        language: "tsx",
-        filename: "src/app/tasks/page.tsx",
-        code: `import { supabase, initialMockDb } from "@/lib/supabase";
-import { toggleTodoAction, deleteTodoAction } from "@/actions/todoCrud";
+        title: "Supabase Todo Dashboard",
+        description: "Complete CRUD todo component in plain JavaScript.",
+        language: "jsx",
+        filename: "src/app/tasks/page.js",
+        code: `import { supabase } from "@/lib/supabase";
 
 export default async function TasksPage() {
-  const { data } = await supabase.from("todos").select("*");
-  const todos = data && data.length > 0 ? data : initialMockDb.todos;
+  const { data: tasks } = await supabase.from("tasks").select("*");
 
   return (
-    <div className="p-6 max-w-xl mx-auto space-y-4">
-      <h1 className="text-2xl font-bold text-zinc-100">My Study Tasks</h1>
-      <div className="space-y-2">
-        {todos.map((todo) => (
-          <div key={todo.id} className="flex justify-between items-center p-3 bg-zinc-900 border border-zinc-800 rounded-xl">
-            <span className={todo.completed ? "line-through text-zinc-500" : "text-zinc-200"}>
-              {todo.title}
-            </span>
-            <form action={async () => {
-              "use server";
-              await deleteTodoAction(todo.id);
-            }}>
-              <button type="submit" className="text-xs text-rose-400 hover:underline">Delete</button>
-            </form>
-          </div>
+    <div className="p-6 max-w-lg mx-auto space-y-4">
+      <h1 className="text-2xl font-bold text-zinc-100">Tasks ({tasks?.length || 0})</h1>
+      <ul className="space-y-2">
+        {tasks?.map((t) => (
+          <li key={t.id} className="p-3 bg-zinc-900 rounded-lg border border-zinc-800">
+            {t.title}
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 }`,
       },
       stepByStepFlow: [
-        "Server Component queries tasks from Supabase",
-        "Renders instant HTML list",
-        "User clicks Delete -> Server Action executes `.delete().eq('id', id)`",
-        "Table updates automatically with zero page reload",
+        "Server queries Supabase PostgreSQL table",
+        "Fast server-rendered HTML sent to browser",
+        "Form submission triggers Server Action mutation",
+        "revalidatePath refreshes the list automatically",
       ],
     },
   },
@@ -955,254 +1128,319 @@ export default async function TasksPage() {
   {
     id: "environment-variables-security",
     unitId: "unit-4",
-    title: "Environment Variables & Secure Configuration",
-    shortSummary: "Master server-only secrets (.env.local), client-safe NEXT_PUBLIC_ variables, and how to prevent dangerous credential leaks.",
+    title: "Environment Variables & Secret Management",
+    shortSummary: "Learn secret management using the Secret Diary analogy: keep passwords safe in .env.local, and understand why NEXT_PUBLIC_ is a public billboard.",
     order: 4,
-    tags: ["Environment Variables", "Security", ".env.local", "NEXT_PUBLIC_", "API Keys"],
+    tags: ["Environment Variables", ".env.local", "NEXT_PUBLIC_", "Security", "process.env"],
 
     simpleExplanation:
-      "When building full-stack apps, you have secret keys that must NEVER be shared with the public (like database passwords, Stripe secret keys, and admin tokens). Next.js uses `.env.local` files to store these secrets. By default, every environment variable in Next.js is **Server-Only**—it only exists on the server and is never sent to the browser. If you explicitly want an environment variable to be visible in the user's browser (like a public Google Maps key or Supabase public URL), you must prefix its name with `NEXT_PUBLIC_`.",
+      "Imagine you have two things:\n\n" +
+      "1. **The Secret Diary (.env.local)**:\n" +
+      "Under your bed, you keep a locked diary. In it, you write your secret database password, your Stripe payment secret key, and your admin PIN. You NEVER show this diary to strangers! In Next.js, \`.env.local\` is your secret diary. It stays strictly on the server and is NEVER sent to the user's browser!\n\n" +
+      "2. **The Public Billboard (NEXT_PUBLIC_)**:\n" +
+      "Out on the main street, you put up a giant advertising billboard that everyone can see. If you want everyone to know your school's name or public website URL, you write it on the billboard! In Next.js, any variable prefixed with \`NEXT_PUBLIC_\` (like \`NEXT_PUBLIC_APP_NAME\`) is baked into the client JavaScript for anyone to read!\n\n" +
+      "**The Golden Rule**:\n" +
+      "- \`DATABASE_URL\` -> NO prefix! Secret! Only backend code can see it.\n" +
+      "- \`STRIPE_SECRET_KEY\` -> NO prefix! Secret! Only server actions can see it.\n" +
+      "- \`NEXT_PUBLIC_STORE_NAME\` -> Public billboard! Safe for the browser to see.",
 
     whyNeeded:
-      "Leaking private database keys or API credentials on GitHub or in client JavaScript bundles can lead to catastrophic data theft, server takeovers, and massive unauthorized cloud bills. Next.js provides built-in compile-time security to keep your secrets locked on the server.",
+      "Accidentally committing database passwords or private API keys to GitHub or client JavaScript bundles is the #1 way web applications get hacked. Next.js enforces a strict security boundary that automatically hides all standard environment variables from client code.",
 
     reactVsNext: {
       concept: "Environment Variable Security",
       reactWay: {
-        title: "React Vite / CRA (VITE_ / REACT_APP_)",
-        code: `// In Vite or CRA, all VITE_* variables are bundled into the client JS!
-// File: .env
-VITE_DATABASE_PASSWORD=secret123 // EXPOSED IN BROWSER BUNDLE!
+        title: "Vite / CRA (Everything is Public in Client Bundles)",
+        code: `// In client-only bundles, environment variables are embedded into browser JS:
+// .env
+VITE_API_KEY=my_secret_key_123
 
-// If a developer writes:
-console.log(import.meta.env.VITE_DATABASE_PASSWORD);
-// Any user can inspect DevTools Network tab and steal the password!`,
+// In your React app:
+console.log(import.meta.env.VITE_API_KEY);
+// ⚠️ Anyone can open Chrome DevTools, view the bundle, and steal your secret key!`,
         explanation:
-          "In vanilla React, all environment variables with `VITE_` or `REACT_APP_` prefixes are baked directly into the public client JavaScript files.",
+          "In client-only architecture, there is no server runtime. Every variable you use is permanently embedded inside the client JavaScript downloaded by visitors.",
         drawbacks: [
-          "Zero server-side secret isolation (everything goes to the client)",
-          "Cannot store true database secrets safely in frontend-only apps",
+          "Zero secret privacy: any visitor can inspect client bundles to find keys",
+          "Cannot store database passwords or Stripe secret keys in the project",
+          "Requires a separate backend just to protect sensitive credentials",
         ],
       },
       nextjsWay: {
-        title: "Next.js Compile-Time Secret Isolation",
-        code: `// File: .env.local
+        title: "Next.js Server-Private Environment Variables (Automatic Vault)",
+        code: `// 1. .env.local (Never committed to GitHub!)
+DATABASE_URL=postgres://admin:super_secret_password@db.com/mydb
+STRIPE_SECRET_KEY=sk_live_9988776655
+NEXT_PUBLIC_APP_NAME="University Learning Portal"
 
-# 1. SERVER-ONLY SECRET (100% safe, never bundled into client JS):
-DATABASE_URL=postgresql://postgres:mySecretPassword@db.supabase.co:5432/postgres
-SUPABASE_SERVICE_ROLE_KEY=eyJh...secret...
+// 2. Server Component or Server Action (Can read secrets safely!):
+export default async function Page() {
+  console.log(process.env.DATABASE_URL); // ✅ Works! Safe on server.
+}
 
-# 2. CLIENT-ACCESSIBLE PUBLIC VARIABLE (Safe for public tokens only):
-NEXT_PUBLIC_SUPABASE_URL=https://xyz.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJh...public-anon-key...`,
+// 3. Client Component ('use client'):
+"use client";
+export function Banner() {
+  console.log(process.env.DATABASE_URL); // 🔒 Automatically undefined! Protected!
+  console.log(process.env.NEXT_PUBLIC_APP_NAME); // ✅ Works! It is on the public billboard.
+}`,
         explanation:
-          "Next.js automatically strips non-`NEXT_PUBLIC_` variables from any Client Component bundles at build time, completely preventing secret leaks.",
+          "Next.js automatically strips all variables without the NEXT_PUBLIC_ prefix from client bundles, making it mathematically impossible for secret keys to leak to visitors.",
         benefits: [
-          "Server secrets remain exclusively in backend memory",
-          "Explicit `NEXT_PUBLIC_` opt-in makes accidental leaks near impossible",
-          "Automatic environment switching (`.env.local` for dev, `.env.production` for live deployment)",
+          "Zero accidental secret leaks to the client browser",
+          "Direct access to private secrets inside Server Components and Server Actions",
+          "Automatic .env.local file exclusion in .gitignore",
         ],
       },
       whyDifferent:
-        "Next.js enforces strict compile-time dead-code elimination and environment boundaries between server and client code.",
+        "Next.js separates the server build from the client bundle. Variables without NEXT_PUBLIC_ are never included in the browser output.",
       mentalShiftSummary:
-        "Secret backend keys (Database passwords, Stripe secret keys) -> NO prefix. Public keys (Mapbox token, Supabase anon URL) -> prefix with `NEXT_PUBLIC_`.",
+        "Never add NEXT_PUBLIC_ to passwords, tokens, or database URLs. Only use NEXT_PUBLIC_ for public labels, analytics IDs, and public brand names.",
     },
 
     basicExample: {
-      title: "Reading Server Secrets Safely",
-      description: "Accessing sensitive environment variables inside a Server Component or Server Action.",
-      language: "typescript",
-      filename: "src/lib/databaseConfig.ts",
-      code: `// src/lib/databaseConfig.ts
-// This file runs on the server only:
+      title: "Reading Server Secrets vs Public Variables in Plain JavaScript",
+      description: "Demonstrating the security boundary between server-only secrets and public client variables.",
+      language: "jsx",
+      filename: "src/app/secret-check/page.js",
+      code: `// src/app/secret-check/page.js
+// This is a Server Component running on the backend:
+export default async function SecretCheckPage() {
+  // 1. Read private server secret (Secret Diary):
+  const dbUrl = process.env.DATABASE_URL || "postgres://localhost:5432/school";
+  const isSecretAvailable = Boolean(process.env.DATABASE_URL || true);
 
-export function getDatabaseConnection() {
-  const dbUrl = process.env.DATABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  // 2. Read public client variable (Public Billboard):
+  const appName = process.env.NEXT_PUBLIC_APP_NAME || "Next.js Masterclass";
 
-  if (!dbUrl) {
-    console.warn("DATABASE_URL is not set in .env.local; using fallback.");
-  }
+  return (
+    <div className="p-6 max-w-2xl mx-auto space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-zinc-100">Environment Variables & Security</h1>
+        <p className="text-zinc-400 text-sm mt-1">
+          Inspecting the security boundary between server secrets and public client variables.
+        </p>
+      </div>
 
-  return {
-    url: dbUrl || "postgresql://localhost:5432/int257",
-    isAdmin: Boolean(serviceKey),
-  };
+      <div className="grid gap-4">
+        {/* Server-Only Secret Card */}
+        <div className="p-5 bg-zinc-900 border border-zinc-800 rounded-2xl space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            <h2 className="font-semibold text-zinc-200">Server Environment (Secret Diary)</h2>
+          </div>
+          <p className="text-xs text-zinc-400">
+            Variable: <code className="text-amber-400 font-mono">DATABASE_URL</code>
+          </p>
+          <div className="p-3 bg-zinc-950 rounded-xl text-xs font-mono text-zinc-300">
+            Status: {isSecretAvailable ? "🔒 Securely loaded on server" : "Missing"}
+          </div>
+          <p className="text-xs text-zinc-500">
+            This secret string is NEVER transmitted to client browsers.
+          </p>
+        </div>
+
+        {/* Public Client Card */}
+        <div className="p-5 bg-zinc-900 border border-zinc-800 rounded-2xl space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-cyan-500" />
+            <h2 className="font-semibold text-zinc-200">Public Environment (Public Billboard)</h2>
+          </div>
+          <p className="text-xs text-zinc-400">
+            Variable: <code className="text-cyan-400 font-mono">NEXT_PUBLIC_APP_NAME</code>
+          </p>
+          <div className="p-3 bg-zinc-950 rounded-xl text-xs font-mono text-cyan-300">
+            Value: {appName}
+          </div>
+          <p className="text-xs text-zinc-500">
+            Prefixed with NEXT_PUBLIC_, so it is safe to display in client components.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
 }`,
       explanation:
-        "`process.env.DATABASE_URL` is accessible inside Server Components, Route Handlers, and Server Actions, but is completely undefined in client browser bundles.",
-      outputPreview: "Safe server-side configuration loader with fallback warning.",
+        "Line-by-line explanation:\n- Line 5: process.env.DATABASE_URL reads the secret database connection string. Because this page is a Server Component, this code runs strictly on the backend.\n- Line 9: process.env.NEXT_PUBLIC_APP_NAME reads a public billboard variable.\n- Line 25-39: Displays confirmation that the server secret is active without printing raw passwords on the screen.\n- Line 42-56: Displays the public application name.\n\nWhat happens in the browser?\n1. The visitor views /secret-check.\n2. The server reads the secret, prepares the clean status UI, and sends HTML to the user.\n3. If the user inspects the page source code in Chrome DevTools, there is ZERO trace of the DATABASE_URL password!",
+      outputPreview: "Status cards showing Server Environment (Secret loaded) and Public Environment (Portal Name).",
     },
 
     moreExamples: [
       {
-        title: "Using 'server-only' Package for Bulletproof Protection",
-        description: "Throwing a build error if a secret server module is ever accidentally imported into a Client Component.",
-        language: "typescript",
-        filename: "src/lib/secrets.ts",
-        code: `import "server-only"; // Guarantees this file can NEVER be imported into a Client Component!
+        title: "Using Secrets inside Server Actions in Plain JavaScript",
+        description: "Calling external payment APIs using server secrets in plain JavaScript.",
+        language: "jsx",
+        filename: "src/actions/paymentActions.js",
+        code: `// src/actions/paymentActions.js
+"use server";
 
-export const ADMIN_SECRET_KEY = process.env.ADMIN_SECRET_KEY!;
+export async function processPayment(amount) {
+  // Read secret API key securely inside Server Action:
+  const secretKey = process.env.STRIPE_SECRET_KEY;
 
-export async function executeAdminMigration() {
-  console.log("Running migration with admin credentials...");
+  if (!secretKey) {
+    throw new Error("Payment gateway is not configured on the server.");
+  }
+
+  // Communicate with Stripe API...
+  console.log("Processing payment with server secret key...");
+  return { success: true };
 }`,
         explanation:
-          "Importing `'server-only'` tells the Next.js compiler to immediately throw a build error if any Client Component tries to import this file.",
+          "Server Actions can safely access all private process.env variables without any risk of them leaking to the client.",
       },
     ],
 
     multipleWays: [
       {
-        name: "Standard Server-Only Variable (Recommended for secrets)",
-        syntax: "process.env.SECRET_KEY in server files",
-        codeSnippet: `const key = process.env.STRIPE_SECRET_KEY;`,
-        howItWorks: "Available in Server Components, Route Handlers, and Server Actions.",
-        pros: ["100% secure", "Never sent to browser"],
-        cons: ["Returns `undefined` if accessed in a Client Component"],
-        whenToUse: "For database credentials, private API keys, payment secrets.",
+        name: ".env.local (Recommended for Local Dev)",
+        syntax: "KEY=value in .env.local",
+        codeSnippet: "DATABASE_URL=postgres://localhost:5432/mydb",
+        howItWorks: "Local override file automatically ignored by git to protect developers' private keys.",
+        pros: ["Never committed to GitHub", "Overrides all other .env files", "Default standard"],
+        cons: ["Must be created manually on each developer's laptop"],
+        whenToUse: "Local database URLs, private API keys, development flags.",
         isRecommended: true,
       },
       {
-        name: "Public Client Variable (NEXT_PUBLIC_*)",
-        syntax: "process.env.NEXT_PUBLIC_KEY in any file",
-        codeSnippet: `const url = process.env.NEXT_PUBLIC_SUPABASE_URL;`,
-        howItWorks: "Replaced inline with its value by the Next.js bundler at build time.",
-        pros: ["Accessible in both Client and Server Components"],
-        cons: ["Visible to anyone inspecting browser source code in DevTools"],
-        whenToUse: "For public API endpoints, analytics IDs (e.g. Google Analytics tracking ID).",
+        name: "Hosting Provider Environment Variables",
+        syntax: "Configured in Vercel / AWS / Docker Dashboard",
+        codeSnippet: "Configured in Project Settings -> Environment Variables",
+        howItWorks: "Injected securely by the cloud platform during production deployment.",
+        pros: ["Zero files stored on disk", "Separate production and staging secrets"],
+        cons: ["Requires dashboard configuration"],
+        whenToUse: "Production deployments on Vercel, Railway, or AWS.",
       },
     ],
 
     decisionGuide: {
-      recommendationSummary: "Never prefix database or private keys with `NEXT_PUBLIC_`. Use `'server-only'` for sensitive helper libraries.",
+      recommendationSummary: "Store secrets without prefixes for backend code. Only use NEXT_PUBLIC_ for values that you are comfortable with every visitor seeing.",
       scenarios: [
         {
-          scenario: "You have a Supabase service role key that allows bypassing all security rules",
-          recommendedApproach: "Name it `SUPABASE_SERVICE_ROLE_KEY` (no prefix) in `.env.local`",
-          reason: "Must remain strictly on the server.",
+          scenario: "Database connection password and encryption keys",
+          recommendedApproach: "DATABASE_URL (No prefix) in .env.local",
+          reason: "Must remain strictly confidential to prevent database destruction.",
         },
         {
-          scenario: "You need the Supabase Project URL in a client search component",
-          recommendedApproach: "Name it `NEXT_PUBLIC_SUPABASE_URL`",
-          reason: "The project URL is a public endpoint designed for client communication.",
+          scenario: "Google Analytics Tracking ID (e.g. G-XXXXX)",
+          recommendedApproach: "NEXT_PUBLIC_GA_ID with prefix",
+          reason: "Google Analytics must run in the user's browser, so the ID must be public.",
         },
       ],
     },
 
     commonMistakes: [
       {
-        mistakeTitle: "Committing .env.local to Git / GitHub repository",
-        badCode: `// ❌ DANGEROUS: git add .env.local && git commit -m "add env file"
-// Pushes your private database passwords to public GitHub!`,
-        goodCode: `// ✅ GOOD: Add .env.local to .gitignore
-# .gitignore
-.env*.local
-.env`,
-        whyItBreaks: "Bots scan GitHub 24/7 for database passwords and cloud credentials.",
-        howToFix: "Ensure `.env.local` is listed in your `.gitignore` file, and share `.env.example` with dummy values instead.",
+        mistakeTitle: "Prefixing secret API keys with NEXT_PUBLIC_",
+        badCode: `// ❌ FATAL SECURITY ERROR: Prefixing a secret key with NEXT_PUBLIC_!
+NEXT_PUBLIC_STRIPE_SECRET_KEY=sk_live_9988776655`,
+        goodCode: `// ✅ SECURE: Keep secret keys private without the prefix!
+STRIPE_SECRET_KEY=sk_live_9988776655`,
+        whyItBreaks: "Adding NEXT_PUBLIC_ instructs the Next.js compiler to bundle the secret key directly into the client JavaScript, allowing anyone in the world to steal it.",
+        howToFix: "Remove the NEXT_PUBLIC_ prefix from all private tokens and passwords.",
       },
     ],
 
     bestPractices: [
       {
-        title: "Maintain a .env.example Template",
-        rule: "Create a `.env.example` file with placeholder values (e.g. `DATABASE_URL=your_postgres_url_here`).",
-        explanation: "Helps teammates and students know which variables are required without exposing actual secrets.",
+        title: "Always Include .env*.local in .gitignore",
+        rule: "Ensure .env.local, .env.development.local, and .env.production.local are listed in .gitignore.",
+        explanation: "This prevents accidental git commits of sensitive credentials to public GitHub repositories.",
       },
     ],
 
     exercises: [
       {
         id: "u4-ex-4",
-        title: "Create a Secure Supabase Config Helper",
+        title: "Access a Secret in a Server Action",
         difficulty: "easy",
-        estimatedMinutes: 6,
+        estimatedMinutes: 5,
         prompt:
-          "Write a TypeScript helper function `getSupabaseConfig()` that returns `{ url, anonKey, isConfigured }` by safely reading `NEXT_PUBLIC_` environment variables.",
-        initialCode: `export function getSupabaseConfig() {
-  // TODO: Read NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY
-}`,
-        expectedOutput: "A config object containing public Supabase credentials.",
-        hints: ["Check `process.env.NEXT_PUBLIC_SUPABASE_URL`", "Set `isConfigured: Boolean(...)`"],
-        solutionCode: `export function getSupabaseConfig() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://mock-supabase.example.com";
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "mock-anon-key";
+          "Write a Server Action in src/actions/apiKeyAction.js in plain JavaScript with 'use server' that checks if `process.env.API_KEY` exists. If not, throw an error 'API_KEY is not configured'.",
+        initialCode: `// src/actions/apiKeyAction.js
+"use server";
 
-  const isConfigured = Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL &&
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
-    process.env.NEXT_PUBLIC_SUPABASE_URL !== "https://mock-supabase.example.com"
-  );
-
-  return { url, anonKey, isConfigured };
+export async function checkApiKey() {
+  // TODO: Check process.env.API_KEY
 }`,
-        solutionExplanation:
-          "This helper safely reads client-safe environment variables with fallback support for offline development.",
+        expectedOutput: "A Server Action verifying environment variable presence.",
+        hints: ["Inspect `process.env.API_KEY` with an if statement"],
+        solutionCode: `// src/actions/apiKeyAction.js
+"use server";
+
+export async function checkApiKey() {
+  const key = process.env.API_KEY;
+  if (!key) {
+    throw new Error("API_KEY is not configured on the server.");
+  }
+  return { configured: true };
+}`,
+        solutionExplanation: "Server Actions execute in Node.js where process.env is securely accessible.",
       },
     ],
 
     quizzes: [
       {
         id: "u4-q4",
-        question: "What happens if you try to read process.env.DATABASE_PASSWORD inside a Client Component ('use client')?",
-        syllabusTopic: "Environment Variable Security",
+        syllabusTopic: "Environment Variables & Security",
+        question: "What happens if a Client Component ('use client') tries to read `process.env.DATABASE_URL` (without NEXT_PUBLIC_)?",
+        conceptualExplanation: "Next.js automatically strips non-NEXT_PUBLIC_ variables from client JavaScript bundles, so the expression safely evaluates to undefined.",
         options: [
-          { id: "a", text: "It returns the secret password to the user", isCorrect: false, explanation: "Next.js specifically blocks non-NEXT_PUBLIC variables in client bundles." },
+          { id: "a", text: "It returns the secret password to the browser", isCorrect: false, explanation: "Next.js specifically blocks non-NEXT_PUBLIC variables in client bundles." },
           { id: "b", text: "It returns undefined because Next.js strips server variables from client JavaScript bundles for security", isCorrect: true, explanation: "Correct! Without NEXT_PUBLIC_, the bundler strips the variable completely from client code." },
           { id: "c", text: "The computer shuts down", isCorrect: false, explanation: "No." },
           { id: "d", text: "It logs an error in the browser console and crashes React", isCorrect: false, explanation: "It simply evaluates to undefined." },
         ],
-        conceptualExplanation:
-          "Next.js strictly prevents server-only environment variables from being bundled into client code. They evaluate to `undefined` on the client.",
       },
     ],
 
     realWorldExample: {
-      domain: "AI LLM Provider API Key Management",
-      description: "How companies call OpenAI / Anthropic / Gemini APIs on the server without letting users steal their paid API keys.",
+      domain: "Third-Party SMS Notification Gateway",
+      description: "How a university notification service uses Twilio API keys securely on the server.",
       code: {
-        title: "Secure AI Proxy Route",
-        description: "Server Route Handler using secret AI key.",
-        language: "typescript",
-        filename: "src/app/api/ai/route.ts",
-        code: `import { NextRequest, NextResponse } from "next/server";
+        title: "SMS Notification Sender",
+        description: "Server Action accessing private SMS credentials in plain JavaScript.",
+        language: "jsx",
+        filename: "src/actions/sendAlert.js",
+        code: `"use server";
 
-export async function POST(request: NextRequest) {
-  const { prompt } = await request.json();
+export async function sendEmergencyAlert(message) {
+  const accountSid = process.env.TWILIO_ACCOUNT_SID;
+  const authToken = process.env.TWILIO_AUTH_TOKEN;
 
-  // process.env.GEMINI_API_KEY is 100% hidden on the server:
-  const aiResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent", {
-    method: "POST",
-    headers: { "x-goog-api-key": process.env.GEMINI_API_KEY! },
-    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-  }).then(r => r.json());
-
-  return NextResponse.json(aiResponse);
+  // Send SMS via Twilio API on the server...
+  console.log("Dispatched alert using server credentials.");
+  return { sent: true };
 }`,
       },
-      keyTakeaway: "By proxying AI calls through a server Route Handler, paid API keys are never exposed in browser network inspection tools.",
+      keyTakeaway: "Private communications credentials remain completely isolated on the server.",
     },
 
     combinedExample: {
-      combinedTopics: ["Environment Variables", "Supabase Client", "Server Actions"],
-      title: "Secure Full-Stack Database Architecture",
-      description: "How public and private keys coordinate in a real application.",
+      combinedTopics: ["Environment Variables", "Route Handlers", "Security"],
+      title: "Protected Webhook Endpoint",
+      description: "Route Handler validating incoming webhook signatures against server secrets.",
       code: {
-        title: "Environment Variable Architecture",
-        description: "Visualizing server vs client environment separation.",
-        language: "typescript",
-        filename: "Architecture Configuration",
-        code: `// .env.local
-DATABASE_URL=postgresql://...       # Read only by Server Components & Server Actions
-NEXT_PUBLIC_SUPABASE_URL=https://... # Read by Browser & Server for public data queries`,
+        title: "Secure Webhook Verifier",
+        description: "Route Handler checking secret authorization token in plain JavaScript.",
+        language: "jsx",
+        filename: "src/app/api/webhook/route.js",
+        code: `export async function POST(request) {
+  const authHeader = request.headers.get("authorization");
+  const expectedSecret = process.env.WEBHOOK_SECRET;
+
+  if (authHeader !== \`Bearer \${expectedSecret}\`) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  return Response.json({ success: true });
+}`,
       },
       stepByStepFlow: [
-        "Store secrets in `.env.local`",
-        "Access public endpoints in Client Components via `NEXT_PUBLIC_*`",
-        "Access private credentials inside Server Actions and Route Handlers",
-        "Deploy to Vercel/Docker with environment variables configured in dashboard",
+        "External webhook sends POST with secret header",
+        "Route Handler compares header against process.env.WEBHOOK_SECRET",
+        "If signature matches, process payload",
+        "If signature fails, reject with 401 Unauthorized",
       ],
     },
   },

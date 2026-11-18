@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { FolderGit2, ArrowRight, CheckCircle2, Layers, Code2 } from "lucide-react";
 import { guidedProjects } from "@/data/projects";
+import { WashiTape, StickerBadge, MildlinerText } from "@/components/ui/StudyStickers";
 
 export const metadata = {
   title: "5 Guided Next.js Projects | INT257",
@@ -11,40 +12,52 @@ export default function ProjectsIndexPage() {
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 space-y-12">
       {/* Header */}
-      <div className="space-y-3 max-w-2xl">
-        <span className="font-mono text-xs text-emerald-800 font-bold px-2.5 py-1 rounded-full bg-emerald-100 border border-emerald-200">
-          &lt;hands-on-portfolio/&gt;
-        </span>
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-zinc-900 tracking-tight">
-          5 Progressively Harder Projects
+      <div className="space-y-4 max-w-2xl relative">
+        <div className="flex flex-wrap items-center gap-2">
+          <StickerBadge emoji="💼" label="Portfolio Projects" color="matcha" />
+          <StickerBadge emoji="🌸" label="5 Milestones" color="sakura" />
+        </div>
+        <h1 className="text-3xl sm:text-4xl font-extrabold text-stone-900 tracking-tight">
+          5 Progressively <MildlinerText color="matcha">Harder Projects</MildlinerText>
         </h1>
-        <p className="text-sm text-zinc-600 leading-relaxed">
+        <p className="text-sm text-stone-600 leading-relaxed font-sans">
           From your very first multi-page marketing website to a complete full-stack Supabase SaaS platform, build real-world applications step by step.
         </p>
       </div>
 
       {/* Projects Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {guidedProjects.map((project) => (
-          <div
-            key={project.id}
-            className="p-6 rounded-3xl bg-white border border-zinc-200 hover:border-emerald-300 transition-all flex flex-col justify-between space-y-6 group shadow-xs hover:shadow-sm"
-          >
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
-                  Project {project.projectNumber}
-                </span>
-                <span className={`text-[10px] font-mono uppercase px-2.5 py-0.5 rounded-full font-bold ${
-                  project.difficulty === "Beginner"
-                    ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                    : project.difficulty === "Intermediate"
-                    ? "bg-amber-100 text-amber-800 border border-amber-200"
-                    : "bg-purple-100 text-purple-800 border border-purple-200"
-                }`}>
-                  {project.difficulty}
-                </span>
-              </div>
+        {guidedProjects.map((project, idx) => {
+          const washiColors: Array<"matcha" | "sky" | "honey" | "sakura" | "lavender" | "latte"> = [
+            "matcha", "sky", "honey", "sakura", "lavender"
+          ];
+          const tapeColor = washiColors[idx % washiColors.length];
+
+          return (
+            <div
+              key={project.id}
+              className="relative p-6 pt-7 rounded-3xl bg-white border border-[#e8e2d8] hover:border-emerald-300 transition-all flex flex-col justify-between space-y-6 group shadow-2xs hover:shadow-sm"
+            >
+              <WashiTape
+                color={tapeColor}
+                width="w-28"
+                tilt={idx % 2 === 0 ? "-rotate-1" : "rotate-1"}
+              />
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                    Project {project.projectNumber}
+                  </span>
+                  <span className={`text-[10px] font-mono uppercase px-2.5 py-0.5 rounded-full font-bold ${
+                    project.difficulty === "Beginner"
+                      ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                      : project.difficulty === "Intermediate"
+                      ? "bg-amber-100 text-amber-800 border border-amber-200"
+                      : "bg-purple-100 text-purple-800 border border-purple-200"
+                  }`}>
+                    {project.difficulty}
+                  </span>
+                </div>
 
               <h2 className="text-lg font-bold text-zinc-900 group-hover:text-emerald-700 transition-colors">
                 {project.title}
@@ -75,7 +88,8 @@ export default function ProjectsIndexPage() {
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
-        ))}
+        );
+      })}
       </div>
     </div>
   );

@@ -4,320 +4,321 @@ export const unit5Topics: TopicContent[] = [
   {
     id: "image-and-font-optimization",
     unitId: "unit-5",
-    title: "Image & Font Optimization",
-    shortSummary: "Master automatic WebP/AVIF image conversion, responsive sizes, blur placeholders with next/image, and zero-layout-shift fonts with next/font.",
+    title: "Image & Font Optimization (next/image, next/font)",
+    shortSummary: "Learn image and font optimization using the Picture Frame analogy: auto-resizing, zero layout shift, WebP compression, and zero-flicker Google fonts.",
     order: 1,
-    tags: ["Image Optimization", "next/image", "next/font", "Core Web Vitals", "CLS"],
+    tags: ["next/image", "next/font", "Core Web Vitals", "CLS", "Optimization"],
 
     simpleExplanation:
-      "Images are usually the heaviest part of any website. If you upload a 5MB photo from an iPhone and display it using `<img src='photo.jpg'>`, a user on a mobile phone will waste 5MB of cellular data and the website will jerk around (Layout Shift) while the image loads. Next.js provides the `<Image>` component: it automatically resizes the photo on the server, converts it to modern WebP/AVIF format (reducing 5MB down to 80KB!), prevents layout shift, and only downloads the image when the student scrolls down to it (Lazy Loading). With `next/font`, Google Fonts are downloaded at build time and served locally with zero layout shift!",
+      "Imagine you want to hang a photo on your wall:\n\n" +
+      "1. **The Old HTML <img> Problem (The Heavy Picture Frame)**:\n" +
+      "In standard HTML, you write `<img src='vacation.jpg'>`. Your mobile phone downloads a giant 12-Megabyte camera photo! Worse yet, before the image finishes downloading, the browser doesn't know how big it is. When the picture suddenly pops in 3 seconds later, the entire page jumps down, making the user click the wrong button! This annoying jumping is called **Cumulative Layout Shift (CLS)**.\n\n" +
+      "2. **The Next.js Solution (<Image />)**:\n" +
+      "Next.js automatically cuts the photo into the exact size of your phone screen! It converts it into modern **WebP** or **AVIF** format (up to 90% smaller!). And because you provide `width` and `height` (or `fill`), Next.js reserves the exact frame space so the webpage NEVER jumps!\n\n" +
+      "3. **Zero-Layout-Shift Google Fonts (next/font)**:\n" +
+      "Normally, custom fonts load from external Google servers, causing a flash of weird system fonts before switching. In Next.js, `next/font` downloads your font ONCE during `npm run build` and embeds it directly into your HTML. Zero extra network requests, zero flickering!",
 
     whyNeeded:
-      "Large uncompressed images destroy your Google search ranking and cause high mobile bounce rates. `<Image>` and `next/font` ensure perfect Google Core Web Vitals (Largest Contentful Paint & Cumulative Layout Shift) automatically.",
+      "Unoptimized images and fonts account for over 70% of total website page weight. Using `next/image` and `next/font` can transform a slow 5-second website into a blazing-fast 0.5-second experience that achieves a perfect 100/100 Google Lighthouse score.",
 
     reactVsNext: {
-      concept: "Image & Font Loading",
+      concept: "Asset Optimization Strategy",
       reactWay: {
-        title: "Standard HTML <img> and <link> Fonts",
-        code: `// Traditional React HTML <img>:
-<img src="/huge-banner.png" alt="Banner" />
-// Issues:
-// 1. Sends full 5MB PNG file even to small mobile screens
-// 2. Causes Cumulative Layout Shift (CLS) as page jumps when image loads
-// 3. Downloads images that are far off-screen immediately
-
-// External Google Fonts in index.html:
-// <link href="https://fonts.googleapis.com/css2?family=Inter..." rel="stylesheet">
-// Issues:
-// Flashes unstyled text (FOUT) while browser reaches Google servers!`,
+        title: "Unoptimized Standard HTML <img> Tag",
+        code: `// Traditional client-side approach:
+export function HeroBanner() {
+  return (
+    <div>
+      {/* ⚠️ Downloads full 10MB uncompressed file on mobile */}
+      {/* ⚠️ Causes severe layout shift (jumping text) when loaded */}
+      <img src="/hero-banner.png" alt="University Campus" />
+    </div>
+  );
+}`,
         explanation:
-          "Standard HTML `<img>` tags do not perform automated responsive resizing or modern WebP format conversion. External Google font links require an extra network handshake that slows down First Contentful Paint.",
+          "Standard img tags do not perform automatic responsive resizing, format conversion (WebP/AVIF), or layout reservation.",
         drawbacks: [
-          "Massive bandwidth consumption on mobile networks",
-          "Jarring Cumulative Layout Shift (CLS) penalties",
-          "External Google font tracking and slow DNS lookups",
+          "Downloads full-resolution files regardless of user screen size",
+          "Causes Cumulative Layout Shift (CLS) as images pop in",
+          "External Google Fonts trigger layout shifts and privacy tracking",
         ],
       },
       nextjsWay: {
-        title: "Next.js <Image> and next/font/google",
-        code: `// 1. Image Optimization:
+        title: "Next.js Built-In Optimization (next/image & next/font)",
+        code: `// src/components/HeroBanner.js (Pure JavaScript!)
 import Image from "next/image";
+import { Inter } from "next/font/google";
+
+const inter = Inter({ subsets: ["latin"] });
 
 export function HeroBanner() {
   return (
-    <Image
-      src="/hero.jpg"
-      alt="INT257 Course Hero"
-      width={1200}
-      height={600}
-      priority // Loads immediately above-the-fold
-      placeholder="blur" // Smooth blur-up transition
-      blurDataURL="data:image/jpeg;base64,..."
-      className="rounded-2xl"
-    />
-  );
-}
-
-// 2. Zero-Layout-Shift Font Optimization:
-import { Inter } from "next/font/google";
-
-const inter = Inter({ subsets: ["latin"], display: "swap" });
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return <html className={inter.className}><body>{children}</body></html>;
-}`,
-        explanation:
-          "Next.js automatically serves appropriately sized modern WebP images per device screen and hosts Google Fonts locally with zero external network requests.",
-        benefits: [
-          "Up to 90% reduction in image payload size",
-          "Zero Cumulative Layout Shift (CLS) because aspect ratios are reserved",
-          "Native lazy loading for off-screen images",
-          "Privacy-friendly, zero-latency local font serving",
-        ],
-      },
-      whyDifferent:
-        "Next.js has a built-in image optimization server engine (Sharp) and build-time font downloader that pre-optimizes assets before delivery.",
-      mentalShiftSummary:
-        "Replace all `<img src='...'>` with `<Image src='...' width={...} height={...} alt='...'>`. Load Google fonts via `next/font/google`.",
-    },
-
-    basicExample: {
-      title: "Responsive Full-Width Image with Fill & Sizes",
-      description: "Using the fill prop for responsive aspect ratios in dynamic cards.",
-      language: "tsx",
-      filename: "src/components/CourseCardImage.tsx",
-      code: `import Image from "next/image";
-
-export function CourseCardImage({ title, imageUrl }: { title: string; imageUrl: string }) {
-  return (
-    <div className="relative w-full h-48 rounded-xl overflow-hidden bg-zinc-800 border border-zinc-700">
+    <div className={inter.className}>
+      {/* Automatically serves WebP, resized for phone screen, zero jump! */}
       <Image
-        src={imageUrl}
-        alt={title}
-        fill
-        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-        className="object-cover hover:scale-105 transition-transform duration-300"
+        src="/campus.jpg"
+        alt="University Campus"
+        width={800}
+        height={450}
+        priority // Preloads above-the-fold image for instant LCP!
+        className="rounded-2xl shadow-lg"
       />
     </div>
   );
 }`,
+        explanation:
+          "Next.js optimizes images on the fly via its built-in server image pipeline and self-hosts Google Fonts at build time.",
+        benefits: [
+          "Automatic modern WebP/AVIF compression (up to 90% smaller files)",
+          "Zero layout shift: dimensions are reserved in advance",
+          "Google fonts self-hosted with zero external network delay",
+        ],
+      },
+      whyDifferent:
+        "Next.js includes an automated image processing engine and build-time font optimizer, eliminating manual Photoshop resizing and external CDN hops.",
+      mentalShiftSummary:
+        "Replace every `<img>` tag with `import Image from 'next/image'`. Import fonts from `next/font/google` instead of pasting `<link>` tags in HTML.",
+    },
+
+    basicExample: {
+      title: "Optimized Campus Card with Image and Custom Font in Plain JavaScript",
+      description: "A complete card component using next/image and next/font in plain JavaScript.",
+      language: "jsx",
+      filename: "src/components/CampusCard.js",
+      code: `// src/components/CampusCard.js
+import Image from "next/image";
+import { Roboto } from "next/font/google";
+
+// Self-host Google Font at build time:
+const roboto = Roboto({
+  weight: ["400", "700"],
+  subsets: ["latin"],
+});
+
+export function CampusCard() {
+  return (
+    <div className={\`max-w-md p-4 bg-zinc-900 border border-zinc-800 rounded-2xl space-y-3 \${roboto.className}\`}>
+      <div className="relative aspect-video rounded-xl overflow-hidden bg-zinc-950">
+        {/* next/image with responsive fill: */}
+        <Image
+          src="/images/campus-library.jpg"
+          alt="Modern University Central Library"
+          fill
+          sizes="(max-width: 768px) 100vw, 400px"
+          className="object-cover hover:scale-105 transition-transform duration-300"
+          priority
+        />
+      </div>
+
+      <div className="space-y-1">
+        <span className="text-xs font-mono text-emerald-400">Campus Tour</span>
+        <h3 className="text-lg font-bold text-zinc-100">Central Academic Library</h3>
+        <p className="text-zinc-400 text-xs leading-relaxed">
+          Open 24/7 with over 50,000 reference books, quiet study lounges, and modern computer labs.
+        </p>
+      </div>
+    </div>
+  );
+}`,
       explanation:
-        "When using `fill`, the image expands to fill its parent container. The `sizes` attribute tells Next.js which resolution to generate for mobile vs desktop screens.",
-      outputPreview: "Responsive course banner that adjusts resolution based on screen width.",
+        "Line-by-line explanation:\n- Line 2: import Image from 'next/image'; imports the Next.js smart image component.\n- Line 3: import { Roboto } from 'next/font/google'; downloads the Google font during build time.\n- Line 6-9: Configures font weights and subsets with zero external CDN delay.\n- Line 16-24: <Image fill ... /> tells Next.js to fill the parent container while sizes informs the browser what image size to fetch for mobile vs desktop!\n\nWhat happens in the browser?\n1. The visitor opens the page on a mobile device.\n2. Next.js serves a tiny 40KB WebP version of the image instead of the original 5MB photo.\n3. The aspect-video container reserves the exact space so the text never jumps down.\n4. The Roboto font displays immediately with zero flash of unstyled text!",
+      outputPreview: "A campus card with an optimized photo and custom Roboto font with zero layout shift.",
     },
 
     moreExamples: [
       {
-        title: "Allowing Remote Domain Images in next.config.ts",
-        description: "Configuring security patterns for images hosted on Supabase Storage, Unsplash, or Cloudinary.",
-        language: "typescript",
-        filename: "next.config.ts",
-        code: `import type { NextConfig } from "next";
+        title: "Responsive Full-Bleed Hero Image with Fill Property",
+        description: "How to use the fill prop for responsive background images.",
+        language: "jsx",
+        filename: "src/components/HeroCover.js",
+        code: `// src/components/HeroCover.js
+import Image from "next/image";
 
-const nextConfig: NextConfig = {
-  images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "images.unsplash.com",
-      },
-      {
-        protocol: "https",
-        hostname: "*.supabase.co",
-      },
-    ],
-  },
-};
-
-export default nextConfig;`,
+export function HeroCover() {
+  return (
+    <div className="relative h-64 w-full rounded-2xl overflow-hidden">
+      <Image
+        src="/images/hero-background.jpg"
+        alt="Graduation Ceremony"
+        fill
+        sizes="100vw"
+        className="object-cover"
+      />
+      <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+        <h1 className="text-3xl font-extrabold text-white">Next.js Masterclass 2026</h1>
+      </div>
+    </div>
+  );
+}`,
         explanation:
-          "Next.js requires explicit remote domain patterns to protect your server from optimizing malicious external URLs.",
+          "When using `fill`, the parent container must have `position: relative` or `position: absolute`. This allows the image to stretch responsively across any screen width.",
       },
     ],
 
     multipleWays: [
       {
-        name: "Static Local Image Import",
-        syntax: "import logo from './logo.png'; <Image src={logo} alt='...' />",
-        codeSnippet: `import logoImg from "@/public/logo.png";
-<Image src={logoImg} alt="Logo" placeholder="blur" />`,
-        howItWorks: "Next.js automatically infers width, height, and blurDataURL from the imported file.",
-        pros: ["No manual width/height needed", "Automatic blur-up placeholder generated"],
-        cons: ["Only works with local files in repo"],
-        whenToUse: "For site logos, static icons, and brand graphics.",
+        name: "Fixed Dimensions (width & height)",
+        syntax: "<Image src='/pic.png' width={400} height={300} alt='...' />",
+        codeSnippet: "<Image src='/logo.png' width={120} height={40} alt='Logo' />",
+        howItWorks: "Next.js computes exact aspect ratio and serves matching resolutions.",
+        pros: ["Explicit pixel bounds", "Guaranteed zero layout shift"],
+        cons: ["Requires knowing the exact pixel dimensions in advance"],
+        whenToUse: "Avatars, icons, logos, fixed-dimension cards.",
         isRecommended: true,
       },
       {
-        name: "Dynamic Remote Image with Width & Height",
-        syntax: "<Image src='https://...' width={800} height={400} alt='...' />",
-        codeSnippet: `<Image src={product.imageUrl} width={600} height={400} alt={product.name} />`,
-        howItWorks: "Reserves space in DOM to prevent CLS and optimizes remote image via Next.js Sharp engine.",
-        pros: ["Works with dynamic database images", "Generates WebP variants"],
-        cons: ["Requires explicit width & height numbers or fill prop"],
-        whenToUse: "For dynamic user avatars, blog thumbnails, and product pictures.",
+        name: "Responsive Container (fill)",
+        syntax: "<Image src='/pic.png' fill sizes='...' alt='...' />",
+        codeSnippet: "<div className='relative h-60'><Image src='/hero.jpg' fill alt='Hero' /></div>",
+        howItWorks: "Expands to match the size of its parent CSS container.",
+        pros: ["Great for responsive full-width banners and flexible grids"],
+        cons: ["Parent element must have position: relative or absolute"],
+        whenToUse: "Hero banners, responsive gallery grids, background covers.",
         isRecommended: true,
       },
     ],
 
     decisionGuide: {
-      recommendationSummary: "Use local imports with `placeholder='blur'` for static assets. Use `fill` with `sizes` for responsive dynamic cards.",
+      recommendationSummary: "Use width and height for logos, icons, and avatars. Use fill with a relative parent wrapper for responsive banners and card thumbnails.",
       scenarios: [
         {
-          scenario: "Displaying the logo in your navbar",
-          recommendedApproach: "Local image import with `<Image src={logo} alt='...' />`",
-          reason: "Width, height, and blur are handled automatically.",
+          scenario: "Displaying a student profile avatar picture",
+          recommendedApproach: "<Image width={48} height={48} className='rounded-full' />",
+          reason: "Avatars have fixed dimensions that should never stretch.",
         },
         {
-          scenario: "Displaying user-uploaded course thumbnails in a responsive 3-column grid",
-          recommendedApproach: "`<Image src={url} fill sizes='...' className='object-cover' />`",
-          reason: "Adapts smoothly to dynamic card sizes on mobile and desktop.",
+          scenario: "A responsive blog post cover photo spanning the full width of the phone",
+          recommendedApproach: "<div className='relative aspect-video'><Image fill sizes='100vw' /></div>",
+          reason: "Maintains a 16:9 aspect ratio across all phone, tablet, and laptop screen sizes.",
         },
       ],
     },
 
     commonMistakes: [
       {
-        mistakeTitle: "Using fill without relative/absolute positioning on the parent container",
-        badCode: `// ❌ BAD: Parent has no positioning!
-<div>
-  <Image src="/photo.jpg" fill alt="Photo" /> {/* Expands to cover entire browser window! */}
-</div>`,
-        goodCode: `// ✅ GOOD: Parent container MUST have 'relative', 'fixed', or 'absolute' position and a defined height!
-<div className="relative w-full h-64">
-  <Image src="/photo.jpg" fill alt="Photo" />
-</div>`,
-        whyItBreaks: "`fill` sets `position: absolute; inset: 0;`. Without a relative parent, it fills the entire viewport.",
-        howToFix: "Always add `relative` and a height class (e.g. `h-64`) to the parent wrapper.",
+        mistakeTitle: "Using standard <img> instead of Next.js <Image>",
+        badCode: `// ❌ BAD: Standard HTML image
+<img src="/huge-camera-photo.jpg" alt="Campus" />`,
+        goodCode: `// ✅ GOOD: Use next/image
+import Image from "next/image";
+<Image src="/huge-camera-photo.jpg" width={600} height={400} alt="Campus" />`,
+        whyItBreaks: "Standard <img> tags bypass all Next.js optimization, downloading massive uncompressed files and hurting your Google SEO rankings.",
+        howToFix: "Always import Image from 'next/image' and supply width, height, and alt attributes.",
       },
     ],
 
     bestPractices: [
       {
-        title: "Add priority to Largest Contentful Paint (LCP) Hero Images",
-        rule: "Add `priority` to the main hero banner above the fold.",
-        explanation: "Disables lazy loading and preloads the hero image immediately, drastically improving LCP scores.",
+        title: "Always Add Descriptive alt Text",
+        rule: "Every Image component must include a meaningful alt text describing the image.",
+        explanation: "alt text ensures web accessibility for screen readers and helps search engines understand image contents for SEO.",
       },
     ],
 
     exercises: [
       {
         id: "u5-ex-1",
-        title: "Build a Course Hero Component with next/image",
+        title: "Build an Optimized Student Avatar",
         difficulty: "easy",
-        estimatedMinutes: 6,
+        estimatedMinutes: 5,
         prompt:
-          "Create a Hero Banner component using `<Image>` from `next/image` with `width={1000}`, `height={400}`, `priority`, and responsive styling.",
-        initialCode: `// TODO: Import Image from next/image
-export function CourseHero() {
-  return (
-    <div>
-      {/* Add optimized image */}
-    </div>
-  );
+          "Write a component in src/components/Avatar.js in plain JavaScript using next/image that renders a 48x48 rounded avatar for '/images/student.png'.",
+        initialCode: `// src/components/Avatar.js
+// TODO: Use next/image to render 48x48 avatar
+export function Avatar() {
+  return <div>Avatar</div>;
 }`,
-        expectedOutput: "A styled hero banner with Next.js image optimization and priority flag.",
-        hints: ["Import `Image` from `'next/image'`", "Set `priority={true}`"],
-        solutionCode: `import Image from "next/image";
+        expectedOutput: "A functional 48x48 avatar component using next/image.",
+        hints: ["Pass `width={48}` and `height={48}` and `className='rounded-full'`"],
+        solutionCode: `// src/components/Avatar.js
+import Image from "next/image";
 
-export function CourseHero() {
+export function Avatar() {
   return (
-    <div className="space-y-4 p-6 bg-zinc-900 border border-zinc-800 rounded-2xl">
-      <h1 className="text-2xl font-bold text-zinc-100">Next.js Masterclass</h1>
-      <div className="relative w-full h-56 rounded-xl overflow-hidden border border-zinc-700">
-        <Image
-          src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97"
-          alt="Coding workspace"
-          fill
-          priority
-          sizes="(max-width: 768px) 100vw, 800px"
-          className="object-cover"
-        />
-      </div>
-    </div>
+    <Image
+      src="/images/student.png"
+      alt="Student Profile Avatar"
+      width={48}
+      height={48}
+      className="rounded-full border border-zinc-800"
+    />
   );
 }`,
-        solutionExplanation:
-          "Using `priority` ensures the hero image loads immediately for top Google PageSpeed LCP performance.",
+        solutionExplanation: "Using next/image with fixed width and height reserves the 48px space and serves a compressed WebP format.",
       },
     ],
 
     quizzes: [
       {
         id: "u5-q1",
-        question: "How does the Next.js <Image> component prevent Cumulative Layout Shift (CLS)?",
-        syllabusTopic: "Image Optimization",
+        syllabusTopic: "Image & Font Optimization",
+        question: "How does next/image prevent Cumulative Layout Shift (CLS)?",
+        conceptualExplanation: "By requiring width and height (or fill), the browser reserves the exact pixel space before the image bytes download, preventing page jumping.",
         options: [
           { id: "a", text: "By converting images into text files", isCorrect: false, explanation: "Images remain visual media." },
           { id: "b", text: "By requiring width and height (or fill) so the browser reserves the exact pixel space before the image downloads", isCorrect: true, explanation: "Correct! Reserving aspect ratio space prevents the page from jumping when the image finishes loading." },
           { id: "c", text: "By blocking all JavaScript from executing", isCorrect: false, explanation: "No." },
           { id: "d", text: "By deleting the image on slow mobile connections", isCorrect: false, explanation: "No." },
         ],
-        conceptualExplanation:
-          "By requiring explicit aspect ratio dimensions, Next.js reserves the exact box in the DOM layout so surrounding content never jumps when the pixels arrive.",
       },
     ],
 
     realWorldExample: {
-      domain: "High-Traffic News Media Publishing",
-      description: "How news sites serve millions of mobile readers with instant hero photos and crystal-clear fonts.",
+      domain: "Online News & Magazine Portal",
+      description: "How a high-traffic news platform delivers 1,000+ article photos with sub-second LCP speeds.",
       code: {
-        title: "Article Header with Local Font & Responsive Image",
-        description: "Optimized article header.",
-        language: "tsx",
-        filename: "src/components/ArticleHeader.tsx",
+        title: "Breaking News Hero Header",
+        description: "Priority image loading for above-the-fold news hero.",
+        language: "jsx",
+        filename: "src/components/NewsHero.js",
         code: `import Image from "next/image";
 
-export function ArticleHeader({ headline, heroUrl, date }: any) {
+export function NewsHero({ article }) {
   return (
-    <article className="space-y-4">
-      <h1 className="text-3xl font-extrabold tracking-tight text-zinc-100">{headline}</h1>
-      <time className="text-xs text-zinc-400 font-mono">{date}</time>
-      <div className="relative aspect-video w-full rounded-2xl overflow-hidden">
-        <Image src={heroUrl} alt={headline} fill priority className="object-cover" />
-      </div>
-    </article>
+    <div className="relative aspect-video w-full rounded-2xl overflow-hidden">
+      <Image
+        src={article.coverUrl}
+        alt={article.title}
+        fill
+        priority // Marks as top-priority for Largest Contentful Paint (LCP)
+        sizes="(max-width: 1024px) 100vw, 800px"
+        className="object-cover"
+      />
+    </div>
   );
 }`,
       },
-      keyTakeaway: "Responsive images with `aspect-video` ensure fluid mobile scaling across phones, tablets, and laptops.",
+      keyTakeaway: "Adding the priority prop tells the browser to download hero images immediately, boosting LCP performance.",
     },
 
     combinedExample: {
-      combinedTopics: ["next/image", "next/font", "Dynamic Route"],
-      title: "Optimized Dynamic Course Detail View",
-      description: "Combining custom Google fonts, responsive image optimization, and dynamic route params.",
+      combinedTopics: ["next/image", "next/font", "Server Components"],
+      title: "Course Card with Custom Typography",
+      description: "Combining optimized images with Google fonts in a Server Component.",
       code: {
-        title: "Complete Optimized Page",
-        description: "Production-ready page component with Image and Font integration.",
-        language: "tsx",
-        filename: "src/app/courses/[slug]/page.tsx",
+        title: "Course Showcase Card",
+        description: "Optimized card with image and typography.",
+        language: "jsx",
+        filename: "src/components/CourseShowcase.js",
         code: `import Image from "next/image";
+import { Inter } from "next/font/google";
 
-export default async function CourseDetailPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+const inter = Inter({ subsets: ["latin"] });
 
+export function CourseShowcase({ course }) {
   return (
-    <div className="p-6 max-w-3xl mx-auto space-y-6">
-      <div className="relative h-64 w-full rounded-2xl overflow-hidden border border-zinc-800">
-        <Image
-          src="https://images.unsplash.com/photo-1555066931-4365d14bab8c"
-          alt={slug}
-          fill
-          priority
-          className="object-cover"
-        />
-      </div>
-      <h1 className="text-2xl font-bold text-zinc-100">Course: {slug.toUpperCase()}</h1>
-      <p className="text-zinc-400 text-sm">Pre-rendered with 0 layout shift and automated WebP image delivery.</p>
+    <div className={\`p-4 bg-zinc-900 rounded-xl space-y-3 \${inter.className}\`}>
+      <Image src={course.thumbnail} alt={course.title} width={300} height={180} className="rounded-lg" />
+      <h3 className="font-bold text-zinc-100">{course.title}</h3>
     </div>
   );
 }`,
       },
       stepByStepFlow: [
-        "Browser requests course page",
-        "Next.js serves HTML with locally embedded font definitions",
-        "`next/image` generates tailored WebP version based on mobile screen width",
-        "Page paints instantly with 0ms Cumulative Layout Shift",
+        "Google Font is inlined directly in HTML at build time",
+        "next/image serves compressed WebP thumbnail",
+        "Dimensions are reserved to eliminate layout shifts",
+        "Visitor sees zero font flickering or page jumping",
       ],
     },
   },
@@ -325,311 +326,332 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ s
   {
     id: "metadata-seo-sitemaps",
     unitId: "unit-5",
-    title: "SEO, Dynamic Metadata & Sitemaps",
-    shortSummary: "Generate static and dynamic SEO metadata, OpenGraph social share cards, automated sitemap.xml, and robots.txt.",
+    title: "Metadata, SEO & Dynamic Social Cards",
+    shortSummary: "Learn SEO using the Book Cover analogy: static metadata, dynamic generateMetadata, social media share cards, and sitemaps in plain JavaScript.",
     order: 2,
-    tags: ["SEO", "Metadata", "generateMetadata", "OpenGraph", "Sitemap", "Robots.txt"],
+    tags: ["SEO", "Metadata", "generateMetadata", "OpenGraph", "Sitemap"],
 
     simpleExplanation:
-      "When someone shares a link to your website on WhatsApp, Twitter, or Discord, how does it show a pretty preview card with a title, description, and image? And how does Google understand what your page is about so it ranks #1? In Next.js, you export a `metadata` object or a `generateMetadata()` function from your `page.tsx` or `layout.tsx`. Next.js automatically injects standard `<title>`, `<meta>`, and OpenGraph tags into the HTML `<head>`. You can also create automated `sitemap.xml` and `robots.txt` files directly in TypeScript!",
+      "Imagine walking into a massive library with 1,000,000 books:\n\n" +
+      "1. **The Book Cover (Metadata)**:\n" +
+      "If a book has a blank black cover with no title or author, nobody will ever open it! **Metadata** is the title, description, and author printed on the book cover. In Next.js, you simply export a `metadata` object from your `page.js` or `layout.js`, and Next.js automatically prints it into the HTML `<head>` for Google to find!\n\n" +
+      "2. **Social Media Share Cards (OpenGraph)**:\n" +
+      "When someone copies your link and pastes it into WhatsApp, Discord, or Twitter, how does the app know to show a picture, title, and summary? It reads your **OpenGraph (og:) tags**! Next.js lets you define OpenGraph titles and images with simple JavaScript objects.\n\n" +
+      "3. **Dynamic Metadata (generateMetadata)**:\n" +
+      "What if you have 10,000 blog posts? You don't write 10,000 metadata files! You export an `async function generateMetadata({ params })` that reads the post title from your database and creates a custom book cover for every single article automatically!\n\n" +
+      "4. **The Library Index Map (sitemap.js)**:\n" +
+      "A sitemap is a map of every single page on your website so Google's search crawlers can discover and index all your articles.",
 
     whyNeeded:
-      "Without proper metadata and sitemaps, search engines cannot index your website, and links shared on social media look broken and untrustworthy.",
+      "If Google cannot read your website's titles and descriptions, your project will remain invisible on the internet. Next.js provides a built-in server metadata system that ensures search engines and social platforms receive rich SEO previews on the very first HTTP request.",
 
     reactVsNext: {
-      concept: "SEO & Social Sharing Cards",
+      concept: "Search Engine Optimization (SEO)",
       reactWay: {
-        title: "React Helmet (Client-Side Only)",
-        code: `// React Helmet in Vite:
+        title: "Client-Side Head Tag Injection",
+        code: `// Traditional client-side approach:
+// <title>My React App</title>
+// Search engines see the exact same title on every page!
+// Even with react-helmet:
 import { Helmet } from "react-helmet";
 
-function Product() {
+function ArticlePage() {
   return (
     <div>
+      {/* ⚠️ Runs in the browser AFTER JavaScript loads! */}
+      {/* Social scrapers (WhatsApp, Twitter) NEVER see this! */}
       <Helmet>
-        <title>Dynamic Title</title>
-        <meta property="og:title" content="Dynamic Title" />
+        <title>Dynamic Article</title>
       </Helmet>
     </div>
   );
 }`,
         explanation:
-          "In vanilla React, `react-helmet` injects meta tags into the DOM on the client using JavaScript. But social media scrapers (Twitter, WhatsApp, Facebook) do NOT execute JavaScript—they only read raw server HTML. Thus, social preview cards in CSR React apps often fail completely.",
+          "Social media crawlers (like WhatsApp and Twitter) do not execute client-side JavaScript. They read the initial raw HTML, which must be served pre-rendered from the server.",
         drawbacks: [
-          "Social media cards (WhatsApp, Twitter, LinkedIn) appear blank or broken",
-          "Requires third-party library (`react-helmet`)",
-          "Potential title flicker on page navigation",
+          "WhatsApp and Twitter preview cards fail or show blank placeholders",
+          "Google search bots struggle to parse client-side meta tags",
+          "Requires third-party packages like react-helmet",
         ],
       },
       nextjsWay: {
-        title: "Next.js Server-Side Metadata API",
-        code: `// 1. Static Metadata:
-export const metadata = {
-  title: "INT257 Next.js Masterclass",
-  description: "Comprehensive tutorial platform for students.",
-  openGraph: {
-    title: "INT257 Next.js Masterclass",
-    images: ["/og-banner.png"],
-  },
-};
-
-// 2. Dynamic Metadata for dynamic routes:
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const post = await getPost(id);
+        title: "Next.js Native Server Metadata (Injected in Raw HTML)",
+        code: `// src/app/blog/[slug]/page.js (Pure JavaScript!)
+// 1. Dynamic metadata runs on the server:
+export async function generateMetadata({ params }) {
+  const { slug } = await params;
+  const post = await fetchPost(slug);
 
   return {
     title: \`\${post.title} | NextMastery\`,
     description: post.summary,
     openGraph: {
       title: post.title,
+      description: post.summary,
       images: [post.coverImage],
     },
   };
+}
+
+// 2. Page Component:
+export default async function BlogPostPage({ params }) {
+  return <article>{/* Article content */}</article>;
 }`,
         explanation:
-          "Next.js evaluates `metadata` and `generateMetadata()` on the server and embeds complete `<title>` and `<meta>` tags directly into the initial HTML document.",
+          "Next.js evaluates `generateMetadata` on the server and injects full `<title>`, `<meta>`, and `<meta property='og:...'>` tags directly into the raw HTML `<head>`.",
         benefits: [
-          "100% reliable social media share cards on WhatsApp, Twitter, and LinkedIn",
-          "Google search crawlers read exact meta descriptions instantly",
-          "Cascading metadata: child pages inherit and override parent layout metadata",
+          "100% reliable WhatsApp, Twitter, and Discord preview cards",
+          "Google search crawler indexes article titles on first pass",
+          "Zero client JavaScript overhead",
         ],
       },
       whyDifferent:
-        "Next.js computes metadata on the server before sending HTML, guaranteeing scrapers receive complete OpenGraph tags.",
+        "Next.js renders metadata directly into the server HTML stream before transmitting the response to search engines.",
       mentalShiftSummary:
-        "Export `export const metadata = { ... }` or `export async function generateMetadata() { ... }` from `page.tsx`.",
+        "Delete react-helmet. Export `export const metadata = { ... }` or `export async function generateMetadata() { ... }` from page.js.",
     },
 
     basicExample: {
-      title: "Dynamic Metadata Generator for Course Topics",
-      description: "Generating custom page titles and descriptions based on dynamic route params.",
-      language: "tsx",
-      filename: "src/app/units/[unitId]/page.tsx",
-      code: `import type { Metadata } from "next";
-import { syllabusUnits } from "@/data/syllabus";
+      title: "Dynamic Article Metadata in Plain JavaScript",
+      description: "Generating custom SEO titles and social share cards dynamically based on route parameters.",
+      language: "jsx",
+      filename: "src/app/blog/[slug]/page.js",
+      code: `// src/app/blog/[slug]/page.js
 
-interface PageProps {
-  params: Promise<{ unitId: string }>;
-}
+// 1. Dynamic SEO Metadata Generator in plain JavaScript:
+export async function generateMetadata({ params }) {
+  const { slug } = await params;
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { unitId } = await params;
-  const unit = syllabusUnits.find((u) => u.id === unitId);
-
-  if (!unit) {
-    return { title: "Unit Not Found | INT257" };
-  }
+  // In production, fetch article details from database or API:
+  const article = {
+    title: slug.replace(/-/g, " ").toUpperCase(),
+    description: \`Comprehensive guide to mastering \${slug} in Next.js App Router.\`,
+    author: "Ishika Verma",
+  };
 
   return {
-    title: \`\${unit.title} (Unit \${unit.unitNumber}) | INT257\`,
-    description: unit.description,
+    title: \`\${article.title} - NextMastery\`,
+    description: article.description,
+    authors: [{ name: article.author }],
     openGraph: {
-      title: unit.title,
-      description: unit.tagline,
+      title: article.title,
+      description: article.description,
       type: "article",
+      images: [
+        {
+          url: \`https://my-school.com/api/og?title=\${encodeURIComponent(article.title)}\`,
+          width: 1200,
+          height: 630,
+          alt: article.title,
+        },
+      ],
     },
   };
 }
 
-export default async function UnitPage({ params }: PageProps) {
-  const { unitId } = await params;
-  return <div className="p-6"><h1>Viewing {unitId}</h1></div>;
+// 2. Main Page Component:
+export default async function ArticlePage({ params }) {
+  const { slug } = await params;
+
+  return (
+    <article className="max-w-2xl mx-auto p-6 space-y-4">
+      <h1 className="text-3xl font-extrabold text-zinc-100 capitalize">
+        {slug.replace(/-/g, " ")}
+      </h1>
+      <p className="text-zinc-400 leading-relaxed">
+        This article has custom server-rendered metadata for Google search and social media share cards.
+      </p>
+    </article>
+  );
 }`,
       explanation:
-        "Next.js runs `generateMetadata()` first, then streams the page HTML with dynamic `<title>` and OpenGraph tags in the `<head>`.",
-      outputPreview: "HTML head populated with custom <title>Unit 2: Rendering Paradigms | INT257</title>.",
+        "Line-by-line explanation:\n- Line 4: export async function generateMetadata({ params }) tells Next.js to run this function on the server to prepare HTML <head> tags.\n- Line 5: const { slug } = await params; extracts the route parameter from the URL.\n- Line 14-30: Returns a standard metadata configuration object with title, description, and openGraph image specifications.\n- Line 34-47: Renders the actual article page.\n\nWhat happens in the browser?\n1. A student shares the link https://my-school.com/blog/javascript-basics on WhatsApp.\n2. WhatsApp's server crawler sends an HTTP GET request.\n3. Next.js runs generateMetadata, puts the title and image in the raw HTML <head>, and sends it back in 5ms.\n4. WhatsApp displays a beautiful rich preview card with the article's title, description, and cover photo!",
+      outputPreview: "Renders article with title and paragraph, while injecting complete OpenGraph social tags into HTML <head>.",
     },
 
     moreExamples: [
       {
-        title: "Automated Dynamic Sitemap (sitemap.ts)",
-        description: "Generating sitemap.xml in TypeScript for Google search indexing.",
-        language: "typescript",
-        filename: "src/app/sitemap.ts",
-        code: `import { MetadataRoute } from "next";
-import { syllabusUnits } from "@/data/syllabus";
+        title: "Automated Sitemap Generator (sitemap.js) in Plain JavaScript",
+        description: "Creating an automated sitemap.xml listing all website pages for Google search crawlers.",
+        language: "jsx",
+        filename: "src/app/sitemap.js",
+        code: `// src/app/sitemap.js
+// Next.js automatically turns this into /sitemap.xml!
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://nextjs-masterclass.edu";
+export default async function sitemap() {
+  const baseUrl = "https://nextjs-masterclass.vercel.app";
 
-  const staticRoutes = [
-    { url: baseUrl, lastModified: new Date(), changeFrequency: "daily" as const, priority: 1.0 },
-    { url: \`\${baseUrl}/units\`, lastModified: new Date(), changeFrequency: "weekly" as const, priority: 0.9 },
-    { url: \`\${baseUrl}/projects\`, lastModified: new Date(), changeFrequency: "weekly" as const, priority: 0.8 },
-  ];
-
-  const unitRoutes = syllabusUnits.map((u) => ({
-    url: \`\${baseUrl}/units/\${u.id}\`,
-    lastModified: new Date(),
-    changeFrequency: "weekly" as const,
-    priority: 0.7,
+  // Static core routes:
+  const routes = ["", "/about", "/units", "/cheatsheet", "/projects"].map((route) => ({
+    url: \`\${baseUrl}\${route}\`,
+    lastModified: new Date().toISOString(),
+    changeFrequency: "weekly",
+    priority: route === "" ? 1.0 : 0.8,
   }));
 
-  return [...staticRoutes, ...unitRoutes];
+  return routes;
 }`,
         explanation:
-          "Placing `sitemap.ts` in `src/app/` automatically serves an XML sitemap at `http://localhost:3000/sitemap.xml`.",
+          "Exporting a default function from `src/app/sitemap.js` automatically produces a valid XML sitemap at `/sitemap.xml` for Google and Bing search indexers.",
       },
     ],
 
     multipleWays: [
       {
-        name: "Static Metadata Export",
-        syntax: "export const metadata: Metadata = { ... }",
-        codeSnippet: `export const metadata: Metadata = { title: "About Us" };`,
-        howItWorks: "Evaluated at build time.",
-        pros: ["Simple and fast"],
-        cons: ["Cannot read dynamic URL parameters"],
-        whenToUse: "For static pages (Home, About, Pricing, Contact).",
+        name: "Static Metadata Object (export const metadata)",
+        syntax: "export const metadata = { title: '...', description: '...' }",
+        codeSnippet: "export const metadata = { title: 'About Us | MySchool', description: 'Our history' };",
+        howItWorks: "Evaluated once at build time for static routes.",
+        pros: ["Simple string declarations", "Zero runtime database overhead"],
+        cons: ["Cannot read dynamic URL params like [slug]"],
+        whenToUse: "Home page, About page, Contact page, Terms of service.",
         isRecommended: true,
       },
       {
-        name: "Dynamic generateMetadata() Function",
-        syntax: "export async function generateMetadata({ params }) { ... }",
-        codeSnippet: `export async function generateMetadata({ params }) {
-  const { id } = await params;
-  return { title: \`Post #\${id}\` };
-}`,
-        howItWorks: "Async function that fetches data and returns tailored metadata per URL.",
-        pros: ["Dynamic titles, descriptions, and custom social share images per record"],
-        cons: ["Requires async execution"],
-        whenToUse: "For all dynamic routes (`[slug]`, `[id]`).",
+        name: "Dynamic Metadata Function (generateMetadata)",
+        syntax: "export async function generateMetadata({ params })",
+        codeSnippet: "export async function generateMetadata({ params }) { return { title: '...' }; }",
+        howItWorks: "Runs asynchronously on the server to query database records based on route params.",
+        pros: ["Fully customized titles and share cards for dynamic items"],
+        cons: ["Requires an async function execution"],
+        whenToUse: "Blog posts, course details, product pages, user profiles.",
         isRecommended: true,
       },
     ],
 
     decisionGuide: {
-      recommendationSummary: "Use static `metadata` on static pages. Use `generateMetadata` on dynamic `[slug]` pages.",
+      recommendationSummary: "Use `export const metadata` for static pages. Use `generateMetadata` for dynamic parameterized routes like `[slug]` or `[id]`.",
       scenarios: [
         {
-          scenario: "You want a default website title and favicon across all pages",
-          recommendedApproach: "Define base `metadata` in `src/app/layout.tsx`",
-          reason: "Child pages automatically inherit and extend root layout metadata.",
+          scenario: "University Home Page or Contact Page",
+          recommendedApproach: "Static `export const metadata = { ... }`",
+          reason: "Content never changes, so static metadata provides instant 0ms responses.",
+        },
+        {
+          scenario: "Course page for INT257 showing the course title in the browser tab",
+          recommendedApproach: "Dynamic `generateMetadata({ params })`",
+          reason: "Needs to extract the course code from params and query the database for the course title.",
         },
       ],
     },
 
     commonMistakes: [
       {
-        mistakeTitle: "Exporting both 'metadata' and 'generateMetadata' in the same file",
-        badCode: `// ❌ BAD: Next.js throws an error!
-export const metadata = { title: "Static" };
-export async function generateMetadata() { return { title: "Dynamic" }; }`,
-        goodCode: `// ✅ GOOD: Export ONE or the other, not both in the same file!
-export async function generateMetadata() { return { title: "Dynamic" }; }`,
-        whyItBreaks: "Next.js cannot determine which metadata source to prioritize.",
-        howToFix: "Use `metadata` for static pages or `generateMetadata` for dynamic pages.",
+        mistakeTitle: "Exporting metadata from a Client Component ('use client')",
+        badCode: `// ❌ BAD: src/app/about/page.js
+"use client"; // 💥 Error: You cannot export metadata from a Client Component!
+
+export const metadata = { title: "About Us" };`,
+        goodCode: `// ✅ GOOD: Keep page as Server Component, or extract client parts to child
+// src/app/about/page.js (Server Component)
+export const metadata = { title: "About Us" };
+export default function AboutPage() { ... }`,
+        whyItBreaks: "Metadata is strictly server-side. Next.js cannot inspect client-side JavaScript bundles to extract `<head>` metadata.",
+        howToFix: "Only export `metadata` or `generateMetadata` from Server Components (without `'use client'`).",
       },
     ],
 
     bestPractices: [
       {
-        title: "Use Title Templates for Consistent Branding",
-        rule: "Configure `title: { template: '%s | INT257 NextMastery', default: 'INT257 NextMastery' }` in Root Layout.",
-        explanation: "Allows child pages to simply export `title: 'Unit 1'` and get `Unit 1 | INT257 NextMastery` automatically.",
+        title: "Use Title Templates in Root Layout",
+        rule: "Configure title: { default: 'NextMastery', template: '%s | NextMastery' } in your root layout.js.",
+        explanation: "This automatically appends your brand name to all child page titles with consistent formatting.",
       },
     ],
 
     exercises: [
       {
         id: "u5-ex-2",
-        title: "Create an OpenGraph Share Card Metadata Object",
+        title: "Define Static Page Metadata",
         difficulty: "easy",
-        estimatedMinutes: 6,
+        estimatedMinutes: 5,
         prompt:
-          "Write a `Metadata` export for `src/app/projects/page.tsx` containing title, description, and an OpenGraph image configuration.",
-        initialCode: `import type { Metadata } from "next";
+          "Write a static metadata export in src/app/contact/page.js in plain JavaScript containing a title 'Contact Support | University' and description 'Get in touch with campus staff.'.",
+        initialCode: `// src/app/contact/page.js
+// TODO: Export metadata object
+export default function ContactPage() {
+  return <h1>Contact Us</h1>;
+}`,
+        expectedOutput: "A page exporting a metadata configuration object.",
+        hints: ["Export `const metadata = { title: '...', description: '...' }`"],
+        solutionCode: `// src/app/contact/page.js
+export const metadata = {
+  title: "Contact Support | University",
+  description: "Get in touch with campus staff.",
+};
 
-// TODO: Export metadata with title, description, and openGraph
-`,
-        expectedOutput: "A typed Metadata export with OpenGraph attributes.",
-        hints: ["Export `const metadata: Metadata = { ... }`", "Include `openGraph: { title: '...', images: [...] }`"],
-        solutionCode: `import type { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "Interactive Next.js Projects | INT257",
-  description: "Build 5 progressive full-stack projects from a simple blog to a full Supabase SaaS.",
-  openGraph: {
-    title: "5 Guided Next.js Projects - INT257 Masterclass",
-    description: "Hands-on coding exercises and full-stack real-world applications.",
-    url: "https://nextjs-masterclass.edu/projects",
-    siteName: "NextMastery INT257",
-    images: [
-      {
-        url: "https://nextjs-masterclass.edu/og-projects.png",
-        width: 1200,
-        height: 630,
-        alt: "INT257 Guided Projects Banner",
-      },
-    ],
-    locale: "en_US",
-    type: "website",
-  },
-};`,
-        solutionExplanation:
-          "This metadata ensures links shared on social networks display high-resolution preview cards with titles and descriptions.",
+export default function ContactPage() {
+  return <h1>Contact Us</h1>;
+}`,
+        solutionExplanation: "Next.js reads the exported metadata object and injects it into the HTML <head>.",
       },
     ],
 
     quizzes: [
       {
         id: "u5-q2",
-        question: "Why do social media preview cards (WhatsApp, Twitter, LinkedIn) require server-rendered OpenGraph metadata?",
-        syllabusTopic: "OpenGraph SEO",
+        syllabusTopic: "Metadata & SEO",
+        question: "Why do social media share cards (WhatsApp, Twitter) fail if you use client-side React Helmet instead of Next.js server metadata?",
+        conceptualExplanation: "Social media web scrapers perform a fast HTTP GET request and do not execute client-side JavaScript. They require raw server-rendered meta tags.",
         options: [
           { id: "a", text: "Because social media scrapers do not run JavaScript and only read raw HTML from the server response", isCorrect: true, explanation: "Correct! Social scrapers perform a lightweight HTTP GET and parse the raw HTML <head>." },
           { id: "b", text: "Because Twitter only allows Python websites", isCorrect: false, explanation: "No." },
           { id: "c", text: "Because metadata files must be encrypted with RSA keys", isCorrect: false, explanation: "No." },
           { id: "d", text: "To make the server fan spin quieter", isCorrect: false, explanation: "No." },
         ],
-        conceptualExplanation:
-          "Social crawlers make lightweight curl-style HTTP requests without executing JavaScript. Server-rendered `<meta>` tags are required for preview generation.",
       },
     ],
 
     realWorldExample: {
-      domain: "Viral Blog & Content Marketing",
-      description: "How publications generate custom social share cards dynamically for every new article.",
+      domain: "Online Publishing Network",
+      description: "How Medium or Substack generates dynamic social share preview cards for millions of articles.",
       code: {
-        title: "Dynamic Social Card Generator",
-        description: "Dynamic OpenGraph generation.",
-        language: "typescript",
-        filename: "src/app/blog/[slug]/page.tsx",
-        code: `export async function generateMetadata({ params }: any) {
-  const { slug } = await params;
+        title: "Dynamic Social Share Card Generator",
+        description: "Server-side OpenGraph metadata generation in plain JavaScript.",
+        language: "jsx",
+        filename: "src/app/articles/[id]/page.js",
+        code: `export async function generateMetadata({ params }) {
+  const { id } = await params;
   return {
-    title: \`Article: \${slug}\`,
+    title: \`Article #\${id} Insights\`,
     openGraph: {
-      images: [\`https://myblog.com/api/og?title=\${encodeURIComponent(slug)}\`],
+      title: \`Article #\${id} Insights\`,
+      description: "Read top programming insights on NextMastery.",
+      images: [\`/api/og?id=\${id}\`],
     },
   };
 }`,
       },
-      keyTakeaway: "Dynamic OG image endpoints generate customized image graphics on the fly for every article URL.",
+      keyTakeaway: "Automated server metadata ensures every link shared on social media generates attractive, high-converting preview cards.",
     },
 
     combinedExample: {
-      combinedTopics: ["generateMetadata", "sitemap.ts", "Dynamic Route"],
-      title: "Complete Search Engine Optimization Pipeline",
-      description: "Combining dynamic metadata, XML sitemaps, and robots.txt.",
+      combinedTopics: ["Metadata", "Dynamic Routes", "Server Components"],
+      title: "Course Catalog with Dynamic SEO",
+      description: "Course detail page combining route params with dynamic OpenGraph metadata.",
       code: {
-        title: "SEO Architecture Map",
-        description: "Complete SEO file setup in App Router.",
-        language: "typescript",
-        filename: "SEO File Tree",
-        code: `src/app/
-├── layout.tsx         # Base title template & site-wide metadata
-├── sitemap.ts         # Dynamically builds /sitemap.xml
-├── robots.ts          # Dynamically builds /robots.txt
-└── units/[unitId]/
-    └── page.tsx       # Exports generateMetadata() for dynamic lesson titles`,
+        title: "Dynamic Course Metadata",
+        description: "Full SEO setup for course directory.",
+        language: "jsx",
+        filename: "src/app/courses/[code]/page.js",
+        code: `export async function generateMetadata({ params }) {
+  const { code } = await params;
+  return {
+    title: \`\${code} Course Syllabus\`,
+    description: \`Official university academic curriculum for \${code}.\`,
+  };
+}
+
+export default async function CourseDetailPage({ params }) {
+  const { code } = await params;
+  return <h1>Course Syllabus: {code}</h1>;
+}`,
       },
       stepByStepFlow: [
-        "Google bot crawls `/robots.txt` and discovers `/sitemap.xml`",
-        "Sitemap returns list of all unit URLs",
-        "Google visits `/units/unit-1` and reads pre-rendered `<title>` and `<meta description>`",
-        "User shares link on WhatsApp and sees rich OpenGraph banner",
+        "User or Google bot visits /courses/INT257",
+        "Next.js runs generateMetadata on the server",
+        "Title and meta tags injected into HTML <head>",
+        "Google search indexes the page with full curriculum details",
       ],
     },
   },
@@ -637,286 +659,335 @@ export const metadata: Metadata = {
   {
     id: "performance-and-code-splitting",
     unitId: "unit-5",
-    title: "Code Splitting, Lazy Loading & Core Web Vitals",
-    shortSummary: "Load heavy client components on-demand using next/dynamic, optimize Largest Contentful Paint (LCP), and track Core Web Vitals.",
+    title: "Performance Optimization, Code Splitting & Core Web Vitals",
+    shortSummary: "Learn web speed using the Day Trip Packing analogy: pack only what you need, use next/dynamic for heavy charts, and understand Core Web Vitals.",
     order: 3,
-    tags: ["Performance", "Lazy Loading", "next/dynamic", "Core Web Vitals", "LCP", "INP", "CLS"],
+    tags: ["Performance", "next/dynamic", "Code Splitting", "Core Web Vitals", "Lighthouse"],
 
     simpleExplanation:
-      "Imagine your website has a heavy 3D interactive chart or rich text editor that takes 500KB of JavaScript. If a mobile student is just reading a text lesson, why should their phone download that heavy 3D chart right away? **Code Splitting & Lazy Loading** means breaking your code into small chunks and only downloading the heavy 3D chart when the user actually clicks 'Open Chart'. Next.js does this with the `next/dynamic` function. **Core Web Vitals** are Google's 3 speed metrics: LCP (how fast main content appears), INP (how responsive clicks feel), and CLS (how stable the visual layout is).",
+      "Imagine you are packing a backpack for a 2-hour afternoon walk in the park:\n\n" +
+      "1. **The Overpacked Backpack Problem**:\n" +
+      "If you pack a heavy winter ski jacket, scuba diving tanks, and a giant camping tent for a simple park walk, you will be exhausted and walk at 1 mile per hour! In web development, downloading a 500KB chart library or a 3D canvas viewer on a page that only shows text is overpacking!\n\n" +
+      "2. **Code Splitting (Pack only what you need!)**:\n" +
+      "Next.js automatically splits your JavaScript by page. When a user visits `/about`, they ONLY download the code for the About page. They don't download the code for the Dashboard or the Admin panel!\n\n" +
+      "3. **Lazy Loading with next/dynamic**:\n" +
+      "What if a page has a heavy pie chart that only appears when a user clicks 'View Analytics'? With `next/dynamic`, Next.js delays downloading the heavy chart until the user actually clicks the button!\n\n" +
+      "4. **Core Web Vitals in 10-Year-Old Terms**:\n" +
+      "- **LCP (Largest Contentful Paint)**: How fast does the main picture or headline show up? (Goal: under 2.5 seconds).\n" +
+      "- **INP (Interaction to Next Paint)**: When I tap a button, does it react immediately? (Goal: under 200 milliseconds).\n" +
+      "- **CLS (Cumulative Layout Shift)**: Does the page jump around while loading? (Goal: 0 jumps!).",
 
     whyNeeded:
-      "Websites that load in under 2 seconds have 3x higher conversion and retention rates than slow sites. Lazy loading heavy dependencies keeps initial mobile bundles tiny and responsive.",
+      "Every additional 100ms of page load delay reduces e-commerce conversion rates by 7%. Google actively down-ranks slow websites that fail Core Web Vitals. Code splitting and lazy loading keep your JavaScript bundles feather-light.",
 
     reactVsNext: {
-      concept: "Dynamic Component Lazy Loading",
+      concept: "Bundle Splitting & Lazy Loading",
       reactWay: {
-        title: "React.lazy() and Suspense",
-        code: `// React standard lazy loading:
-import React, { lazy, Suspense } from 'react';
-
-const HeavyChart = lazy(() => import('./HeavyChart'));
+        title: "Monolithic Single Client Bundle",
+        code: `// In monolithic bundles without automatic route splitting:
+// All routes and heavy libraries are bundled into one huge bundle.js!
+import HeavyChart from "heavy-chart-library"; // 500 KB
+import ComplexEditor from "monaco-editor";    // 2 MB
 
 function App() {
-  return (
-    <Suspense fallback={<p>Loading chart...</p>}>
-      <HeavyChart />
-    </Suspense>
-  );
+  // Mobile users on slow 3G must download ALL 2.5 MB of code
+  // even if they only want to read one paragraph of text on the Home page!
+  return <HomePage />;
 }`,
         explanation:
-          "In vanilla React, `React.lazy()` works on the client, but it does not support disabling server-side rendering (SSR) for components that rely on browser-only `window` APIs (like Monaco code editors or Canvas charting libraries).",
+          "Without complex manual Webpack setup, single-page React apps bundle the entire codebase into monolithic JavaScript files.",
         drawbacks: [
-          "Fails if the third-party library uses `window` or `document` during SSR",
-          "Requires manual Suspense wrappers everywhere",
+          "Visitors download megabytes of unused code",
+          "Slow initial load on mobile 4G connections",
+          "Fails Google Core Web Vitals LCP thresholds",
         ],
       },
       nextjsWay: {
-        title: "Next.js next/dynamic with ssr: false",
-        code: `// Next.js dynamic import with SSR control:
+        title: "Next.js Automatic Route Splitting + next/dynamic",
+        code: `// src/app/dashboard/page.js (Pure JavaScript!)
 import dynamic from "next/dynamic";
 
-// Loads on client ONLY when needed, with zero SSR errors for window APIs!
-const InteractiveCodeEditor = dynamic(
-  () => import("@/components/CodeEditor"),
-  {
-    ssr: false, // Prevents window is not defined errors on server!
-    loading: () => <div className="h-64 bg-zinc-900 animate-pulse rounded-xl" />
-  }
-);
+// Lazy load the heavy chart component only when needed:
+const HeavyChart = dynamic(() => import("@/components/HeavyChart"), {
+  loading: () => <p className="text-zinc-500">Loading chart...</p>,
+  ssr: false, // Disables server rendering if the library uses 'window'
+});
 
-export default function PlaygroundPage() {
+export default function DashboardPage() {
   return (
-    <div>
-      <h1>Next.js Sandbox</h1>
-      <InteractiveCodeEditor />
+    <div className="p-6 space-y-4">
+      <h1 className="text-xl font-bold">Fast Dashboard</h1>
+      {/* Heavy 500KB chart code is downloaded in the background! */}
+      <HeavyChart />
     </div>
   );
 }`,
         explanation:
-          "`next/dynamic` allows lazy loading components and provides `{ ssr: false }` to safely mount browser-only libraries without server crashes.",
+          "Next.js splits code per route by default, and `next/dynamic` provides one-line lazy loading for heavy client components.",
         benefits: [
-          "Eliminates 'window is not defined' crashes during SSR",
-          "Reduces initial JavaScript bundle size significantly",
-          "Built-in fallback loading placeholder support",
+          "Automatic per-page code splitting with zero configuration",
+          "Lazy load heavy client libraries with `next/dynamic`",
+          "SSR control: use `{ ssr: false }` for browser-only canvas or chart packages",
         ],
       },
       whyDifferent:
-        "Next.js `next/dynamic` bridges server and client module loaders, allowing granular control over SSR hydration.",
+        "Next.js App Router uses Server Components by default (which contribute 0 KB to the client bundle) combined with automatic route-level code splitting.",
       mentalShiftSummary:
-        "For heavy libraries (charts, Monaco editor, confetti, canvas), use `const Comp = dynamic(() => import('...'), { ssr: false })`.",
+        "Don't import heavy charts or editors statically at the top of client files. Lazy load them with `dynamic(() => import(...))`.",
     },
 
     basicExample: {
-      title: "Lazy Loading a Heavy Code Editor with next/dynamic",
-      description: "Importing a browser-only component on-demand.",
-      language: "tsx",
-      filename: "src/app/playground/page.tsx",
-      code: `import dynamic from "next/dynamic";
+      title: "Lazy Loading a Heavy Chart Component with next/dynamic",
+      description: "Splitting a heavy analytics widget into an on-demand bundle in plain JavaScript.",
+      language: "jsx",
+      filename: "src/app/analytics/page.js",
+      code: `// src/app/analytics/page.js
+"use client";
 
-// Lazy load the editor component:
-const HeavyMonacoEditor = dynamic(
-  () => import("@/components/playground/CodeEditor").then(mod => mod.CodeEditor),
+import { useState } from "react";
+import dynamic from "next/dynamic";
+
+// 1. Lazy load the heavy interactive chart widget:
+const StudentGradeChart = dynamic(
+  () => import("@/components/StudentGradeChart"),
   {
-    ssr: false,
     loading: () => (
-      <div className="h-48 bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-center justify-center text-zinc-500 font-mono text-sm">
-        ⚡ Loading Interactive Code Playground...
+      <div className="h-64 bg-zinc-900 border border-zinc-800 rounded-2xl flex items-center justify-center text-zinc-500 text-xs">
+        ⏳ Loading Analytics Engine...
       </div>
     ),
+    ssr: false, // Safe for libraries relying on browser window/canvas
   }
 );
 
-export default function PlaygroundPage() {
+export default function AnalyticsPage() {
+  const [showChart, setShowChart] = useState(false);
+
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-bold text-zinc-100">TypeScript Live Sandbox</h1>
-      <HeavyMonacoEditor />
+    <div className="max-w-3xl mx-auto p-6 space-y-6">
+      <div className="border-b border-zinc-800 pb-4">
+        <h1 className="text-2xl font-bold text-zinc-100">Performance & Analytics</h1>
+        <p className="text-zinc-400 text-sm mt-1">
+          The heavy chart library is not downloaded until you click the button below!
+        </p>
+      </div>
+
+      {!showChart ? (
+        <button
+          onClick={() => setShowChart(true)}
+          className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-medium transition-colors"
+        >
+          📊 Load Performance Chart
+        </button>
+      ) : (
+        <div className="space-y-3">
+          <StudentGradeChart />
+          <button
+            onClick={() => setShowChart(false)}
+            className="text-xs text-zinc-500 hover:text-zinc-300"
+          >
+            Hide Chart
+          </button>
+        </div>
+      )}
     </div>
   );
 }`,
       explanation:
-        "The heavy code editor JavaScript is only downloaded when the student navigates to the playground, keeping the rest of the site fast.",
-      outputPreview: "Playground page loading heavy editor on-demand with smooth placeholder.",
+        "Line-by-line explanation:\n- Line 4: import dynamic from 'next/dynamic'; imports Next.js lazy-loading tool.\n- Line 7-17: dynamic(() => import(...)) creates a lazy-loaded component. Notice { ssr: false } which ensures that browser-only libraries using window or canvas don't crash during server pre-rendering!\n- Line 10-14: loading: () => (...) provides an instant placeholder while the chunk downloads.\n- Line 30-36: The heavy JavaScript file is NOT downloaded when the page first opens! It is only fetched over the network the exact moment the student clicks 'Load Performance Chart'.\n\nWhat happens in the browser?\n1. The visitor opens /analytics. Initial download size is tiny (under 15KB).\n2. Page paints in 50ms with a perfect 100 Google Lighthouse speed score.\n3. When the user taps the button, Next.js quietly downloads the chart chunk and swaps it in seamlessly!",
+      outputPreview: "A button that loads an on-demand analytics chart with a loading placeholder during the bundle download.",
     },
 
     moreExamples: [
       {
-        title: "Understanding Core Web Vitals (LCP, INP, CLS)",
-        description: "The 3 critical metrics measured by Google Lighthouse and search rankings.",
-        language: "typescript",
-        filename: "Core Web Vitals Guide",
-        code: `// 1. Largest Contentful Paint (LCP) -> Target: < 2.5 seconds
-// Measures: How fast the main banner / heading renders on screen.
-// Fix: Use next/image with 'priority', Server Components, and zero render-blocking CSS.
+        title: "Lazy Loading a Client Modal with next/dynamic",
+        description: "Deferring a registration dialog until the user clicks an 'Open' trigger in plain JavaScript.",
+        language: "jsx",
+        filename: "src/components/EnrollmentTrigger.js",
+        code: `// src/components/EnrollmentTrigger.js
+"use client";
 
-// 2. Interaction to Next Paint (INP) -> Target: < 200 milliseconds
-// Measures: How quickly the UI updates after a user clicks or taps a button.
-// Fix: Use useOptimistic(), useTransition(), and keep Client Components lightweight.
+import { useState } from "react";
+import dynamic from "next/dynamic";
 
-// 3. Cumulative Layout Shift (CLS) -> Target: < 0.1
-// Measures: Visual stability (preventing buttons from jumping around as images load).
-// Fix: Use next/image with width/height and next/font for zero-shift typography.`,
+const EnrollmentModal = dynamic(() => import("@/components/EnrollmentModal"));
+
+export function EnrollmentTrigger() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div>
+      <button
+        onClick={() => setOpen(true)}
+        className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm"
+      >
+        Enroll Now
+      </button>
+
+      {open && <EnrollmentModal onClose={() => setOpen(false)} />}
+    </div>
+  );
+}`,
         explanation:
-          "Optimizing these 3 metrics ensures your Next.js application achieves high performance scores.",
+          "Modal dialogs with complex validation forms and animation libraries should always be dynamically imported so they don't slow down the main page load.",
       },
     ],
 
     multipleWays: [
       {
-        name: "next/dynamic (Recommended for Heavy Client Widgets)",
-        syntax: "dynamic(() => import('./Widget'), { ssr: false })",
-        codeSnippet: `const Chart = dynamic(() => import('./Chart'), { ssr: false });`,
-        howItWorks: "Creates a separate JS chunk loaded on demand.",
-        pros: ["Avoids SSR window errors", "Cuts initial page load time", "Custom loading skeleton"],
-        cons: ["Requires client download on first view"],
-        whenToUse: "For rich text editors, 3D maps, canvas charts, confetti animations.",
+        name: "next/dynamic Lazy Loading (Recommended)",
+        syntax: "const Comp = dynamic(() => import('./Comp'), { ssr: false })",
+        codeSnippet: "const Map = dynamic(() => import('@/components/Map'), { ssr: false });",
+        howItWorks: "Splits component into a separate bundle downloaded on demand.",
+        pros: ["Supports ssr: false for browser-only packages", "Built-in loading fallback"],
+        cons: ["Slight visual delay when the chunk downloads"],
+        whenToUse: "Heavy charts, rich-text markdown editors, interactive 3D canvases, modals.",
         isRecommended: true,
+      },
+      {
+        name: "React.lazy + Suspense",
+        syntax: "const Comp = React.lazy(() => import('./Comp'))",
+        codeSnippet: "const Comp = React.lazy(() => import('./Comp')); <Suspense fallback={<p>...</p>}><Comp /></Suspense>",
+        howItWorks: "Standard React lazy loading mechanism.",
+        pros: ["Native React feature"],
+        cons: ["Does not support ssr: false for browser-only libraries"],
+        whenToUse: "Pure client-side React setups without server pre-rendering constraints.",
       },
     ],
 
     decisionGuide: {
-      recommendationSummary: "Use standard imports for normal UI. Use `next/dynamic` for heavy third-party client packages (>50KB).",
+      recommendationSummary: "Use next/dynamic with { ssr: false } for any third-party library that crashes on the server with 'window is not defined' (e.g. Chart.js, Leaflet maps, Monaco editor).",
       scenarios: [
         {
-          scenario: "You are adding `canvas-confetti` when a student completes a quiz",
-          recommendedApproach: "Dynamically import `canvas-confetti` inside the button click handler",
-          reason: "Avoids bundling the confetti library into the initial page load.",
+          scenario: "Interactive campus map powered by Leaflet.js (uses 'window')",
+          recommendedApproach: "dynamic(() => import('@/components/Map'), { ssr: false })",
+          reason: "Leaflet accesses the browser 'window' object, so server rendering would throw a fatal error.",
+        },
+        {
+          scenario: "Standard text paragraph with student bio",
+          recommendedApproach: "Server Component (Default)",
+          reason: "Zero client bundle weight; no need for dynamic imports.",
         },
       ],
     },
 
     commonMistakes: [
       {
-        mistakeTitle: "Using next/dynamic inside a component render loop or function body",
-        badCode: `// ❌ BAD: Re-creates the dynamic component on every single render!
-export function MyPage() {
-  const HeavyComp = dynamic(() => import('./Heavy'));
-  return <HeavyComp />;
-}`,
-        goodCode: `// ✅ GOOD: Define dynamic imports at module root level (outside component function)
-const HeavyComp = dynamic(() => import('./Heavy'));
-
-export function MyPage() {
-  return <HeavyComp />;
-}`,
-        whyItBreaks: "Calling `dynamic()` inside a function re-instantiates the component loader on every state change.",
-        howToFix: "Always place `dynamic(...)` declarations at the top of your file outside components.",
+        mistakeTitle: "Importing heavy chart libraries at the top of every file statically",
+        badCode: `// ❌ BAD: Static import of heavy 500KB chart library
+import Chart from "chart.js/auto";`,
+        goodCode: `// ✅ GOOD: Lazy load with next/dynamic
+import dynamic from "next/dynamic";
+const Chart = dynamic(() => import("@/components/MyChart"), { ssr: false });`,
+        whyItBreaks: "Forces every visitor to download hundreds of kilobytes of code even if they never look at the chart.",
+        howToFix: "Use next/dynamic to defer loading until the component is actually rendered.",
       },
     ],
 
     bestPractices: [
       {
-        title: "Analyze Bundle Size with Next Bundle Analyzer",
-        rule: "Periodically run `@next/bundle-analyzer` to identify large unexpected npm dependencies.",
-        explanation: "Ensures no multi-megabyte libraries accidentally slip into production.",
+        title: "Audit with Lighthouse Regularly",
+        rule: "Run Chrome DevTools Lighthouse audits to verify Core Web Vitals (LCP < 2.5s, CLS < 0.1).",
+        explanation: "Frequent audits identify bundle bloat and layout shifts before they reach production.",
       },
     ],
 
     exercises: [
       {
         id: "u5-ex-3",
-        title: "Configure Dynamic Import with Loading Fallback",
+        title: "Lazy Load a Rich Text Editor",
         difficulty: "easy",
         estimatedMinutes: 6,
         prompt:
-          "Write a `next/dynamic` import for a component named `InteractiveQuizArena` with `ssr: false` and a pulsating skeleton loading indicator.",
-        initialCode: `import dynamic from "next/dynamic";
-
-// TODO: Define dynamic import with ssr: false and loading fallback
+          "Write a statement in src/components/EditorWrapper.js in plain JavaScript using `next/dynamic` that dynamically imports `@/components/RichTextEditor` with `{ ssr: false }`.",
+        initialCode: `// src/components/EditorWrapper.js
+// TODO: Dynamically import RichTextEditor
 `,
-        expectedOutput: "A lazy-loaded dynamic component definition.",
-        hints: ["`dynamic(() => import('...'), { ssr: false, loading: () => (...) })`"],
-        solutionCode: `import dynamic from "next/dynamic";
+        expectedOutput: "A dynamic component import with SSR disabled.",
+        hints: ["Use `const RichTextEditor = dynamic(() => import('@/components/RichTextEditor'), { ssr: false })`"],
+        solutionCode: `// src/components/EditorWrapper.js
+import dynamic from "next/dynamic";
 
-export const DynamicQuizArena = dynamic(
-  () => import("@/components/classroom/QuizWidget").then((mod) => mod.QuizWidget),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="p-6 bg-zinc-900 border border-zinc-800 rounded-2xl animate-pulse space-y-4">
-        <div className="h-6 w-48 bg-zinc-800 rounded" />
-        <div className="h-20 bg-zinc-800/60 rounded-xl" />
-      </div>
-    ),
-  }
+export const RichTextEditor = dynamic(
+  () => import("@/components/RichTextEditor"),
+  { ssr: false }
 );`,
-        solutionExplanation:
-          "This dynamic import splits the quiz widget code into a separate bundle downloaded only when needed.",
+        solutionExplanation: "Disabling SSR prevents 'window is not defined' crashes during server pre-rendering.",
       },
     ],
 
     quizzes: [
       {
         id: "u5-q3",
-        question: "What problem does { ssr: false } solve in next/dynamic?",
-        syllabusTopic: "Client-Side Lazy Loading",
+        syllabusTopic: "Performance & Code Splitting",
+        question: "Why would you pass `{ ssr: false }` to `next/dynamic`?",
+        conceptualExplanation: "{ ssr: false } tells Next.js to skip server-side pre-rendering for components that require browser APIs like 'window' or 'document'.",
         options: [
           { id: "a", text: "It prevents 'window is not defined' errors during server rendering for browser-only libraries like canvas or Monaco", isCorrect: true, explanation: "Correct! { ssr: false } skips server rendering and mounts the component strictly on the client where 'window' exists." },
           { id: "b", text: "It disables CSS styling", isCorrect: false, explanation: "CSS is unaffected." },
           { id: "c", text: "It deletes the database", isCorrect: false, explanation: "No." },
-          { id: "d", text: "It speeds up TypeScript compilation", isCorrect: false, explanation: "No." },
+          { id: "d", text: "It speeds up compilation", isCorrect: false, explanation: "No." },
         ],
-        conceptualExplanation:
-          "Many browser packages access `window` or `document` upon import. Disabling SSR with `{ ssr: false }` allows them to load cleanly in the browser without server crashes.",
       },
     ],
 
     realWorldExample: {
-      domain: "Data Analytics & Financial Charting",
-      description: "How platforms like TradingView load multi-megabyte WebGL charts on-demand without slowing down the initial news page.",
+      domain: "Financial Stock Trading Platform",
+      description: "How a trading dashboard defers heavy candlestick charts until the user selects a stock ticker.",
       code: {
-        title: "Lazy Chart Loader",
-        description: "Dynamic WebGL chart loader.",
-        language: "tsx",
-        filename: "src/components/StockDashboard.tsx",
+        title: "On-Demand Candlestick Chart",
+        description: "Lazy loaded trading chart in plain JavaScript.",
+        language: "jsx",
+        filename: "src/components/StockDashboard.js",
         code: `import dynamic from "next/dynamic";
 
-const WebGLCandlestickChart = dynamic(() => import("./WebGLChart"), {
-  ssr: false,
-  loading: () => <div className="h-96 bg-zinc-900 animate-pulse rounded-2xl flex items-center justify-center text-zinc-500">Loading Real-Time Chart...</div>
-});
+const CandlestickChart = dynamic(
+  () => import("@/components/CandlestickChart"),
+  { ssr: false, loading: () => <p>Loading chart data...</p> }
+);
 
-export function StockDashboard() {
-  return <div><WebGLCandlestickChart /></div>;
-}`,
-      },
-      keyTakeaway: "Lazy loading keeps initial page loads lightweight and lightning fast.",
-    },
-
-    combinedExample: {
-      combinedTopics: ["next/dynamic", "Core Web Vitals", "Suspense"],
-      title: "High-Performance Page Architecture",
-      description: "Combining fast Server Component HTML with lazy-loaded client interactive widgets.",
-      code: {
-        title: "Fast Initial Paint Architecture",
-        description: "Server header + dynamic lazy interactive widget.",
-        language: "tsx",
-        filename: "src/app/performance-demo/page.tsx",
-        code: `import dynamic from "next/dynamic";
-
-const InteractiveSimulator = dynamic(() => import("@/components/Simulator"), {
-  ssr: false,
-  loading: () => <div className="h-40 bg-zinc-900 animate-pulse rounded-xl" />
-});
-
-export default function PerformanceDemoPage() {
+export function StockDashboard({ ticker }) {
   return (
-    <div className="space-y-6">
-      {/* 1. Fast Server Component header paints in 5ms (Good LCP): */}
-      <h1 className="text-3xl font-bold text-zinc-100">Next.js Performance Engine</h1>
-      <p className="text-zinc-400">Zero layout shift and on-demand client bundle loading.</p>
-      
-      {/* 2. Heavy client widget loads in background: */}
-      <InteractiveSimulator />
+    <div>
+      <h2>Ticker: {ticker}</h2>
+      <CandlestickChart symbol={ticker} />
     </div>
   );
 }`,
       },
+      keyTakeaway: "Lazy loading heavy chart engines keeps the initial financial dashboard responsive and quick to load.",
+    },
+
+    combinedExample: {
+      combinedTopics: ["next/dynamic", "Server Components", "Performance"],
+      title: "Interactive Demo Sandbox with Dynamic Import",
+      description: "Loading a browser code editor on demand inside a Server Component article.",
+      code: {
+        title: "Code Playground Loader",
+        description: "Lazy loading code editor widget.",
+        language: "jsx",
+        filename: "src/components/PlaygroundLoader.js",
+        code: `import dynamic from "next/dynamic";
+
+const CodePlayground = dynamic(() => import("@/components/CodePlayground"), {
+  ssr: false,
+  loading: () => <div className="p-8 bg-zinc-900 rounded-xl">Loading IDE...</div>,
+});
+
+export function PlaygroundSection() {
+  return (
+    <section className="space-y-4">
+      <h2 className="text-xl font-bold">Interactive Sandbox</h2>
+      <CodePlayground />
+    </section>
+  );
+}`,
+      },
       stepByStepFlow: [
-        "Server streams main headline (LCP < 0.5s)",
-        "Zero layout shift achieved with skeleton placeholder (CLS = 0)",
-        "Heavy simulator module hydrates in background",
+        "Initial article HTML renders with 0 KB editor code",
+        "next/dynamic downloads Monaco editor bundle in the background",
+        "Placeholder is replaced seamlessly once chunk arrives",
+        "Perfect 100/100 Lighthouse performance maintained",
       ],
     },
   },
@@ -924,261 +995,266 @@ export default function PerformanceDemoPage() {
   {
     id: "production-build-and-deployment",
     unitId: "unit-5",
-    title: "Production Build, Vercel & Docker Deployment",
-    shortSummary: "Master npm run build output analysis, standalone Docker containerization, production environment variables, and zero-downtime deployment.",
+    title: "Production Builds, Standalone Output & Deployment",
+    shortSummary: "Learn production deployments using the Practice vs Championship analogy: npm run build, standalone output, and hosting on Vercel or Node.js.",
     order: 4,
-    tags: ["Production", "Build", "Deployment", "Vercel", "Docker", "Standalone"],
+    tags: ["Deployment", "npm run build", "Vercel", "Standalone", "Production"],
 
     simpleExplanation:
-      "When you finish writing code, you don't run `npm run dev` in production (which is slow and meant for local development). Instead, you run `npm run build`. Next.js compiles your TypeScript, minifies your CSS, bundles your Server Components, and creates a hyper-optimized production build. Next.js can be deployed with one click to **Vercel** (global serverless & Edge network), or packaged inside a lightweight **Docker container** using `output: 'standalone'` to run on any cloud server (AWS, DigitalOcean, Google Cloud).",
+      "Imagine an Olympic soccer team:\n\n" +
+      "1. **The Practice Session (\`npm run dev\`)**:\n" +
+      "On the practice field, the coach constantly stops play, blows the whistle, writes notes on a whiteboard, and tests wild new formations. It is slow and noisy, but perfect for learning and fixing mistakes. That is `npm run dev`! It has debuggers, file watchers, and fast refresh enabled, but it is too slow and heavy for real spectators!\n\n" +
+      "2. **Packing the Gear (\`npm run build\`)**:\n" +
+      "Before the big game, the team washes the uniforms, packs only the essential cleats, compresses the playbook, and turns on all performance optimizers. Next.js creates optimized static HTML, compresses JavaScript, and checks every route for errors.\n\n" +
+      "3. **The Big Championship Game (\`npm run start\` or Vercel)**:\n" +
+      "In the packed stadium, there are no practice whistles. The game runs at maximum speed! Zero debug lag, instant CDN caching, and rock-solid stability!\n\n" +
+      "**Where can you deploy?**\n" +
+      "- **Vercel**: The creators of Next.js! Just connect your GitHub repo, and it deploys automatically to global Edge servers worldwide in 30 seconds.\n" +
+      "- **Self-Hosted Node.js / Docker**: Using `output: 'standalone'` in your `next.config.js`, you can run your Next.js app on any Linux server, VPS, or Docker container with minimal memory!",
 
     whyNeeded:
-      "Running development servers in production causes high memory consumption, crashes under load, and exposes debugging symbols. Production builds ensure enterprise scalability and security.",
+      "Running `npm run dev` on a public production server is dangerous: it consumes 10x more memory, exposes debug information, and runs much slower. A compiled production build (`npm run build`) guarantees speed, security, and stability.",
 
     reactVsNext: {
-      concept: "Building & Deploying",
+      concept: "Build Output & Deployment",
       reactWay: {
-        title: "React Static Export (dist/ folder)",
-        code: `// In Vite / React:
-// npm run build produces a 'dist' folder with static index.html and JS.
-// You must deploy to an S3 bucket or Nginx server.
-// BUT: You cannot run backend APIs or Server Actions!`,
+        title: "Static Client-Only Build",
+        code: `// Traditional client-side approach:
+// npm run build creates a simple static folder:
+// dist/
+// ├── index.html
+// └── bundle.js
+// ⚠️ Cannot run Server Actions, cannot run Route Handlers,
+// cannot do SSR or ISR! Must host backend separately!`,
         explanation:
-          "React static builds can only be hosted as client files. You need a separate Node.js server to host your backend APIs.",
+          "Pure static client builds produce client assets that require a separate backend server for database tasks and API routes.",
         drawbacks: [
-          "Dual hosting required for frontend and backend",
-          "No built-in Edge serverless execution",
+          "Static files only; zero server logic or API execution",
+          "Cannot handle private cookies or server-side auth",
+          "Requires double hosting: static hosting for frontend + server for backend",
         ],
       },
       nextjsWay: {
-        title: "Next.js Unified Full-Stack Production Build",
-        code: `// 1. Running production build:
-// npm run build
-// Output displays detailed route classification:
-// ○  (Static)   prerendered as static content
-// ƒ  (Dynamic)  server-rendered on demand
-
-// 2. Standalone Docker Output in next.config.ts:
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  output: "standalone", // Bundles only minimal required node_modules!
-};
-
-export default nextConfig;`,
+        title: "Next.js Full-Stack Production Build",
+        code: `// In Next.js:
+// npm run build creates the .next/ production distribution:
+// ○  (Static)   - Rendered once at build time (0ms CDN delivery!)
+// ƒ  (Dynamic)  - Rendered on demand on server (SSR / API / Actions!)
+//
+// To run locally in production mode:
+// 1. npm run build
+// 2. npm run start (Runs optimized production server!)`,
         explanation:
-          "`next build` analyzes every route and creates optimized static HTML, serverless lambdas, and standalone Docker bundles.",
+          "Next.js build analyzes every route and automatically categorizes it as Static (SSG) or Dynamic (SSR), creating an optimized multi-tier deployment bundle.",
         benefits: [
-          "One unified build command for frontend, backend, and API routes",
-          "`output: 'standalone'` creates tiny Docker images (<100MB)",
-          "Automatic route analysis indicating static vs dynamic pages",
+          "Unified full-stack build: pages, APIs, and actions compiled together",
+          "Automatic route classification (Static vs Dynamic)",
+          "Deploy anywhere: Vercel, Node.js server, Docker, AWS, or Railway",
         ],
       },
       whyDifferent:
-        "Next.js builds a unified full-stack artifact capable of running on serverless edge functions or traditional Docker containers.",
+        "Next.js builds a hybrid artifact containing both static assets for CDN distribution and serverless functions for dynamic execution.",
       mentalShiftSummary:
-        "Test production builds locally using `npm run build && npm run start` before deploying.",
+        "Never run `npm run dev` in production. Always test with `npm run build` followed by `npm run start` before deploying.",
     },
 
     basicExample: {
-      title: "Production Dockerfile for Next.js Standalone",
-      description: "A multi-stage production Dockerfile for containerized deployment.",
-      language: "typescript",
-      filename: "Dockerfile",
-      code: `# Multi-stage Dockerfile for Next.js Standalone
-FROM node:20-alpine AS base
+      title: "Configuring Standalone Docker Output in Plain JavaScript",
+      description: "Enabling standalone output in next.config.js for minimal Docker and Node.js deployments.",
+      language: "javascript",
+      filename: "next.config.js",
+      code: `// next.config.js (Plain JavaScript!)
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  // 1. Enable Standalone Output:
+  // Next.js automatically bundles ONLY the required node_modules,
+  // shrinking your Docker image from 1GB down to under 100MB!
+  output: "standalone",
 
-# 1. Install dependencies
-FROM base AS deps
+  // 2. Image Optimization Domains:
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
+    ],
+  },
+};
+
+module.exports = nextConfig;`,
+      explanation:
+        "Line-by-line explanation:\n- Line 4: output: 'standalone' tells Next.js: 'Trace all imports and create a minimal self-contained server in .next/standalone.'\n- Line 9-16: Configures allowed image domains for secure next/image optimization.\n\nWhat happens during deployment?\n1. You run npm run build on your server or CI/CD pipeline.\n2. Next.js bundles your server components, actions, and dependencies into .next/standalone.\n3. You run `node .next/standalone/server.js`.\n4. Your full-stack Next.js application runs with minimal memory usage and zero external dependencies!",
+      outputPreview: "Build output summary showing static (○) and dynamic (ƒ) routes generated successfully.",
+    },
+
+    moreExamples: [
+      {
+        title: "Standard Production Dockerfile for Next.js",
+        description: "A production-grade multi-stage Dockerfile for hosting Next.js on any cloud server.",
+        language: "bash",
+        filename: "Dockerfile",
+        code: `# 1. Install dependencies stage:
+FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 
-# 2. Build the application
-FROM base AS builder
+# 2. Build application stage:
+FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build
 
-# 3. Production runner (Ultra-lightweight!)
-FROM base AS runner
+# 3. Production runner stage (Under 100MB!):
+FROM node:20-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-ENV PORT=3000
-
-COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/public ./public
 
 EXPOSE 3000
 CMD ["node", "server.js"]`,
-      explanation:
-        "This multi-stage Docker build produces a tiny container that runs Next.js using native `node server.js` with maximum performance.",
-      outputPreview: "Production-ready Docker container configuration ready for Kubernetes or Cloud Run.",
-    },
-
-    moreExamples: [
-      {
-        title: "Understanding Route Symbols in 'npm run build'",
-        description: "How Next.js classifies your pages in terminal build output.",
-        language: "typescript",
-        filename: "Build Output Analysis",
-        code: `Route (app)                              Size     First Load JS
-┌ ○ /                                    5.2 kB         92.4 kB
-├ ○ /_not-found                          1.1 kB         88.3 kB
-├ ○ /units                               6.4 kB         93.6 kB
-├ ƒ /units/[unitId]                      7.8 kB         95.0 kB
-└ ƒ /api/students                        0 B            0 B
-
-○ (Static)  prerendered as static HTML (SSG)
-ƒ (Dynamic) server-rendered on demand (SSR)`,
         explanation:
-          "Circles (`○`) mean the page is static and served instantly. Function symbols (`ƒ`) mean the page uses dynamic headers or cookies and runs on the server per request.",
+          "This multi-stage Docker build produces an ultra-lightweight production container by discarding unnecessary devDependencies and source files.",
       },
     ],
 
     multipleWays: [
       {
-        name: "Vercel Platform (Zero-Config Serverless)",
-        syntax: "git push origin main",
-        codeSnippet: `// Connect GitHub repo to Vercel for instant automatic deployments`,
-        howItWorks: "Automatically splits Next.js routes into Edge & Serverless lambdas across global CDNs.",
-        pros: ["Zero infrastructure management", "Automatic preview URLs on pull requests", "Instant global Edge cache"],
-        cons: ["Vendor ecosystem"],
-        whenToUse: "For fastest deployment velocity and highest scalability.",
+        name: "Vercel Zero-Config Deployment (Recommended)",
+        syntax: "git push origin main (Connected to Vercel)",
+        codeSnippet: "vercel deploy --prod",
+        howItWorks: "Vercel automatically detects Next.js, optimizes assets, and distributes routes to global Edge CDN nodes.",
+        pros: ["Zero server management", "Automatic preview URLs on pull requests", "Global Edge CDN"],
+        cons: ["Vendor lock-in if using advanced proprietary features"],
+        whenToUse: "Default recommendation for all Next.js applications.",
         isRecommended: true,
       },
       {
-        name: "Docker / Self-Hosted Node.js (output: 'standalone')",
-        syntax: "docker build -t my-next-app .",
-        codeSnippet: `// next.config.ts: output: 'standalone'`,
-        howItWorks: "Builds a standalone `server.js` that can run on any Linux VPS (AWS EC2, DigitalOcean, VPS).",
-        pros: ["Total control over server infrastructure", "Runs anywhere Docker is supported"],
-        cons: ["Requires managing server maintenance and SSL certificates"],
-        whenToUse: "For private enterprise clouds or on-premise university servers.",
+        name: "Self-Hosted Node.js / VPS",
+        syntax: "npm run build && npm run start",
+        codeSnippet: "node .next/standalone/server.js",
+        howItWorks: "Runs as a standard long-lived Node.js HTTP server on Ubuntu / Docker.",
+        pros: ["Total control over server infrastructure", "Fixed server cost"],
+        cons: ["Requires manual SSL certificate renewal, Nginx reverse proxy, and server monitoring"],
+        whenToUse: "Enterprise private clouds, on-premise university servers, strict compliance requirements.",
       },
     ],
 
     decisionGuide: {
-      recommendationSummary: "Deploy to Vercel for instant serverless scale. Deploy via Docker `standalone` when self-hosting on your own cloud servers.",
+      recommendationSummary: "Deploy to Vercel for instant automatic scaling and zero devops. Use standalone Docker containers for enterprise self-hosting.",
       scenarios: [
         {
-          scenario: "You want a free live URL to showcase your INT257 course project portfolio",
-          recommendedApproach: "Vercel GitHub deployment",
-          reason: "Takes 60 seconds with automatic HTTPS and continuous deployment.",
+          scenario: "Launching a modern student portal or startup MVP",
+          recommendedApproach: "Vercel Git Integration",
+          reason: "Connect GitHub repo once and get automatic preview deployments, SSL, and CDN.",
+        },
+        {
+          scenario: "University internal intranet with strict on-premise firewall rules",
+          recommendedApproach: "Standalone Docker container on local Linux server",
+          reason: "Data never leaves the university campus network.",
         },
       ],
     },
 
     commonMistakes: [
       {
-        mistakeTitle: "Running 'npm run dev' on a production live server",
-        badCode: `// ❌ BAD: Starting production with 'npm run dev'
-// Consumes 5x more memory and compiles files on the fly!`,
-        goodCode: `// ✅ GOOD: Build once, then start optimized production server
+        mistakeTitle: "Running 'npm run dev' on a live production server",
+        badCode: `// ❌ DANGEROUS: Running the dev server in production!
+npm run dev`,
+        goodCode: `// ✅ SECURE & FAST: Compile first, then run production server!
 npm run build
 npm run start`,
-        whyItBreaks: "`next dev` includes hot module replacement, source maps, and development watchers that slow down performance and consume excessive memory.",
-        howToFix: "Always use `npm run build && npm run start` for production.",
+        whyItBreaks: "The dev server consumes gigabytes of memory, leaks source files, and does not minify JavaScript.",
+        howToFix: "Always execute `npm run build` followed by `npm run start` in production environments.",
       },
     ],
 
     bestPractices: [
       {
-        title: "Test Production Builds Before Pushing to Main",
-        rule: "Run `npm run build` locally before opening a pull request.",
-        explanation: "Catches TypeScript compiler errors and missing environment variables before they hit production.",
+        title: "Test Production Builds Locally",
+        rule: "Always run npm run build and npm run start on your laptop before pushing to main.",
+        explanation: "Catching build errors and broken imports locally prevents embarrassing deployment failures in production.",
       },
     ],
 
     exercises: [
       {
         id: "u5-ex-4",
-        title: "Configure Standalone Output in next.config.ts",
+        title: "Verify Production Build Output",
         difficulty: "easy",
-        estimatedMinutes: 4,
+        estimatedMinutes: 5,
         prompt:
-          "Write a `next.config.ts` configuration object that enables `output: 'standalone'` for Docker builds.",
-        initialCode: `import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  // TODO: Add standalone output
-};
-
-export default nextConfig;`,
-        expectedOutput: "A NextConfig object with output: 'standalone'.",
-        hints: ["Add `output: 'standalone'`"],
-        solutionCode: `import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  output: "standalone",
-  reactStrictMode: true,
-};
-
-export default nextConfig;`,
-        solutionExplanation:
-          "`output: 'standalone'` tells Next.js to copy only the exact necessary node_modules into `.next/standalone`, drastically reducing container sizes.",
+          "What CLI command compiles your Next.js application into an optimized production bundle and checks for build errors?",
+        initialCode: `// Enter the terminal command:
+`,
+        expectedOutput: "npm run build (or next build)",
+        hints: ["Look inside package.json scripts"],
+        solutionCode: `npm run build`,
+        solutionExplanation: "npm run build runs 'next build', generating the .next production bundle and type-checking all pages.",
       },
     ],
 
     quizzes: [
       {
         id: "u5-q4",
-        question: "Why should you never run 'next dev' on a production server?",
-        syllabusTopic: "Production Builds",
+        syllabusTopic: "Production Build & Deployment",
+        question: "Why should you never run `npm run dev` on a public production server?",
+        conceptualExplanation: "npm run dev is designed for local editing; it lacks minification, uses excessive memory, and runs much slower than compiled production builds.",
         options: [
           { id: "a", text: "Because next dev includes heavy development watchers, lacks file minification, and uses excessive memory", isCorrect: true, explanation: "Correct! next dev is strictly for local editing. Production requires 'next build' and 'next start'." },
           { id: "b", text: "Because next dev deletes the database every 10 minutes", isCorrect: false, explanation: "No." },
           { id: "c", text: "Because next dev only runs on Windows 98", isCorrect: false, explanation: "No." },
           { id: "d", text: "Because TypeScript is forbidden in production", isCorrect: false, explanation: "No." },
         ],
-        conceptualExplanation:
-          "`next dev` is designed for instant code editing with hot-reloading. `next build` produces pre-compiled, minified, and secure production assets.",
       },
     ],
 
     realWorldExample: {
-      domain: "Enterprise Multi-Region Cloud Deployment",
-      description: "How companies deploy Next.js across multiple geographic regions with zero-downtime rolling updates.",
+      domain: "Global Learning Platform",
+      description: "How an international education platform delivers pages worldwide with sub-second latency.",
       code: {
-        title: "Health Check API Route for Load Balancers",
-        description: "API route for container health monitoring.",
-        language: "typescript",
-        filename: "src/app/api/health/route.ts",
-        code: `import { NextResponse } from "next/server";
+        title: "Production Deployment Checklist",
+        description: "Essential steps before launching to live users in plain text.",
+        language: "bash",
+        filename: "deploy-checklist.sh",
+        code: `# 1. Audit build for zero errors:
+npm run build
 
-export async function GET() {
-  return NextResponse.json({
-    status: "healthy",
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-  });
-}`,
+# 2. Test production mode locally:
+npm run start
+
+# 3. Check environment variables in production dashboard:
+echo "Verify DATABASE_URL and secrets are configured"`,
       },
-      keyTakeaway: "Load balancers ping `/api/health` to ensure containers are operational before routing live traffic.",
+      keyTakeaway: "Pre-deployment build verification eliminates downtime during student exam periods.",
     },
 
     combinedExample: {
-      combinedTopics: ["Production Build", "Health Checks", "Standalone Config"],
-      title: "End-to-End Production Release Pipeline",
-      description: "The complete journey from local code to live global deployment.",
+      combinedTopics: ["Deployment", "Build Optimization", "next.config.js"],
+      title: "Optimized Production Config",
+      description: "Complete next.config.js ready for global production deployment.",
       code: {
-        title: "Production Pipeline Flow",
-        description: "CI/CD pipeline steps.",
-        language: "typescript",
-        filename: "Deployment Pipeline",
-        code: `// 1. Lint & Typecheck: npm run lint
-// 2. Production Compile: npm run build
-// 3. Automated Tests: npm test
-// 4. Docker Containerization: docker build -t app:latest .
-// 5. Zero-Downtime Rolling Release & Healthcheck verification`,
+        title: "Production Next Config",
+        description: "Standalone output and asset compression configuration.",
+        language: "javascript",
+        filename: "next.config.js",
+        code: `module.exports = {
+  output: "standalone",
+  compress: true,
+  images: {
+    formats: ["image/avif", "image/webp"],
+  },
+};`,
       },
       stepByStepFlow: [
-        "Run `npm run build` -> Next.js generates static assets and server bundles",
-        "Docker builds standalone image",
-        "Server launches `node server.js`",
-        "Application serves millions of users at sub-millisecond speeds",
+        "npm run build creates standalone bundle",
+        "Images compressed to AVIF and WebP automatically",
+        "Gzip and Brotli compression enabled for all static assets",
+        "Deploy to Vercel or Docker in under 1 minute",
       ],
     },
   },

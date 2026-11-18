@@ -76,7 +76,7 @@ export function SupabaseRunner() {
             value={queryCode}
             onChange={(e) => setQueryCode(e.target.value)}
             rows={5}
-            className="w-full p-3 bg-[#211F2E] border border-[#333045] rounded-2xl font-mono text-xs text-emerald-300 focus:outline-none focus:border-emerald-500 leading-relaxed resize-none shadow-inner"
+            className="w-full p-3 bg-[#FCFBF9] border border-[#e5ded4] rounded-2xl font-mono text-xs text-stone-900 focus:outline-none focus:ring-2 focus:ring-emerald-400/30 leading-relaxed resize-none shadow-inner selection:bg-emerald-100"
           />
 
           <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] text-emerald-950 font-mono">

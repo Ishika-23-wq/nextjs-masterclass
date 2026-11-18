@@ -4,317 +4,337 @@ export const unit3Topics: TopicContent[] = [
   {
     id: "route-handlers-rest-apis",
     unitId: "unit-3",
-    title: "Route Handlers & RESTful APIs",
-    shortSummary: "Build complete backend REST APIs in TypeScript using NextRequest and NextResponse with GET, POST, PUT, PATCH, and DELETE methods.",
+    title: "Route Handlers & REST APIs (route.js)",
+    shortSummary: "Build custom backend APIs using the Waiter analogy, Web standard Request/Response, and clean route.js endpoints in plain JavaScript.",
     order: 1,
-    tags: ["Route Handlers", "REST API", "HTTP Methods", "NextRequest", "NextResponse"],
+    tags: ["Route Handlers", "REST API", "route.js", "GET", "POST", "JSON"],
 
     simpleExplanation:
-      "When building a web app, you often need backend API endpoints that send and receive JSON data (e.g. for a mobile app or a third-party webhook). In Next.js, instead of creating a separate Express/Node.js server on port 5000, you simply create a file named `route.ts` inside the `app/api/` folder. Next.js lets you export standard JavaScript functions named `GET`, `POST`, `PUT`, `PATCH`, and `DELETE` that handle HTTP requests effortlessly.",
+      "Imagine you visit a restaurant:\n\n1. **You (The Browser)** sit at a dining table.\n2. **The Waiter (route.js)** approaches your table with a notepad.\n3. You say: 'Can I see the list of students?' That is a **GET request**.\n4. The Waiter walks into the kitchen, gets the list, and brings back a tray with JSON data (`Response.json([...])`).\n5. If you say: 'Please enroll me in the course!' and hand the waiter your student registration card, that is a **POST request**.\n\nIn Next.js, any file named `route.js` inside your `app/` folder acts as your restaurant waiter! It handles GET, POST, PUT, and DELETE requests from web browsers, mobile apps, or other servers.",
 
     whyNeeded:
-      "Having frontend and backend in separate repositories causes CORS (Cross-Origin Resource Sharing) headaches, duplicated TypeScript types, complex deployment coordination, and slow development velocity. Route Handlers allow your Next.js application to act as a complete, robust backend server.",
+      "Sometimes you need to build backend endpoints for external mobile apps, third-party payment webhooks (like Stripe), or automated scripts that need pure JSON instead of HTML pages. Route Handlers give you a built-in Node.js API server inside Next.js without needing Express.js or a separate backend repository.",
 
     reactVsNext: {
-      concept: "Building REST APIs",
+      concept: "Backend API Creation",
       reactWay: {
-        title: "Separate Express.js Node Server",
-        code: `// In React, you must setup a completely separate server.js:
-const express = require('express');
-const cors = require('cors');
+        title: "Separate Backend Server Architecture",
+        code: `// Traditional client-side approach:
+// You must maintain a separate Express.js server:
+// server.js (Separate project & separate server running on port 5000):
+const express = require("express");
 const app = express();
-
-app.use(cors());
 app.use(express.json());
 
-app.get('/api/students', (req, res) => {
-  res.json([{ id: 1, name: "Ishika" }]);
+app.get("/api/students", (req, res) => {
+  res.json([{ id: 1, name: "Rahul Kumar" }]);
 });
 
-app.listen(5000, () => console.log("Server on port 5000"));`,
+app.listen(5000, () => console.log("Backend running on port 5000"));`,
         explanation:
-          "With vanilla React, you need to manage two servers: port 3000 for React Vite, and port 5000 for Express. You must configure CORS headers and manage dual deployments.",
+          "Without Next.js Route Handlers, you need two separate repositories, two servers, two deployments, and complicated CORS configuration just to create a single API endpoint.",
         drawbacks: [
-          "Requires maintaining two distinct servers and deployment pipelines",
-          "CORS security configuration issues",
-          "Cannot share TypeScript interfaces directly between frontend and backend",
+          "Requires managing two separate projects and servers",
+          "CORS (Cross-Origin Resource Sharing) headaches when frontend talks to port 5000",
+          "Double the hosting cost and deployment complexity",
         ],
       },
       nextjsWay: {
-        title: "Next.js Route Handlers (app/api/.../route.ts)",
-        code: `// File: src/app/api/students/route.ts
-// Handles http://localhost:3000/api/students
+        title: "Next.js Built-In Route Handlers (app/api/.../route.js)",
+        code: `// app/api/students/route.js (Pure JavaScript!)
+// Accessible immediately at: http://localhost:3000/api/students
 
-import { NextRequest, NextResponse } from "next/server";
+let students = [
+  { id: 1, name: "Rahul Kumar", course: "Computer Science" },
+  { id: 2, name: "Priya Sharma", course: "Information Technology" },
+];
 
-const students = [{ id: 1, name: "Ishika", course: "INT257" }];
-
-export async function GET(request: NextRequest) {
-  // Read search query params: /api/students?course=INT257
-  const course = request.nextUrl.searchParams.get("course");
-  const filtered = course ? students.filter(s => s.course === course) : students;
-
-  return NextResponse.json(filtered);
+// 1. Handles GET requests (The Waiter brings data):
+export async function GET() {
+  return Response.json(students);
 }
 
-export async function POST(request: NextRequest) {
+// 2. Handles POST requests (The Waiter takes an order):
+export async function POST(request) {
   const body = await request.json();
-  const newStudent = { id: Date.now(), ...body };
+  const newStudent = { id: Date.now(), name: body.name, course: body.course };
   students.push(newStudent);
 
-  return NextResponse.json(newStudent, { status: 201 });
+  return Response.json(newStudent, { status: 201 });
 }`,
         explanation:
-          "In Next.js, `route.ts` files automatically serve standard Web standard `Request` and `Response` objects on the same domain with zero CORS setup.",
+          "In Next.js, dropping a `route.js` file into any folder under `app/` instantly turns that folder into a secure, serverless API endpoint with zero CORS issues.",
         benefits: [
-          "Zero CORS issues: frontend and backend share the exact same origin",
-          "Unified TypeScript types shared seamlessly across UI and APIs",
-          "One-click deployment for both frontend and backend",
-          "Supports streaming responses, cookies, and HTTP headers",
+          "No Express.js or extra server needed",
+          "Uses standard Web Request and Response objects",
+          "Shares the exact same domain and port (zero CORS configuration)",
         ],
       },
       whyDifferent:
-        "Next.js Route Handlers run on Web standard `Request` and `Response` APIs (identical to standard browser `fetch` and Edge workers).",
+        "Next.js is a full-stack framework. You can build both HTML user interfaces (`page.js`) and backend REST APIs (`route.js`) in the same unified tree.",
       mentalShiftSummary:
-        "Folder name = API path. Export `GET`, `POST`, `PUT`, `DELETE` functions from `route.ts`.",
+        "Don't build a separate Node.js Express server for simple APIs. Create `app/api/your-feature/route.js` and export async GET or POST functions.",
     },
 
     basicExample: {
-      title: "CRUD Route Handler with Dynamic Parameters",
-      description: "A complete Route Handler managing single student records by ID.",
-      language: "typescript",
-      filename: "src/app/api/students/[id]/route.ts",
-      code: `// src/app/api/students/[id]/route.ts
-import { NextRequest, NextResponse } from "next/server";
+      title: "Students REST API Endpoint in Plain JavaScript",
+      description: "A complete Route Handler managing student records with GET and POST methods.",
+      language: "jsx",
+      filename: "src/app/api/students/route.js",
+      code: `// src/app/api/students/route.js
+// In-memory student register:
+let students = [
+  { id: 1, name: "Aman Gupta", course: "Fullstack Next.js" },
+  { id: 2, name: "Sneha Patel", course: "Frontend Engineering" },
+];
 
-interface RouteParams {
-  params: Promise<{ id: string }>;
-}
-
-// GET /api/students/101
-export async function GET(request: NextRequest, { params }: RouteParams) {
-  const { id } = await params;
-  return NextResponse.json({
-    id,
-    name: "Alex Johnson",
-    course: "INT257",
-    status: "Active"
+// 1. GET: Return all students as a JSON list:
+export async function GET() {
+  return Response.json({
+    success: true,
+    count: students.length,
+    data: students,
   });
 }
 
-// DELETE /api/students/101
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
-  const { id } = await params;
-  // Perform database deletion logic here...
-  return NextResponse.json({ message: \`Student #\${id} successfully deleted\` });
+// 2. POST: Add a new student to our register:
+export async function POST(request) {
+  // Read JSON body sent by the caller:
+  const body = await request.json();
+
+  // Simple validation in plain JavaScript:
+  if (!body.name || !body.course) {
+    return Response.json(
+      { success: false, error: "Please provide both student name and course." },
+      { status: 400 }
+    );
+  }
+
+  const newStudent = {
+    id: Date.now(),
+    name: body.name.trim(),
+    course: body.course.trim(),
+  };
+
+  students.push(newStudent);
+
+  return Response.json(
+    { success: true, message: "Student registered successfully!", student: newStudent },
+    { status: 201 }
+  );
 }`,
       explanation:
-        "Like pages, Route Handlers support dynamic parameters in folder names (`[id]`). `NextResponse.json()` sends clean JSON with proper Content-Type headers.",
-      outputPreview: `JSON Response: { "id": "101", "name": "Alex Johnson", "course": "INT257", "status": "Active" }`,
+        "Line-by-line explanation:\n- Line 3: let students = [...] defines our in-memory data list.\n- Line 9: export async function GET() handles incoming HTTP GET requests when someone visits /api/students.\n- Line 10: Response.json(...) returns the data formatted as JSON with a 200 OK status code.\n- Line 18: export async function POST(request) handles incoming HTTP POST requests when someone sends new data.\n- Line 20: await request.json() reads the incoming request body.\n- Line 23-28: Plain JavaScript if statement to validate that name and course were provided.\n- Line 37-40: Returns a 201 Created HTTP response with the newly created student record.\n\nWhat happens in the browser?\n1. A client app sends a POST request with { name: 'Rohan', course: 'React' } to /api/students.\n2. The Next.js server wakes up the POST function in route.js.\n3. The waiter inspects the payload, adds Rohan to the register, and sends back a 201 Created JSON response.\n4. The client app receives the confirmation in under 15ms!",
+      outputPreview: `{"success":true,"count":2,"data":[{"id":1,"name":"Aman Gupta","course":"Fullstack Next.js"},{"id":2,"name":"Sneha Patel","course":"Frontend Engineering"}]}`,
     },
 
     moreExamples: [
       {
-        title: "Handling Cookies and Custom Headers in Route Handlers",
-        description: "Reading and setting HTTP cookies securely.",
-        language: "typescript",
-        filename: "src/app/api/auth-demo/route.ts",
-        code: `import { cookies, headers } from "next/headers";
-import { NextRequest, NextResponse } from "next/server";
+        title: "Dynamic Route Handlers with URL Parameters (app/api/students/[id]/route.js)",
+        description: "How to extract URL params (like student ID) inside a Route Handler in plain JavaScript.",
+        language: "jsx",
+        filename: "src/app/api/students/[id]/route.js",
+        code: `// src/app/api/students/[id]/route.js
+let students = [
+  { id: 1, name: "Aman Gupta", course: "Fullstack Next.js" },
+  { id: 2, name: "Sneha Patel", course: "Frontend Engineering" },
+];
 
-export async function GET(request: NextRequest) {
-  const cookieStore = await cookies();
-  const theme = cookieStore.get("theme")?.value || "dark";
+export async function GET(request, { params }) {
+  // Extract id from the URL parameters:
+  const { id } = await params;
+  const student = students.find((s) => s.id === Number(id));
 
-  const headersList = await headers();
-  const userAgent = headersList.get("user-agent");
+  if (!student) {
+    return Response.json({ error: "Student not found" }, { status: 404 });
+  }
 
-  return NextResponse.json({
-    preferredTheme: theme,
-    clientBrowser: userAgent,
-    timestamp: new Date().toISOString()
+  return Response.json(student);
+}
+
+// Update student by ID:
+export async function PUT(request, { params }) {
+  const { id } = await params;
+  const body = await request.json();
+  const student = students.find((s) => s.id === Number(id));
+
+  if (!student) {
+    return Response.json({ error: "Student not found" }, { status: 404 });
+  }
+
+  student.name = body.name || student.name;
+  student.course = body.course || student.course;
+
+  return Response.json({
+    message: "Student Updated Successfully",
+    studentId: id,
+    studentData: student
   });
 }`,
         explanation:
-          "`cookies()` and `headers()` helpers from `next/headers` allow direct inspection of HTTP metadata.",
+          "In Next.js, the second argument to your handler function receives { params }. Reading await params gives you the dynamic [id] from the URL, allowing clean GET, PUT, PATCH, and DELETE operations.",
+      },
+      {
+        title: "Reading Query Search Parameters (const { searchParams } = new URL(request.url))",
+        description: "How to read query strings like /api/students?course=NextJS in Route Handlers.",
+        language: "jsx",
+        filename: "src/app/api/students/route.js",
+        code: `// src/app/api/students/route.js
+export async function GET(request) {
+  const { searchParams } = new URL(request.url);
+  const course = searchParams.get("course");
+  const name = searchParams.get("name");
+
+  return Response.json({
+    message: "Filter Applied",
+    courseFilter: course,
+    nameFilter: name,
+  });
+}`,
+        explanation:
+          "Use standard Web API new URL(request.url) to extract searchParams with .get('key') easily.",
       },
     ],
 
     multipleWays: [
       {
-        name: "Route Handlers (app/api/.../route.ts)",
-        syntax: "export async function GET/POST/PUT/DELETE(req) { ... }",
-        codeSnippet: `export async function GET(request: NextRequest) {
-  return NextResponse.json({ ok: true });
-}`,
-        howItWorks: "Standard REST API endpoints callable by any external client (mobile app, webhooks).",
-        pros: ["External clients can call it", "Full control over HTTP headers and status codes", "Standard REST"],
-        cons: ["Requires writing manual JSON serialization and client fetch calls"],
-        whenToUse: "For public APIs, webhooks, mobile app backends, or third-party integrations.",
+        name: "Route Handlers (route.js)",
+        syntax: "export async function GET(request) / POST(request)",
+        codeSnippet: "export async function GET() { return Response.json({ message: 'Hello' }); }",
+        howItWorks: "Standard HTTP REST API endpoint returning pure JSON or streams.",
+        pros: ["Great for external mobile apps, third-party webhooks, public APIs", "Direct HTTP status code control"],
+        cons: ["Requires client fetch calls and manual serialization for internal UI"],
+        whenToUse: "Stripe webhooks, external mobile apps, public developer APIs.",
         isRecommended: true,
       },
       {
         name: "Server Actions ('use server')",
-        syntax: "async function myAction() { 'use server'; ... }",
-        codeSnippet: `"use server";
-export async function saveRecord(data) { ... }`,
-        howItWorks: "Direct RPC (Remote Procedure Call) functions callable directly from React forms.",
-        pros: ["No API endpoint needed", "Automatic TypeScript typing", "Seamless form mutation & revalidation"],
-        cons: ["Only callable from your own Next.js UI"],
-        whenToUse: "For all internal UI form submissions and data mutations.",
+        syntax: "'use server'; export async function myAction(formData)",
+        codeSnippet: `"use server"; export async function saveUser(formData) { /* direct call */ }`,
+        howItWorks: "Direct Remote Procedure Call (RPC) from UI button/form to backend function.",
+        pros: ["No API endpoint URLs or fetch calls needed", "Works seamlessly with HTML forms"],
+        cons: ["Designed for internal UI; not suitable for external webhooks"],
+        whenToUse: "Form submissions, button clicks, database mutations inside your website.",
         isRecommended: true,
       },
     ],
 
     decisionGuide: {
-      recommendationSummary: "Use Server Actions for your own website's forms and buttons. Use Route Handlers for external REST clients and webhooks.",
+      recommendationSummary: "Use Server Actions for all internal UI form submissions and button clicks. Use Route Handlers when you need public REST endpoints or third-party webhooks.",
       scenarios: [
         {
-          scenario: "You are building a form for students to submit an assignment on your site",
-          recommendedApproach: "Server Action",
-          reason: "Zero API boilerplate, automatic pending states, and instant cache revalidation.",
+          scenario: "A user submits a form on your website to update their bio",
+          recommendedApproach: "Server Action ('use server')",
+          reason: "Zero API route boilerplate, direct type-safe form binding, and automatic cache revalidation.",
         },
         {
-          scenario: "Stripe or GitHub needs to send a webhook POST event to your site",
-          recommendedApproach: "Route Handler `app/api/webhooks/stripe/route.ts`",
-          reason: "Webhooks require standard HTTP REST endpoints with raw payload verification.",
+          scenario: "Receiving payment notification webhooks from Stripe or Razorpay",
+          recommendedApproach: "Route Handler (app/api/webhooks/stripe/route.js)",
+          reason: "Stripe sends standard HTTP POST requests from their servers and requires raw request signature verification.",
         },
       ],
     },
 
     commonMistakes: [
       {
-        mistakeTitle: "Having both page.tsx and route.ts in the same folder",
-        badCode: `// ❌ BAD: src/app/dashboard/page.tsx AND src/app/dashboard/route.ts in the same directory!`,
-        goodCode: `// ✅ GOOD: Keep pages in src/app/dashboard/page.tsx and APIs in src/app/api/dashboard/route.ts`,
-        whyItBreaks: "Next.js cannot determine whether a URL should render a UI page or return an API response. It will cause a build conflict.",
-        howToFix: "Always place Route Handlers inside a separate folder like `src/app/api/...`.",
+        mistakeTitle: "Placing page.js and route.js in the same folder",
+        badCode: `// ❌ BAD: Putting both page.js and route.js in src/app/dashboard/!
+src/app/dashboard/page.js
+src/app/dashboard/route.js // Conflict! Next.js will throw an error!`,
+        goodCode: `// ✅ GOOD: Keep pages in app/dashboard/page.js and APIs in app/api/dashboard/route.js`,
+        whyItBreaks: "A route cannot be both an HTML webpage and a raw JSON endpoint at the same URL pathname.",
+        howToFix: "Move all API handlers into an api/ subfolder, such as src/app/api/dashboard/route.js.",
       },
     ],
 
     bestPractices: [
       {
-        title: "Always Return Explicit HTTP Status Codes",
-        rule: "Use `NextResponse.json(data, { status: 201 })` for creations, `400` for bad requests, and `404` for missing entities.",
-        explanation: "Ensures standard REST API compliance for client consumers.",
+        title: "Always Return Response.json()",
+        rule: "Use standard Response.json() with appropriate HTTP status codes (200, 201, 400, 404).",
+        explanation: "This follows modern Web standards and ensures consistent error handling across all clients.",
       },
     ],
 
     exercises: [
       {
         id: "u3-ex-1",
-        title: "Create a POST Route Handler with JSON Body Parsing",
+        title: "Build a Health Check API Endpoint",
         difficulty: "easy",
-        estimatedMinutes: 8,
+        estimatedMinutes: 5,
         prompt:
-          "Write a `POST` handler for `src/app/api/todos/route.ts` that reads `{ title: string }` from the request body, validates it, and returns the created todo with status 201.",
-        initialCode: `import { NextRequest, NextResponse } from "next/server";
-
-export async function POST(request: NextRequest) {
-  // TODO: Read JSON body, validate title, and return NextResponse
+          "Create a Route Handler in src/app/api/health/route.js in plain JavaScript that exports a GET function returning { status: 'healthy', timestamp: Date.now() }.",
+        initialCode: `// src/app/api/health/route.js
+// TODO: Export async GET handler
+export async function GET() {
+  // Return JSON response
 }`,
-        expectedOutput: "A functional POST endpoint returning 201 Created on valid input and 400 Bad Request on empty title.",
-        hints: ["Use `const body = await request.json();`", "Return `NextResponse.json({ error: '...' }, { status: 400 })` if missing"],
-        solutionCode: `import { NextRequest, NextResponse } from "next/server";
-
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-
-    if (!body.title || typeof body.title !== "string" || body.title.trim() === "") {
-      return NextResponse.json(
-        { error: "Title is required and must be a valid string." },
-        { status: 400 }
-      );
-    }
-
-    const newTodo = {
-      id: Date.now(),
-      title: body.title.trim(),
-      completed: false,
-      createdAt: new Date().toISOString()
-    };
-
-    return NextResponse.json(newTodo, { status: 201 });
-  } catch (error) {
-    return NextResponse.json({ error: "Invalid JSON format" }, { status: 400 });
-  }
+        expectedOutput: "A functional GET API returning a JSON health status.",
+        hints: ["Use Response.json({ status: 'healthy', timestamp: Date.now() })"],
+        solutionCode: `// src/app/api/health/route.js
+export async function GET() {
+  return Response.json({
+    status: "healthy",
+    timestamp: Date.now(),
+  });
 }`,
-        solutionExplanation:
-          "This handler parses the JSON payload, guards against bad user input with HTTP 400, and returns the created resource with HTTP 201.",
+        solutionExplanation: "The GET function is automatically recognized by Next.js as an HTTP GET endpoint at /api/health.",
       },
     ],
 
     quizzes: [
       {
         id: "u3-q1",
-        question: "Which file convention in Next.js App Router creates a backend API endpoint?",
-        syllabusTopic: "Route Handlers",
+        syllabusTopic: "Route Handlers (route.js)",
+        question: "Which file name is reserved by Next.js App Router to create backend REST API endpoints?",
+        conceptualExplanation: "In Next.js App Router, backend API routes must be named route.js (or route.jsx).",
         options: [
-          { id: "a", text: "api.tsx", isCorrect: false, explanation: "api.tsx is not a reserved Next.js file." },
-          { id: "b", text: "route.ts (or route.js)", isCorrect: true, explanation: "Correct! route.ts files define backend Route Handlers." },
-          { id: "c", text: "server.ts", isCorrect: false, explanation: "server.ts is not an App Router route convention." },
+          { id: "a", text: "api.js", isCorrect: false, explanation: "api.js is not recognized as a route endpoint in App Router." },
+          { id: "b", text: "route.js", isCorrect: true, explanation: "Correct! Files named route.js define backend Route Handlers." },
+          { id: "c", text: "server.js", isCorrect: false, explanation: "server.js is not an App Router routing convention." },
           { id: "d", text: "handler.js", isCorrect: false, explanation: "handler.js is not recognized by App Router." },
         ],
-        conceptualExplanation:
-          "`route.ts` is the reserved filename in App Router for creating HTTP API endpoints. It replaces the old `pages/api` structure from Pages Router.",
       },
     ],
 
     realWorldExample: {
-      domain: "Payment Gateway Webhook Verification",
-      description: "How production apps handle automated webhook notifications from payment processors like Stripe.",
+      domain: "Payment Gateway Integration",
+      description: "How an e-commerce platform receives webhook notifications from Stripe to verify orders.",
       code: {
-        title: "Secure Webhook Receiver",
-        description: "POST route verifying signature and updating order status.",
-        language: "typescript",
-        filename: "src/app/api/webhooks/payment/route.ts",
-        code: `import { NextRequest, NextResponse } from "next/server";
+        title: "Stripe Webhook Listener",
+        description: "Route Handler processing incoming payment events in plain JavaScript.",
+        language: "jsx",
+        filename: "src/app/api/webhooks/stripe/route.js",
+        code: `export async function POST(request) {
+  const payload = await request.text();
+  // Verify signature and fulfill student course enrollment...
 
-export async function POST(request: NextRequest) {
-  const signature = request.headers.get("x-signature");
-
-  if (!signature || signature !== process.env.WEBHOOK_SECRET) {
-    return NextResponse.json({ error: "Unauthorized signature" }, { status: 401 });
-  }
-
-  const event = await request.json();
-  console.log("Processed payment event:", event.type);
-
-  return NextResponse.json({ received: true }, { status: 200 });
+  return Response.json({ received: true }, { status: 200 });
 }`,
       },
-      keyTakeaway: "Route Handlers provide raw header access and status control necessary for secure webhook verification.",
+      keyTakeaway: "Route Handlers allow external third-party services to communicate directly with your Next.js backend.",
     },
 
     combinedExample: {
-      combinedTopics: ["Route Handlers", "Dynamic URLs", "HTTP Status"],
-      title: "Full REST Student API Endpoint",
-      description: "GET, POST, and DELETE in a single route module.",
+      combinedTopics: ["Route Handlers", "Server Actions", "Data Fetching"],
+      title: "Public API with Internal Dashboard",
+      description: "Providing a public API for mobile apps while using Server Actions for website forms.",
       code: {
-        title: "Multi-Method Route Handler",
-        description: "Clean REST handler with TypeScript types.",
-        language: "typescript",
-        filename: "src/app/api/courses/route.ts",
-        code: `import { NextRequest, NextResponse } from "next/server";
-
-let courses = [
-  { id: "INT257", name: "Next.js Fullstack", credits: 4 }
+        title: "Course Registration API",
+        description: "Shared database mutations accessible via REST and Server Actions.",
+        language: "jsx",
+        filename: "src/app/api/courses/route.js",
+        code: `let courses = [
+  { code: "INT257", title: "Next.js Fullstack Masterclass", credits: 4 }
 ];
 
 export async function GET() {
-  return NextResponse.json(courses);
-}
-
-export async function POST(request: NextRequest) {
-  const body = await request.json();
-  courses.push(body);
-  return NextResponse.json(body, { status: 201 });
+  return Response.json(courses);
 }`,
       },
       stepByStepFlow: [
-        "Client sends `GET /api/courses` -> Returns course array",
-        "Client sends `POST /api/courses` with JSON -> Appends course and returns 201 Created",
+        "Mobile app requests GET /api/courses",
+        "Route Handler returns JSON course list",
+        "Website users view identical data pre-rendered by Server Components",
       ],
     },
   },
@@ -322,130 +342,363 @@ export async function POST(request: NextRequest) {
   {
     id: "server-actions-mutations",
     unitId: "unit-3",
-    title: "Server Actions & Backend Mutations",
-    shortSummary: "Execute asynchronous backend functions directly from your UI forms with the 'use server' directive and zero API boilerplate.",
+    title: "Server Actions & Server-Side Mutations",
+    shortSummary: "Learn Server Actions using the Walkie-Talkie analogy: speak into 'use server' to run secure backend functions directly from your UI.",
     order: 2,
-    tags: ["Server Actions", "use server", "Mutations", "RPC", "Security"],
+    tags: ["Server Actions", "use server", "Mutations", "Forms", "revalidatePath"],
 
     simpleExplanation:
-      "In traditional web development, if you want to submit a form, you have to: (1) create an API endpoint `/api/submit`, (2) write `e.preventDefault()`, (3) call `fetch('/api/submit', { method: 'POST', body: ... })`, (4) parse JSON, (5) trigger a re-render. Next.js **Server Actions** change everything! You write a standard asynchronous JavaScript function with `'use server'` at the top. You can pass that function directly to `<form action={myFunction}>`. Next.js handles the network communication, security tokens, and cache revalidation automatically behind the scenes!",
+      "Imagine you have a **Walkie-Talkie**:\n\nTraditionally, whenever a user clicked a button to save data, you had to:\n1. Create a whole new API route file (`/api/add-task`).\n2. Write a manual `fetch('/api/add-task', { method: 'POST', body: JSON.stringify(...) })`.\n3. Parse JSON, check status codes, handle network errors.\n\nWith Next.js **Server Actions**, you just press the button on your walkie-talkie and speak directly to the backend! By simply adding `'use server'` at the top of a function, Next.js magically connects your frontend button directly to your backend server function. No API routes, no fetch calls, and no URL endpoints to remember!",
 
     whyNeeded:
-      "Server Actions eliminate thousands of lines of useless API plumbing code. They work even before JavaScript has loaded in the student's browser (Progressive Enhancement) and provide instant server-side mutation capabilities.",
+      "Server Actions eliminate 80% of backend glue code. You can update a database, send an email, or write to a file directly from a form submission or button click, with automatic security and zero API boilerplate.",
 
     reactVsNext: {
-      concept: "Submitting Data & Mutating State",
+      concept: "Triggering Backend Operations",
       reactWay: {
-        title: "Traditional React Form Submission",
-        code: `// Traditional React requires manual API fetch plumbing:
-function AddStudentForm() {
-  const [name, setName] = useState("");
+        title: "Manual REST Endpoint & Client Glue Code",
+        code: `// Traditional client-side approach:
+// 1. You write an API endpoint on a separate backend
+// 2. In your React component, you write:
+function AddTodo() {
+  const [text, setText] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault(); // Stop native HTML submission
-    const res = await fetch("/api/students", {
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setLoading(true);
+    await fetch("/api/todos", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name }),
+      body: JSON.stringify({ text }),
     });
-    const data = await res.json();
-    alert("Saved!");
-  };
-
-  return (
-    <form onSubmit={handleSubmit}>
-      <input value={name} onChange={e => setName(e.target.value)} />
-      <button type="submit">Submit</button>
-    </form>
-  );
-}`,
-        explanation:
-          "In vanilla React, every form submission requires manual `e.preventDefault()`, state synchronization, manual `fetch()` setup, and error catching.",
-        drawbacks: [
-          "Dozens of lines of repetitive plumbing",
-          "If client JavaScript fails or loads slowly, the form does nothing",
-          "Requires a separate API route",
-        ],
-      },
-      nextjsWay: {
-        title: "Next.js Server Actions (<form action={action}>)",
-        code: `// Next.js: Direct Server Function attached to native form!
-import { revalidatePath } from "next/cache";
-
-// Server Action function:
-async function createStudent(formData: FormData) {
-  "use server"; // Runs strictly on the server!
-  const name = formData.get("name") as string;
-
-  await db.students.create({ name });
-  revalidatePath("/students"); // Updates the UI immediately
-}
-
-export default function StudentFormPage() {
-  return (
-    <form action={createStudent} className="space-y-3">
-      <input name="name" placeholder="Student Name" required />
-      <button type="submit">Add Student</button>
-    </form>
-  );
-}`,
-        explanation:
-          "The form action points directly to a secure backend function. Next.js creates the POST request and updates the UI automatically.",
-        benefits: [
-          "Zero API endpoints to write or maintain",
-          "Progressive Enhancement: works even if JavaScript is still downloading on mobile",
-          "End-to-end TypeScript type inference",
-          "Direct integration with `revalidatePath` and `revalidateTag`",
-        ],
-      },
-      whyDifferent:
-        "Next.js Server Actions act as Remote Procedure Calls (RPC), seamlessly bridging frontend user gestures to backend database logic without API boilerplate.",
-      mentalShiftSummary:
-        "Don't build `/api/items` for internal forms. Write an `async function myAction(formData)` with `'use server'`.",
-    },
-
-    basicExample: {
-      title: "Simple Server Action Form",
-      description: "Submitting a feedback message directly to a backend action.",
-      language: "tsx",
-      filename: "src/app/feedback/page.tsx",
-      code: `// src/app/feedback/page.tsx
-import { revalidatePath } from "next/cache";
-
-export default function FeedbackPage() {
-  async function submitFeedbackAction(formData: FormData) {
-    "use server";
-
-    const feedback = formData.get("feedback") as string;
-    const studentName = formData.get("studentName") as string;
-
-    console.log("Saving feedback on server:", { studentName, feedback });
-    // Save to database...
-
-    revalidatePath("/feedback");
+    setLoading(false);
+    setText("");
   }
 
   return (
-    <div className="p-6 max-w-md mx-auto bg-zinc-900 border border-zinc-800 rounded-2xl space-y-4">
-      <h1 className="text-xl font-bold text-zinc-100">Submit Course Feedback</h1>
-      
-      <form action={submitFeedbackAction} className="space-y-3">
-        <input
-          name="studentName"
-          placeholder="Your Name"
-          required
-          className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-zinc-100 focus:outline-none focus:border-emerald-500"
-        />
+    <form onSubmit={handleSubmit}>
+      <input value={text} onChange={(e) => setText(e.target.value)} />
+      <button disabled={loading}>Add</button>
+    </form>
+  );
+}`,
+        explanation:
+          "Traditional API mutations require manual state tracking, event prevention, fetch calls, headers, and payload serialization just to save one string.",
+        drawbacks: [
+          "Dozens of lines of repetitive fetch and state boilerplate",
+          "Breaks if the user disables JavaScript in their browser",
+          "Requires maintaining separate API endpoint URLs",
+        ],
+      },
+      nextjsWay: {
+        title: "Next.js Server Actions ('use server' Walkie-Talkie)",
+        code: `// 1. Backend Server Action in plain JavaScript:
+// src/actions/todoActions.js
+"use server";
+
+import { revalidatePath } from "next/cache";
+
+export async function addTodoAction(formData) {
+  const text = formData.get("text");
+  // Save directly to database...
+  console.log("Saved to database:", text);
+
+  // Automatically refresh the UI:
+  revalidatePath("/todos");
+}
+
+// 2. Frontend Form:
+// Works even with ZERO client JavaScript!
+import { addTodoAction } from "@/actions/todoActions";
+
+export default function TodoPage() {
+  return (
+    <form action={addTodoAction}>
+      <input name="text" placeholder="Buy milk" />
+      <button type="submit">Add Task</button>
+    </form>
+  );
+}`,
+        explanation:
+          "With Next.js Server Actions, passing your server function to `<form action={addTodoAction}>` wires everything up automatically. It works natively with HTML forms and refreshes data instantly.",
+        benefits: [
+          "Zero API endpoint routes or fetch calls needed",
+          "Works with standard HTML forms (even with JavaScript disabled)",
+          "Automatic CSRF protection built in",
+        ],
+      },
+      whyDifferent:
+        "Server Actions create a secure RPC (Remote Procedure Call) tunnel behind the scenes, allowing functions defined on the server to be called directly by frontend UI elements.",
+      mentalShiftSummary:
+        "Don't write a fetch call for form submissions. Create a function with 'use server' and pass it to the form's action attribute.",
+    },
+
+    basicExample: {
+      title: "Task Creator with Server Action in Plain JavaScript",
+      description: "A complete Server Action reading formData, updating state, and revalidating the page.",
+      language: "jsx",
+      filename: "src/actions/taskActions.js",
+      code: `// src/actions/taskActions.js
+"use server"; // 1. The Walkie-Talkie switch: runs strictly on the backend!
+
+import { revalidatePath } from "next/cache";
+
+// In-memory task list:
+let tasks = [
+  { id: 1, title: "Review Unit 1 App Router" },
+  { id: 2, title: "Practice Server Actions" },
+];
+
+export async function getTasks() {
+  return tasks;
+}
+
+// 2. Server Action to add a task:
+export async function addTaskAction(formData) {
+  const title = formData.get("title");
+
+  // Validate in plain JavaScript:
+  if (!title || title.trim() === "") {
+    return { success: false, error: "Task title cannot be empty." };
+  }
+
+  // Add new task:
+  tasks.push({
+    id: Date.now(),
+    title: title.trim(),
+  });
+
+  // Revalidate the page so everyone sees the updated list:
+  revalidatePath("/tasks");
+  return { success: true };
+}`,
+      explanation:
+        "Line-by-line explanation:\n- Line 2: 'use server'; tells Next.js: 'Every function in this file is a backend function. Never expose its inner code to the browser!'\n- Line 4: import { revalidatePath } from 'next/cache'; imports the cache refresher.\n- Line 16: export async function addTaskAction(formData) receives the submitted form data automatically.\n- Line 17: formData.get('title') extracts the input value by its name attribute.\n- Line 20-22: Plain JavaScript validation check.\n- Line 25-28: Inserts the new task into our data store.\n- Line 31: revalidatePath('/tasks') purges the cached page so the new task appears immediately!\n\nWhat happens in the browser?\n1. The user types 'Study Unit 3' into the input box and clicks 'Add Task'.\n2. The browser invokes the Server Action over a secure POST connection.\n3. Next.js executes addTaskAction on the server, adds the task, and refreshes the cache.\n4. The browser screen updates in milliseconds with the new task displayed!",
+      outputPreview: "Form submission seamlessly adds an item to the task list and refreshes the page.",
+    },
+
+    moreExamples: [
+      {
+        title: "Calling Server Actions from Client Component Event Handlers",
+        description: "Invoking a Server Action from an onClick button handler inside a Client Component.",
+        language: "jsx",
+        filename: "src/components/DeleteButton.js",
+        code: `// src/components/DeleteButton.js
+"use client";
+
+import { deleteTaskAction } from "@/actions/taskActions";
+
+export function DeleteButton({ taskId }) {
+  async function handleDelete() {
+    if (confirm("Are you sure you want to delete this task?")) {
+      await deleteTaskAction(taskId);
+    }
+  }
+
+  return (
+    <button
+      onClick={handleDelete}
+      className="px-3 py-1 bg-rose-600/20 hover:bg-rose-600/30 text-rose-400 rounded-lg text-xs"
+    >
+      Delete
+    </button>
+  );
+}`,
+        explanation:
+          "Even inside a Client Component with 'use client', you can import a Server Action and call it like a regular async JavaScript function!",
+      },
+      {
+        title: "Form Mutation with Validation (app/actions.js)",
+        description: "Standard classroom Server Action reading formData, validating inputs, and returning feedback objects.",
+        language: "jsx",
+        filename: "app/actions.js",
+        code: `// app/actions.js (Pure JavaScript)
+"use server";
+
+let students = [
+  { id: 1, name: "Riya", course: "React" },
+  { id: 2, name: "Rahul", course: "NextJS" }
+];
+
+export async function addStudent(formData) {
+  const name = formData.get("name");
+  const course = formData.get("course");
+
+  if (!name || !course) {
+    return { error: "Name and course are required" };
+  }
+
+  students.push({
+    id: students.length + 1,
+    name: name,
+    course: course
+  });
+
+  return { success: "Student added successfully" };
+}`,
+        explanation:
+          "The Server Action receives the submitted formData directly, validates fields on the backend, and returns a clean response object to the caller.",
+      },
+    ],
+
+    multipleWays: [
+      {
+        name: "Form action attribute (Recommended)",
+        syntax: "<form action={myServerAction}>",
+        codeSnippet: "<form action={addStudent}><input name='name'/><button>Submit</button></form>",
+        howItWorks: "Standard HTML form submission handled natively by Next.js on the server.",
+        pros: ["Simplest code", "Progressive enhancement: works even before client JavaScript finishes loading"],
+        cons: ["Requires wrapping inputs in a <form> element"],
+        whenToUse: "Add, edit, contact, and registration forms.",
+        isRecommended: true,
+      },
+      {
+        name: "Event handler invocation (onClick / custom)",
+        syntax: "await myServerAction(id)",
+        codeSnippet: "<button onClick={() => deleteStudent(student.id)}>Delete</button>",
+        howItWorks: "Called inside a Client Component function like a standard async function.",
+        pros: ["Flexible for custom button clicks, drag-and-drop, sliders"],
+        cons: ["Requires 'use client' wrapper"],
+        whenToUse: "Quick action buttons (delete, bookmark, like, archive).",
+      },
+    ],
+
+    decisionGuide: {
+      recommendationSummary: "Use <form action={action}> for all forms. Use event handler invocation inside Client Components for quick single-click actions like deleting or toggling.",
+      scenarios: [
+        {
+          scenario: "Submitting a student registration form with 5 fields",
+          recommendedApproach: "<form action={registerStudent}>",
+          reason: "formData bundles all 5 inputs automatically with progressive enhancement.",
+        },
+        {
+          scenario: "Clicking a small trash can icon to delete an item from a table",
+          recommendedApproach: "onClick={() => deleteItem(id)} inside Client Component",
+          reason: "Clean and intuitive for single-item actions without needing a separate form tag.",
+        },
+      ],
+    },
+
+    commonMistakes: [
+      {
+        mistakeTitle: "Defining a Server Action inside a Client Component without a separate file",
+        badCode: `// ❌ BAD: src/components/MyButton.js
+"use client";
+
+// Cannot declare 'use server' directly inside a 'use client' file:
+async function myAction() {
+  "use server"; // 💥 Error!
+}`,
+        goodCode: `// ✅ GOOD: Keep Server Actions in a separate file (e.g. src/actions/taskActions.js)
+// File 1: src/actions/taskActions.js ('use server'; export async function myAction() { ... })
+// File 2: src/components/MyButton.js ('use client'; import { myAction } from '@/actions/taskActions')`,
+        whyItBreaks: "A single JavaScript file cannot be both client-side and server-side simultaneously.",
+        howToFix: "Always place shared Server Actions in a dedicated src/actions/ directory with 'use server' at the top of the file.",
+      },
+    ],
+
+    bestPractices: [
+      {
+        title: "Always Validate on the Server",
+        rule: "Never trust client input; validate all formData fields inside the Server Action.",
+        explanation: "Malicious users can bypass client browser validation, but server validation cannot be bypassed.",
+      },
+    ],
+
+    exercises: [
+      {
+        id: "u3-ex-2",
+        title: "Create a Student Enrollment Action",
+        difficulty: "easy",
+        estimatedMinutes: 8,
+        prompt:
+          "Write a Server Action in src/actions/enrollActions.js in plain JavaScript with 'use server' that reads 'studentName' from formData, logs it, and calls revalidatePath('/students').",
+        initialCode: `// src/actions/enrollActions.js
+// TODO: Add 'use server' and build action
+export async function enrollStudent(formData) {
+  // Extract studentName and revalidate
+}`,
+        expectedOutput: "A functional Server Action that processes form submissions and refreshes the cache.",
+        hints: ["Add 'use server'; as line 1 and import revalidatePath from 'next/cache'"],
+        solutionCode: `// src/actions/enrollActions.js
+"use server";
+
+import { revalidatePath } from "next/cache";
+
+export async function enrollStudent(formData) {
+  const studentName = formData.get("studentName");
+  if (!studentName || studentName.trim() === "") return;
+
+  console.log("Enrolling student:", studentName);
+  revalidatePath("/students");
+}`,
+        solutionExplanation: "The Server Action executes on the server, extracts the student name, and purges the /students cache.",
+      },
+    ],
+
+    quizzes: [
+      {
+        id: "u3-q2",
+        syllabusTopic: "Server Actions ('use server')",
+        question: "What does the 'use server' directive at the top of a file do?",
+        conceptualExplanation: "'use server' designates all exported async functions in the file as Server Actions running strictly on the backend.",
+        options: [
+          { id: "a", text: "It restarts your laptop computer", isCorrect: false, explanation: "Directives configure the JavaScript execution environment." },
+          { id: "b", text: "It designates exported asynchronous functions as Server Actions that run strictly on the backend", isCorrect: true, explanation: "Correct! 'use server' marks functions as secure backend RPC endpoints." },
+          { id: "c", text: "It prevents users from viewing images", isCorrect: false, explanation: "Server actions are for backend mutations." },
+          { id: "d", text: "It forces the entire page to render in Internet Explorer", isCorrect: false, explanation: "Unrelated." },
+        ],
+      },
+    ],
+
+    realWorldExample: {
+      domain: "Course Enrollment System",
+      description: "How a university student portal manages course registration using direct Server Actions.",
+      code: {
+        title: "Course Registration Handler",
+        description: "Server Action registering a student for a module in plain JavaScript.",
+        language: "jsx",
+        filename: "src/actions/courseRegistration.js",
+        code: `"use server";
+
+import { revalidatePath } from "next/cache";
+
+export async function enrollInCourse(courseCode) {
+  // Insert enrollment into database...
+  console.log("Enrolled in course:", courseCode);
+  revalidatePath("/my-courses");
+}`,
+      },
+      keyTakeaway: "Server Actions streamline database updates by eliminating the need to write custom REST API routes.",
+    },
+
+    combinedExample: {
+      combinedTopics: ["Server Actions", "Forms", "Server Components"],
+      title: "Interactive Feedback Form",
+      description: "A complete Server Component page featuring an inline form and Server Action.",
+      code: {
+        title: "Course Feedback Page",
+        description: "Full feedback submission loop with zero client JavaScript.",
+        language: "jsx",
+        filename: "src/app/feedback/page.js",
+        code: `import { submitFeedback } from "@/actions/feedbackActions";
+
+export default function FeedbackPage() {
+  return (
+    <div className="max-w-md mx-auto p-6 space-y-4">
+      <h1 className="text-xl font-bold text-zinc-100">Course Feedback</h1>
+      <form action={submitFeedback} className="space-y-3">
         <textarea
-          name="feedback"
-          placeholder="What did you learn in Unit 3?"
-          required
+          name="comment"
+          placeholder="Share your feedback..."
+          className="w-full p-3 bg-zinc-900 border border-zinc-800 rounded-xl text-zinc-100 text-sm"
           rows={3}
-          className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-zinc-100 focus:outline-none focus:border-emerald-500"
+          required
         />
         <button
           type="submit"
-          className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium transition-colors"
+          className="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-medium transition-colors"
         >
           Send Feedback
         </button>
@@ -453,236 +706,12 @@ export default function FeedbackPage() {
     </div>
   );
 }`,
-      explanation:
-        "The `'use server'` directive makes `submitFeedbackAction` run exclusively on the server. The client simply submits the form payload.",
-      outputPreview: "A styled dark-mode form with inputs for name and feedback that submits seamlessly to the server.",
-    },
-
-    moreExamples: [
-      {
-        title: "Separate Actions File for Clean Architecture",
-        description: "Organizing Server Actions in a dedicated file so they can be reused across multiple components.",
-        language: "typescript",
-        filename: "src/actions/studentActions.ts",
-        code: `"use server"; // Marks ALL exported functions in this file as Server Actions!
-
-import { revalidatePath } from "next/cache";
-
-export async function enrollStudentAction(courseId: string, studentName: string) {
-  // Database insert...
-  console.log(\`Enrolled \${studentName} into course \${courseId}\`);
-  revalidatePath(\`/courses/\${courseId}\`);
-  return { success: true };
-}`,
-        explanation:
-          "Placing `'use server'` at the very top of a file makes all functions exported from that file callable as Server Actions from both Server and Client Components.",
-      },
-    ],
-
-    multipleWays: [
-      {
-        name: "Inline Server Action in Server Component",
-        syntax: "async function actionName() { 'use server'; ... }",
-        codeSnippet: `export default function Page() {
-  async function myAction() {
-    "use server";
-    // Server logic
-  }
-  return <form action={myAction}>...</form>;
-}`,
-        howItWorks: "Defined directly inside the Server Component body.",
-        pros: ["Quick and colocated with the UI"],
-        cons: ["Cannot be imported by Client Components"],
-        whenToUse: "For single-page quick forms.",
-      },
-      {
-        name: "Dedicated Server Actions Module (Recommended)",
-        syntax: "actions/myActions.ts with 'use server' at top",
-        codeSnippet: `// src/actions/postActions.ts
-"use server";
-export async function createPost(formData: FormData) { ... }`,
-        howItWorks: "Exported functions can be imported into ANY component (Server or Client).",
-        pros: ["Clean separation of concerns", "Reusable across multiple pages and Client Components", "Highly testable"],
-        cons: ["Requires an extra file"],
-        whenToUse: "For all production full-stack applications.",
-        isRecommended: true,
-      },
-    ],
-
-    decisionGuide: {
-      recommendationSummary: "Use dedicated `src/actions/*.ts` files for clean, reusable backend mutations.",
-      scenarios: [
-        {
-          scenario: "You need to invoke a backend mutation from an interactive Client Component button",
-          recommendedApproach: "Import from `src/actions/*.ts` and call `await myAction()` in your `onClick`",
-          reason: "Client Components cannot define inline Server Actions; they must import them from an external file.",
-        },
-      ],
-    },
-
-    commonMistakes: [
-      {
-        mistakeTitle: "Defining an inline Server Action inside a Client Component",
-        badCode: `// ❌ BAD: src/components/MyClientComponent.tsx
-"use client";
-
-export function MyComponent() {
-  async function myAction() {
-    "use server"; // COMPILE ERROR: Cannot define Server Action inside Client Component!
-  }
-  return <form action={myAction}>...</form>;
-}`,
-        goodCode: `// ✅ GOOD: Define in a separate actions.ts file and import it
-// File 1: src/actions/todo.ts ('use server'; export async function myAction() { ... })
-// File 2: src/components/MyClientComponent.tsx ('use client'; import { myAction } from '@/actions/todo')`,
-        whyItBreaks: "The Next.js compiler cannot inline server code inside a file marked with `'use client'`.",
-        howToFix: "Move Server Actions into a dedicated `src/actions/` file.",
-      },
-    ],
-
-    bestPractices: [
-      {
-        title: "Always Validate Input Inside the Server Action",
-        rule: "Never trust user-supplied `FormData` without server-side type and string validation.",
-        explanation: "Client-side validation can be bypassed; server validation is non-negotiable for security.",
-      },
-    ],
-
-    exercises: [
-      {
-        id: "u3-ex-2",
-        title: "Build a Course Enrollment Server Action",
-        difficulty: "easy",
-        estimatedMinutes: 8,
-        prompt:
-          "Write a Server Action `enrollCourseAction` that accepts `formData`, extracts `courseCode` and `email`, checks that `email` contains an '@', and triggers `revalidatePath('/courses')`.",
-        initialCode: `// src/actions/enroll.ts
-export async function enrollCourseAction(formData: FormData) {
-  // TODO: Add 'use server', validate fields, and revalidate
-}`,
-        expectedOutput: "A validated Server Action returning a success or error object.",
-        hints: ["Add `'use server';`", "Use `formData.get('courseCode')` and `formData.get('email')`"],
-        solutionCode: `"use server";
-
-import { revalidatePath } from "next/cache";
-
-export async function enrollCourseAction(formData: FormData) {
-  const courseCode = formData.get("courseCode") as string;
-  const email = formData.get("email") as string;
-
-  if (!courseCode || !email || !email.includes("@")) {
-    return { success: false, error: "Please provide a valid course code and email address." };
-  }
-
-  // Simulated database insert...
-  console.log(\`Successfully enrolled \${email} into \${courseCode}\`);
-
-  revalidatePath("/courses");
-  return { success: true, message: "Enrollment complete!" };
-}`,
-        solutionExplanation:
-          "Server Actions can return plain JavaScript objects back to the caller for feedback while automatically refreshing server caches.",
-      },
-    ],
-
-    quizzes: [
-      {
-        id: "u3-q2",
-        question: "What does the 'use server' directive do in Next.js?",
-        syllabusTopic: "Server Actions",
-        options: [
-          { id: "a", text: "It restarts the computer server", isCorrect: false, explanation: "Directives modify function execution context." },
-          { id: "b", text: "It designates an asynchronous function as a Server Action that runs strictly on the backend", isCorrect: true, explanation: "Correct! 'use server' tells Next.js to expose the function as a secure backend RPC endpoint." },
-          { id: "c", text: "It prevents users from viewing images", isCorrect: false, explanation: "Server actions are for backend mutations." },
-          { id: "d", text: "It forces the entire page to render in Internet Explorer", isCorrect: false, explanation: "Unrelated." },
-        ],
-        conceptualExplanation:
-          "`'use server'` marks callable server entry points, allowing client forms and buttons to execute server-side database logic securely.",
-      },
-    ],
-
-    realWorldExample: {
-      domain: "Real-Time Job Application Portal",
-      description: "How companies receive resumes and candidate submissions directly via Server Actions with zero external API services.",
-      code: {
-        title: "Candidate Application Action",
-        description: "Server Action processing application data.",
-        language: "typescript",
-        filename: "src/actions/apply.ts",
-        code: `"use server";
-
-export async function applyForJob(formData: FormData) {
-  const applicant = {
-    name: formData.get("fullName"),
-    role: formData.get("role"),
-    portfolioUrl: formData.get("portfolioUrl"),
-  };
-
-  // Insert candidate into database:
-  await db.applications.create({ data: applicant });
-
-  return { status: "submitted", applicationNumber: "APP-" + Date.now() };
-}`,
-      },
-      keyTakeaway: "Server Actions make form submission workflows straightforward and type-safe from end to end.",
-    },
-
-    combinedExample: {
-      combinedTopics: ["Server Actions", "revalidatePath", "TypeScript"],
-      title: "Interactive Course Review Form",
-      description: "Submitting student reviews with instant server-side mutation and list refresh.",
-      code: {
-        title: "Complete Form & Server Action",
-        description: "Server Component with inline Server Action.",
-        language: "tsx",
-        filename: "src/app/reviews/page.tsx",
-        code: `import { revalidatePath } from "next/cache";
-
-const reviews: Array<{ id: number; author: string; comment: string; rating: number }> = [
-  { id: 1, author: "Priya", comment: "Unit 2 rendering concepts were explained so clearly!", rating: 5 }
-];
-
-export default function ReviewsPage() {
-  async function addReviewAction(formData: FormData) {
-    "use server";
-    const author = formData.get("author") as string;
-    const comment = formData.get("comment") as string;
-    const rating = Number(formData.get("rating") || 5);
-
-    reviews.push({ id: Date.now(), author, comment, rating });
-    revalidatePath("/reviews");
-  }
-
-  return (
-    <div className="p-6 max-w-xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold text-zinc-100">Student Course Reviews</h1>
-      
-      <form action={addReviewAction} className="p-4 bg-zinc-900 border border-zinc-800 rounded-xl space-y-3">
-        <input name="author" placeholder="Your name" required className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-zinc-100" />
-        <textarea name="comment" placeholder="Your review..." required className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-zinc-100" />
-        <button type="submit" className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium">Post Review</button>
-      </form>
-
-      <div className="space-y-3">
-        {reviews.map(r => (
-          <div key={r.id} className="p-4 bg-zinc-900/60 border border-zinc-800 rounded-xl">
-            <div className="flex justify-between">
-              <span className="font-semibold text-zinc-200">{r.author}</span>
-              <span className="text-amber-400 font-mono">{"★".repeat(r.rating)}</span>
-            </div>
-            <p className="text-zinc-400 text-sm mt-1">{r.comment}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}`,
       },
       stepByStepFlow: [
-        "Student fills out the review form",
-        "Form submits to `addReviewAction` Server Action",
-        "Review is appended to database on the server",
-        "`revalidatePath('/reviews')` triggers immediate UI update with new review",
+        "Student fills in feedback comment",
+        "Clicks 'Send Feedback'",
+        "submitFeedback Server Action saves comment to database",
+        "Page smoothly updates without full page refresh",
       ],
     },
   },
@@ -690,431 +719,482 @@ export default function ReviewsPage() {
   {
     id: "forms-validation-uploads",
     unitId: "unit-3",
-    title: "Forms, Zod Validation & File Uploads",
-    shortSummary: "Master form state handling with useActionState, pending indicators with useFormStatus, Zod schema validation, and server-side file uploads.",
+    title: "Forms, Validation & Pending States",
+    shortSummary: "Learn form handling using the School Admission Inspector analogy, useActionState, useFormStatus pending spinners, and clean JavaScript validation.",
     order: 3,
-    tags: ["Forms", "useActionState", "useFormStatus", "Zod Validation", "File Uploads"],
+    tags: ["Forms", "useActionState", "useFormStatus", "Validation", "FormData"],
 
     simpleExplanation:
-      "When users submit a form, two things are crucial: (1) giving feedback while the server is working (e.g. showing a loading spinner on the submit button so they don't click 10 times), and (2) strictly validating that the data is correct (e.g. checking that an email is real and a password is at least 8 characters). Next.js and React 19 provide two powerful hooks: `useActionState` (to manage form errors and response messages) and `useFormStatus` (to disable the submit button while pending).",
+      "Imagine you want to submit a **School Admission Form**:\n\n1. **The Form (HTML <form>)**: The physical sheet of paper where you write your name, email, and age.\n2. **The Inspector (Server Action Validation)**: The strict school officer who reads your paper. They check:\n   - Did you write your name? If no: 'Please enter your name!'\n   - Is your age greater than 5? If no: 'You must be at least 5 years old!'\n   - Is your email valid? If no: 'Please enter a valid email address!'\n3. **The Stamp (useActionState)**: If the inspector finds an error, they stamp 'REJECTED: Age too low' and hand the form back with the error message displayed.\n4. **The Popcorn Timer (useFormStatus)**: While the inspector is checking your form in the back office, the submit button shows a little spinning wheel ('Submitting...') so you don't click it 5 times!",
 
     whyNeeded:
-      "Bad validation leads to SQL injection, crashed databases, and security vulnerabilities. Poor loading states cause duplicate submissions and frustrated users. Combining Zod schema validation with React form hooks creates bulletproof, accessible forms.",
+      "Without proper form handling and validation, users can submit blank records, break your database, or double-click submit buttons while waiting. React 19 and Next.js provide built-in hooks (`useActionState` and `useFormStatus`) to handle validation errors and loading spinners cleanly without third-party libraries.",
 
     reactVsNext: {
-      concept: "Form Pending & Validation State",
+      concept: "Form Submission & Validation",
       reactWay: {
-        title: "Manual React State Management",
-        code: `// Traditional React form:
-function SignupForm() {
-  const [isPending, setIsPending] = useState(false);
-  const [errors, setErrors] = useState({});
+        title: "Manual Form State Tracking",
+        code: `// Manual form tracking requiring multiple useState hooks:
+function StudentForm() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
-  const handleForm = async (e) => {
+  async function handleSubmit(e) {
     e.preventDefault();
-    setIsPending(true);
-    // Manual validation and fetch...
-    setIsPending(false);
-  };
+    if (!name) { setError("Name required"); return; }
+    setLoading(true);
+    // fetch...
+    setLoading(false);
+  }
 
   return (
-    <form onSubmit={handleForm}>
-      <button disabled={isPending}>
-        {isPending ? "Submitting..." : "Submit"}
-      </button>
+    <form onSubmit={handleSubmit}>
+      <input value={name} onChange={e => setName(e.target.value)} />
+      {error && <p>{error}</p>}
+      <button disabled={loading}>{loading ? "Saving..." : "Save"}</button>
     </form>
   );
 }`,
         explanation:
-          "In vanilla React, developers manually create `isPending` state flags and error objects for every single form in the application.",
+          "Managing individual useState variables for every single input field, error message, and loading flag leads to hundreds of lines of fragile boilerplate.",
         drawbacks: [
-          "Button states must be manually wired with multiple useState hooks",
-          "Validation code duplicated on client and backend",
-          "No built-in progressive enhancement",
+          "State management becomes tangled with multiple fields",
+          "Every keystroke triggers a component re-render",
+          "No native pending state hook without custom wrapper",
         ],
       },
       nextjsWay: {
-        title: "React 19 useActionState & useFormStatus",
-        code: `// Next.js & React 19: Clean hook integration!
+        title: "Next.js + React useActionState & useFormStatus (Clean JavaScript)",
+        code: `// File 1: Server Action with plain JavaScript validation:
+// src/actions/studentActions.js
+"use server";
+
+export async function createStudentAction(prevState, formData) {
+  const name = formData.get("name");
+  const email = formData.get("email");
+
+  // Pure JavaScript validation:
+  if (!name || name.trim().length < 3) {
+    return { success: false, error: "Name must be at least 3 characters long." };
+  }
+  if (!email || !email.includes("@")) {
+    return { success: false, error: "Please enter a valid email address." };
+  }
+
+  // Save to database...
+  return { success: true, message: "Student registered successfully!" };
+}
+
+// File 2: Clean Client Form Component
+// src/components/StudentForm.js
 "use client";
 
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
-import { registerStudentAction } from "@/actions/students";
+import { createStudentAction } from "@/actions/studentActions";
 
 function SubmitButton() {
-  const { pending } = useFormStatus(); // Automatically knows if the parent form is pending!
+  const { pending } = useFormStatus();
   return (
-    <button type="submit" disabled={pending} className="disabled:opacity-50">
-      {pending ? "Registering..." : "Register Student"}
+    <button type="submit" disabled={pending} className="px-4 py-2 bg-emerald-600 rounded">
+      {pending ? "Registering Student..." : "Register Student"}
     </button>
   );
 }
 
-export function StudentRegistrationForm() {
-  // state contains server validation errors or success message:
-  const [state, formAction] = useActionState(registerStudentAction, null);
+export function StudentForm() {
+  const [state, formAction] = useActionState(createStudentAction, null);
 
   return (
-    <form action={formAction}>
-      <input name="email" required />
-      {state?.errors?.email && <p className="text-rose-400">{state.errors.email}</p>}
+    <form action={formAction} className="space-y-4">
+      {state?.error && <p className="text-rose-400 text-sm">{state.error}</p>}
+      {state?.success && <p className="text-emerald-400 text-sm">{state.message}</p>}
+      <input name="name" placeholder="Full Name" required />
+      <input name="email" type="email" placeholder="Email" required />
       <SubmitButton />
     </form>
   );
 }`,
         explanation:
-          "`useActionState` manages server responses and validation errors, while `useFormStatus` automatically detects whether the form is currently submitting.",
+          "useActionState holds the returned validation message, while useFormStatus automatically knows when the form is submitting without any manual useState flags!",
         benefits: [
-          "Zero manual `isPending` state handling",
-          "Automatic access to pending status anywhere in the form hierarchy",
-          "Type-safe validation errors returned directly from server Zod schemas",
+          "Eliminates 5+ useState hooks per form",
+          "Automatic pending spinner via useFormStatus",
+          "Clean server-side validation in plain JavaScript",
         ],
       },
       whyDifferent:
-        "`useFormStatus` uses React DOM context to track form lifecycle automatically without prop drilling.",
+        "React and Next.js built form submission directly into the component model using native FormData and React Context.",
       mentalShiftSummary:
-        "Use `useActionState(action, initialState)` for form responses, and `useFormStatus()` inside custom submit buttons.",
+        "Don't track input state with useState. Let the browser collect inputs in FormData, validate in your Server Action, and inspect pending state with useFormStatus.",
     },
 
     basicExample: {
-      title: "Interactive Form with Pending State (useFormStatus)",
-      description: "A reusable submit button with automatic loading spinner.",
-      language: "tsx",
-      filename: "src/components/SubmitButton.tsx",
-      code: `"use client";
+      title: "Interactive Student Form with Pending Spinner in Plain JavaScript",
+      description: "A complete form featuring useActionState, useFormStatus, and server validation.",
+      language: "jsx",
+      filename: "src/components/StudentForm.js",
+      code: `// src/components/StudentForm.js
+"use client";
 
+import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
+import { registerStudentAction } from "@/actions/studentActions";
 
-export function SubmitButton({ label = "Save Changes" }: { label?: string }) {
+// 1. Submit button component reads form pending status:
+function SubmitButton() {
   const { pending } = useFormStatus();
 
   return (
     <button
       type="submit"
       disabled={pending}
-      className="flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-800 disabled:text-zinc-500 text-white rounded-xl text-sm font-medium transition-all"
+      className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-zinc-800 text-white rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2"
     >
       {pending ? (
         <>
-          <span className="h-4 w-4 border-2 border-zinc-400 border-t-transparent rounded-full animate-spin" />
-          <span>Processing...</span>
+          <span className="animate-spin">⏳</span>
+          <span>Registering Student...</span>
         </>
       ) : (
-        <span>{label}</span>
+        <span>Register Student</span>
       )}
     </button>
   );
+}
+
+// 2. Main Form Component:
+export function StudentForm() {
+  // useActionState connects our Server Action with the form response:
+  const [state, formAction] = useActionState(registerStudentAction, null);
+
+  return (
+    <div className="max-w-md mx-auto p-6 bg-zinc-900 border border-zinc-800 rounded-2xl space-y-4">
+      <h2 className="text-xl font-bold text-zinc-100">Student Admission</h2>
+
+      {/* Show error or success messages from the server: */}
+      {state?.error && (
+        <div className="p-3 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-xl text-xs">
+          ⚠️ {state.error}
+        </div>
+      )}
+      {state?.success && (
+        <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl text-xs">
+          ✅ {state.message}
+        </div>
+      )}
+
+      <form action={formAction} className="space-y-3">
+        <div>
+          <label className="text-xs text-zinc-400 font-medium">Student Name</label>
+          <input
+            name="name"
+            placeholder="e.g. Rahul Verma"
+            className="w-full mt-1 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-zinc-100 text-sm focus:outline-none focus:border-emerald-500"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="text-xs text-zinc-400 font-medium">Course</label>
+          <input
+            name="course"
+            placeholder="e.g. Computer Science"
+            className="w-full mt-1 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-zinc-100 text-sm focus:outline-none focus:border-emerald-500"
+            required
+          />
+        </div>
+
+        <SubmitButton />
+      </form>
+    </div>
+  );
 }`,
       explanation:
-        "Because `SubmitButton` uses `useFormStatus()`, it automatically disables itself and shows a spinner whenever its parent `<form>` is submitting.",
-      outputPreview: "Button that smoothly transitions into an animated spinner while submitting.",
+        "Line-by-line explanation:\n- Line 2: 'use client'; is required because we are using React interactive form hooks.\n- Line 8: function SubmitButton() is separated into its own component. Why? Because useFormStatus MUST be called inside a child component rendered within the <form> tags!\n- Line 9: const { pending } = useFormStatus(); automatically turns true while the server action is running and false when done.\n- Line 27: const [state, formAction] = useActionState(registerStudentAction, null); passes the initial state (null) and gives us the formAction handler.\n- Line 34-43: Displays error banner or success banner based on what the server returned.\n- Line 45: <form action={formAction}> binds the submission to our action.\n\nWhat happens in the browser?\n1. The student types their name and clicks 'Register Student'.\n2. The button instantly changes to '⏳ Registering Student...' and disables itself to prevent duplicate submissions.\n3. The server validates the data. If an error is returned, the button resets and the red error banner appears.\n4. If valid, the green success banner appears in real time!",
+      outputPreview: "A styled admission form showing pending spinner during submission and validation alerts.",
     },
 
     moreExamples: [
       {
-        title: "Server-Side Zod Validation Example",
-        description: "Validating user inputs with Zod schemas inside a Server Action.",
-        language: "typescript",
-        filename: "src/actions/validationExample.ts",
-        code: `"use server";
+        title: "Server Action with Input Validation in Plain JavaScript",
+        description: "The backend Server Action supporting the student registration form.",
+        language: "jsx",
+        filename: "src/actions/studentActions.js",
+        code: `// src/actions/studentActions.js
+"use server";
 
-// Validation schema:
-interface FormDataState {
-  success?: boolean;
-  errors?: { name?: string[]; email?: string[] };
-}
+import { revalidatePath } from "next/cache";
 
-export async function validateUserAction(prevState: any, formData: FormData): Promise<FormDataState> {
-  const name = formData.get("name") as string;
-  const email = formData.get("email") as string;
+export async function registerStudentAction(prevState, formData) {
+  const name = formData.get("name");
+  const course = formData.get("course");
 
-  const errors: { name?: string[]; email?: string[] } = {};
-
+  // Step 1: Validate name
   if (!name || name.trim().length < 3) {
-    errors.name = ["Name must be at least 3 characters long."];
-  }
-  if (!email || !email.includes("@")) {
-    errors.email = ["Please enter a valid academic email."];
+    return { success: false, error: "Student name must be at least 3 characters long." };
   }
 
-  if (Object.keys(errors).length > 0) {
-    return { success: false, errors };
+  // Step 2: Validate course
+  if (!course || course.trim().length < 2) {
+    return { success: false, error: "Please enter a valid course name." };
   }
 
-  // Database insert...
-  return { success: true };
+  // Step 3: Simulate database insertion
+  console.log("Successfully registered:", { name: name.trim(), course: course.trim() });
+
+  revalidatePath("/students");
+  return { success: true, message: \`\${name.trim()} enrolled successfully in \${course.trim()}!\` };
 }`,
         explanation:
-          "Returning a structured error object allows the client component to highlight exact input fields that failed validation.",
+          "Notice how prevState is accepted as the first argument when used with useActionState. Plain JavaScript if statements provide clear, beginner-friendly validation.",
       },
       {
-        title: "Server-Side File Upload Handling",
-        description: "Handling binary file uploads (e.g. PDF assignments or images) in Server Actions.",
-        language: "typescript",
-        filename: "src/actions/uploadAction.ts",
-        code: `"use server";
+        title: "File Upload with Validation (app/student-form/page.js & actions.js)",
+        description: "Handling file uploads, checking file sizes (< 5 MB), and displaying upload feedback with useActionState.",
+        language: "jsx",
+        filename: "app/student-form/page.js",
+        code: `// app/actions.js (Server Action)
+"use server";
 
-export async function uploadAssignmentAction(formData: FormData) {
-  const file = formData.get("assignmentPdf") as File;
+export async function uploadFile(previousState, formData) {
+  const file = formData.get("file");
 
   if (!file || file.size === 0) {
-    return { error: "No file was selected for upload." };
+    return { error: "Please select a file", success: "" };
   }
 
-  // Read file as ArrayBuffer on the server:
-  const bytes = await file.arrayBuffer();
-  const buffer = Buffer.from(bytes);
+  // 5 MB size limit validation (5 * 1024 * 1024 bytes)
+  if (file.size > 5 * 1024 * 1024) {
+    return { error: "File must be less than 5 MB", success: "" };
+  }
 
-  console.log(\`Received file "\${file.name}" with size \${file.size} bytes.\`);
-  // Upload buffer to Supabase Storage or S3...
+  console.log("File received:", file.name, "Type:", file.type, "Size:", file.size);
+  return { success: \`File "\${file.name}" uploaded successfully!\`, error: "" };
+}
 
-  return { success: true, filename: file.name };
+// app/student-form/page.js (Client Form Component)
+"use client";
+import { useActionState } from "react";
+import { uploadFile } from "../actions";
+
+const initialState = { error: "", success: "" };
+
+export default function StudentForm() {
+  const [state, formAction] = useActionState(uploadFile, initialState);
+
+  return (
+    <div>
+      <h1>File Upload</h1>
+      <form action={formAction}>
+        <input type="file" name="file" />
+        <br /><br />
+        <button type="submit">Upload File</button>
+      </form>
+
+      {state.error && <p style={{ color: "red" }}>{state.error}</p>}
+      {state.success && <p style={{ color: "green" }}>{state.success}</p>}
+    </div>
+  );
 }`,
         explanation:
-          "`FormData` automatically handles `File` objects. The server converts them into buffers for storage in cloud providers.",
+          "The file input is read via formData.get('file') on the server. You can validate file.size, file.type, and file.name securely on the backend before saving.",
       },
     ],
 
     multipleWays: [
       {
-        name: "React 19 useActionState (Modern Standard)",
-        syntax: "const [state, formAction, isPending] = useActionState(action, null)",
-        codeSnippet: `const [state, formAction] = useActionState(myAction, null);
-return <form action={formAction}>...</form>;`,
-        howItWorks: "Binds server response and form action into React component state.",
-        pros: ["Official React 19 standard", "Progressive enhancement compatible", "Built-in pending state"],
-        cons: ["Requires 'use client' wrapper"],
-        whenToUse: "For all modern form development in Next.js 15 & 16.",
+        name: "useActionState + useFormStatus (Recommended)",
+        syntax: "const [state, formAction] = useActionState(action, initialState)",
+        codeSnippet: "const [state, formAction] = useActionState(myAction, null);",
+        howItWorks: "Standard React 19 pattern for form handling and server response binding.",
+        pros: ["Cleanest state management", "Zero client state boilerplate", "Works with Server Actions"],
+        cons: ["Requires separating the submit button into a child component for useFormStatus"],
+        whenToUse: "Registration forms, checkout flows, settings pages.",
         isRecommended: true,
       },
       {
-        name: "Native HTML <form action={action}>",
+        name: "Standard <form action={action}> (Simplest)",
         syntax: "<form action={myServerAction}>",
-        codeSnippet: `<form action={myAction}><input name="query" /><button>Go</button></form>`,
-        howItWorks: "Pure Server Component form with zero client JavaScript.",
-        pros: ["0 KB client bundle size", "Works even if JavaScript is completely disabled"],
-        cons: ["Cannot display client-side validation errors dynamically without full page re-render"],
-        whenToUse: "For simple search bars or non-interactive mutation buttons.",
+        codeSnippet: "<form action={addTodo}><input name='todo'/><button>Save</button></form>",
+        howItWorks: "Native HTML form submission without custom error state hooks.",
+        pros: ["Under 5 lines of code", "Zero client hooks"],
+        cons: ["Cannot display custom inline validation messages without URL redirects"],
+        whenToUse: "Simple forms that redirect immediately on success (like a search bar).",
       },
     ],
 
     decisionGuide: {
-      recommendationSummary: "Use `useActionState` + `useFormStatus` for interactive forms with feedback. Use simple `<form action={...}>` for basic buttons.",
+      recommendationSummary: "Use useActionState when you need to show error messages (like 'Password too short'). Use plain <form action> when the form simply saves and redirects.",
       scenarios: [
         {
-          scenario: "Registration form with field-by-field error messages",
-          recommendedApproach: "`useActionState` with server-side validation object",
-          reason: "Allows displaying specific error labels right under invalid input boxes.",
+          scenario: "User sign-up form with password and email validation",
+          recommendedApproach: "useActionState + useFormStatus",
+          reason: "Enables inline validation errors and pending spinners.",
         },
         {
-          scenario: "A simple 'Delete Post' button inside a table",
-          recommendedApproach: "Native `<form action={deleteAction}><button>Delete</button></form>`",
-          reason: "Zero client JS overhead.",
+          scenario: "Search bar that navigates to /search?q=query",
+          recommendedApproach: "Plain <form action='/search'>",
+          reason: "Simple GET form navigation doesn't need server mutation state.",
         },
       ],
     },
 
     commonMistakes: [
       {
-        mistakeTitle: "Placing useFormStatus in the same component that defines the <form>",
-        badCode: `// ❌ BAD: useFormStatus cannot read its own component's form!
+        mistakeTitle: "Calling useFormStatus inside the same component that renders the <form>",
+        badCode: `// ❌ BAD: useFormStatus called in the parent component!
 export function MyForm() {
-  const { pending } = useFormStatus(); // Always returns false!
-  return <form action={myAction}><button disabled={pending}>Submit</button></form>;
+  const { pending } = useFormStatus(); // 💥 pending will ALWAYS be false!
+  return (
+    <form action={myAction}>
+      <button disabled={pending}>Submit</button>
+    </form>
+  );
 }`,
-        goodCode: `// ✅ GOOD: Put useFormStatus in a CHILD component inside the form
+        goodCode: `// ✅ GOOD: Call useFormStatus inside a CHILD component of the form!
 function SubmitButton() {
   const { pending } = useFormStatus(); // Works!
   return <button disabled={pending}>Submit</button>;
 }
 
 export function MyForm() {
-  return <form action={myAction}><SubmitButton /></form>;
+  return (
+    <form action={myAction}>
+      <SubmitButton />
+    </form>
+  );
 }`,
-        whyItBreaks: "`useFormStatus` uses React Context and must be rendered as a *descendant* (child) of the `<form>` tag.",
-        howToFix: "Extract your `<button>` into a separate component like `<SubmitButton />`.",
+        whyItBreaks: "useFormStatus relies on React Context provided by the parent <form>. A component cannot read context from a <form> rendered inside its own return statement.",
+        howToFix: "Extract the submit button into its own small child component inside the form.",
       },
     ],
 
     bestPractices: [
       {
-        title: "Sanitize and Limit File Upload Sizes",
-        rule: "Always check `file.size` and MIME type (`file.type`) on the server before processing.",
-        explanation: "Prevents denial-of-service attacks caused by malicious users uploading multi-gigabyte files.",
+        title: "Separate Submit Buttons",
+        rule: "Always extract your form's submit button into a dedicated <SubmitButton /> component.",
+        explanation: "This allows useFormStatus to correctly read the form's pending state.",
       },
     ],
 
     exercises: [
       {
         id: "u3-ex-3",
-        title: "Build a Validated Student Registration Form",
+        title: "Build a Validated Feedback Form",
         difficulty: "medium",
         estimatedMinutes: 10,
         prompt:
-          "Create a Client Component form using `useActionState` that displays validation error messages returned by a Server Action.",
-        initialCode: `// TODO: Build interactive form with useActionState
-"use client";
+          "Write a Server Action in src/actions/reviewActions.js in plain JavaScript that checks if 'rating' is between 1 and 5 and 'comment' is at least 10 characters long. Return an object with { success: false, error: '...' } if invalid.",
+        initialCode: `// src/actions/reviewActions.js
+"use server";
 
-import { useActionState } from "react";
-
-export function StudentForm() {
-  // TODO: Setup useActionState and render form with error messages
-  return (
-    <form>
-      {/* Add inputs */}
-    </form>
-  );
+export async function submitReview(prevState, formData) {
+  // Validate rating (1-5) and comment (min 10 chars)
 }`,
-        expectedOutput: "A responsive form with field-specific red error messages.",
-        hints: ["`const [state, formAction] = useActionState(myAction, null);`", "Check `{state?.errors?.fieldName}` in JSX"],
-        solutionCode: `"use client";
+        expectedOutput: "A validated Server Action returning error messages on invalid input.",
+        hints: ["Number(formData.get('rating')) to check number ranges"],
+        solutionCode: `// src/actions/reviewActions.js
+"use server";
 
-import { useActionState } from "react";
+export async function submitReview(prevState, formData) {
+  const rating = Number(formData.get("rating"));
+  const comment = formData.get("comment");
 
-async function mockRegisterAction(prevState: any, formData: FormData) {
-  const name = formData.get("name") as string;
-  if (!name || name.length < 3) {
-    return { error: "Name must be at least 3 characters long." };
+  if (isNaN(rating) || rating < 1 || rating > 5) {
+    return { success: false, error: "Rating must be between 1 and 5 stars." };
   }
-  return { success: true, message: \`Registered \${name} successfully!\` };
-}
 
-export function StudentForm() {
-  const [state, formAction, isPending] = useActionState(mockRegisterAction, null);
+  if (!comment || comment.trim().length < 10) {
+    return { success: false, error: "Comment must be at least 10 characters long." };
+  }
 
-  return (
-    <div className="p-6 max-w-md mx-auto bg-zinc-900 border border-zinc-800 rounded-2xl space-y-4">
-      <h2 className="text-lg font-bold text-zinc-100">Student Enrollment</h2>
-
-      <form action={formAction} className="space-y-3">
-        <div>
-          <label className="block text-xs text-zinc-400 mb-1">Full Name</label>
-          <input
-            name="name"
-            placeholder="e.g. Ishika Sharma"
-            className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-zinc-100 focus:outline-none focus:border-emerald-500"
-          />
-        </div>
-
-        {state?.error && (
-          <p className="text-xs text-rose-400 font-medium">{state.error}</p>
-        )}
-
-        {state?.success && (
-          <p className="text-xs text-emerald-400 font-medium">{state.message}</p>
-        )}
-
-        <button
-          type="submit"
-          disabled={isPending}
-          className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-all"
-        >
-          {isPending ? "Validating..." : "Enroll Now"}
-        </button>
-      </form>
-    </div>
-  );
+  return { success: true, message: "Thank you for your review!" };
 }`,
-        solutionExplanation:
-          "`useActionState` binds the server validation result into local component state, allowing seamless instant error display.",
+        solutionExplanation: "The action validates input bounds in plain JavaScript and returns descriptive error objects for useActionState.",
       },
     ],
 
     quizzes: [
       {
         id: "u3-q3",
-        question: "Why must useFormStatus be called in a child component rather than the component rendering the <form> itself?",
-        syllabusTopic: "useFormStatus Context Rule",
+        syllabusTopic: "Forms & Pending States (useActionState, useFormStatus)",
+        question: "Why must useFormStatus be called in a child component inside the <form> rather than in the form component itself?",
+        conceptualExplanation: "useFormStatus reads React Context provided by the parent <form>, which is only available to nested child components.",
         options: [
-          { id: "a", text: "Because React hooks are forbidden inside forms", isCorrect: false, explanation: "Hooks can be used inside components." },
+          { id: "a", text: "Because React hooks are forbidden inside forms", isCorrect: false, explanation: "Hooks can be used inside form components." },
           { id: "b", text: "Because useFormStatus reads form context provided by the parent <form> wrapper", isCorrect: true, explanation: "Correct! The parent <form> creates the React context that child components inspect." },
           { id: "c", text: "To make the button render in green", isCorrect: false, explanation: "CSS is unrelated." },
           { id: "d", text: "Because forms only run in Web Workers", isCorrect: false, explanation: "Forms run in the main DOM tree." },
         ],
-        conceptualExplanation:
-          "`useFormStatus` is a Context consumer. It searches upwards in the component tree for the nearest `<form>` element to read its pending state.",
       },
     ],
 
     realWorldExample: {
       domain: "University Assignment Submission Portal",
-      description: "How universities accept student PDF reports and source code archives securely with instant upload progress.",
+      description: "How a university portal manages assignment submissions with file checks and loading spinners.",
       code: {
-        title: "Assignment Submission Box",
-        description: "File upload form with validation.",
-        language: "tsx",
-        filename: "src/components/AssignmentUpload.tsx",
+        title: "Assignment Submission Form",
+        description: "Student assignment submission with validation.",
+        language: "jsx",
+        filename: "src/components/AssignmentUpload.js",
         code: `"use client";
 
 import { useActionState } from "react";
-import { SubmitButton } from "./SubmitButton";
-
-async function submitAssignment(prev: any, formData: FormData) {
-  const file = formData.get("projectZip") as File;
-  if (!file || file.size > 10 * 1024 * 1024) {
-    return { error: "File must be under 10MB." };
-  }
-  return { success: true };
-}
+import { uploadAssignmentAction } from "@/actions/assignmentActions";
 
 export function AssignmentUpload() {
-  const [state, formAction] = useActionState(submitAssignment, null);
+  const [state, formAction] = useActionState(uploadAssignmentAction, null);
 
   return (
-    <form action={formAction} className="p-6 bg-zinc-900 border border-zinc-800 rounded-xl space-y-4">
-      <input type="file" name="projectZip" accept=".zip,.pdf" required className="text-sm text-zinc-400" />
-      {state?.error && <p className="text-xs text-rose-400">{state.error}</p>}
-      <SubmitButton label="Upload Project" />
+    <form action={formAction} className="p-6 bg-zinc-900 rounded-xl space-y-4">
+      {state?.error && <p className="text-rose-400 text-xs">{state.error}</p>}
+      <input type="text" name="studentId" placeholder="Student ID" required />
+      <button type="submit" className="px-4 py-2 bg-emerald-600 text-white rounded-lg">
+        Submit Assignment
+      </button>
     </form>
   );
 }`,
       },
-      keyTakeaway: "Combine file size validation with `useFormStatus` for a professional, glitch-free file upload workflow.",
+      keyTakeaway: "Clear pending states and validation feedback give students immediate reassurance that assignments were received.",
     },
 
     combinedExample: {
-      combinedTopics: ["useActionState", "useFormStatus", "Zod Validation", "revalidatePath"],
-      title: "End-to-End Course Creation Pipeline",
-      description: "Combining schema validation, pending indicators, and instant cache revalidation.",
+      combinedTopics: ["Forms", "Server Actions", "Validation"],
+      title: "Course Creation Modal with Error Handling",
+      description: "A complete course creation form featuring useActionState.",
       code: {
-        title: "Full Course Form Module",
-        description: "Complete production-ready form component.",
-        language: "tsx",
-        filename: "src/components/CreateCourseModal.tsx",
+        title: "Create Course Modal Form",
+        description: "Form with inline error display in plain JavaScript.",
+        language: "jsx",
+        filename: "src/components/CreateCourseForm.js",
         code: `"use client";
 
 import { useActionState } from "react";
-import { useFormStatus } from "react-dom";
+import { createCourseAction } from "@/actions/courseActions";
 
-function SaveBtn() {
-  const { pending } = useFormStatus();
-  return (
-    <button type="submit" disabled={pending} className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm">
-      {pending ? "Saving Course..." : "Create Course"}
-    </button>
-  );
-}
-
-export function CreateCourseModal() {
-  const [state, formAction] = useActionState(async (prev: any, formData: FormData) => {
-    // Simulated server action...
-    return { success: true };
-  }, null);
+export function CreateCourseForm() {
+  const [state, formAction] = useActionState(createCourseAction, null);
 
   return (
-    <form action={formAction} className="p-4 bg-zinc-900 border border-zinc-800 rounded-xl space-y-3">
-      <input name="code" placeholder="Course Code (e.g. INT257)" required className="px-3 py-2 bg-zinc-950 border border-zinc-800 rounded text-sm text-zinc-100" />
-      <SaveBtn />
+    <form action={formAction} className="space-y-4">
+      {state?.error && <p className="text-rose-400 text-sm">{state.error}</p>}
+      <input name="code" placeholder="e.g. INT257" required />
+      <input name="title" placeholder="Course Title" required />
+      <button type="submit">Create Course</button>
     </form>
   );
 }`,
       },
       stepByStepFlow: [
-        "User fills out course form",
-        "Clicks 'Create Course' -> `useFormStatus` turns button into 'Saving Course...'",
-        "Server Action validates data",
-        "Returns success and updates table",
+        "Teacher enters course code and title",
+        "Submits form",
+        "Server action validates unique code and minimum title length",
+        "On success, revalidates course catalog and closes modal",
       ],
     },
   },
@@ -1122,426 +1202,408 @@ export function CreateCourseModal() {
   {
     id: "optimistic-ui-mutations",
     unitId: "unit-3",
-    title: "Optimistic UI with useOptimistic",
-    shortSummary: "Learn how to update user interface state immediately before the server responds, providing instant app-like speed with automatic rollback on errors.",
+    title: "Optimistic UI Updates (useOptimistic)",
+    shortSummary: "Learn optimistic UI using the Social Media Heart analogy: tap heart -> turns red instantly (0ms) -> syncs with server -> auto-rollback if error.",
     order: 4,
-    tags: ["Optimistic UI", "useOptimistic", "Perceived Performance", "React 19"],
+    tags: ["Optimistic UI", "useOptimistic", "Like Button", "0ms Latency", "React 19"],
 
     simpleExplanation:
-      "When you 'Like' a photo on Instagram or Twitter, the heart turns red INSTANTLY in 0 milliseconds. The app doesn't freeze or show a loading spinner waiting for a database in California to respond. This is called **Optimistic UI**: the app assumes the server request will succeed and updates the screen immediately. If the server fails (e.g. network drops), Next.js automatically rolls back to the previous state with zero hassle!",
+      "Imagine you are browsing Instagram or Twitter:\n\nWhen you tap the **Heart (Like)** button on a post, what happens?\n\nDoes your phone freeze for 2 seconds while a radio signal flies to a satellite in space, talks to a server in California, and waits for a response?\n\n**NO!** The heart turns bright red **IMMEDIATELY (in 0 milliseconds!)**.\n\nYour app makes an **Optimistic Guess**: 'I bet this like will succeed! Let me show the user the red heart and increment the counter right now so they feel happy and fast.'\n\nIn the background, your phone quietly sends the message to the server:\n- **If the server says YES (Success)**: The heart stays red! Awesome!\n- **If the server says NO (Network crashed)**: React **automatically rolls back** the heart to empty and sets the counter back to the previous number!\n\nThis is **Optimistic UI**, and React provides a magical hook called `useOptimistic` to do this in plain JavaScript!",
 
     whyNeeded:
-      "Mobile network latency can take 500ms to 2000ms. Waiting for server confirmation on every small toggle or like makes an app feel sluggish and unresponsive. `useOptimistic` makes web applications feel as instantaneous as native iOS/Android apps.",
+      "On mobile networks with 300ms latency, waiting for the server before updating checkboxes or like buttons makes an app feel sluggish and broken. Optimistic UI gives your web app the instantaneous 0ms responsiveness of native iOS and Android apps.",
 
     reactVsNext: {
-      concept: "Optimistic State Management",
+      concept: "UI Mutation Responsiveness",
       reactWay: {
-        title: "Manual Optimistic State & Rollback",
-        code: `// In traditional React, you must manage two sets of state manually:
-function LikeButton({ initialLikes }) {
-  const [likes, setLikes] = useState(initialLikes);
-  const [previousLikes, setPreviousLikes] = useState(initialLikes);
+        title: "Pessimistic UI (Slow, Waits for Server)",
+        code: `// Pessimistic update waiting for the complete network roundtrip:
+function LikeButton() {
+  const [likes, setLikes] = useState(10);
+  const [loading, setLoading] = useState(false);
 
-  const handleLike = async () => {
-    setPreviousLikes(likes);
-    setLikes(likes + 1); // 1. Optimistic update
+  async function handleLike() {
+    setLoading(true);
+    // User stares at a spinner for 2 seconds:
+    const res = await fetch("/api/like", { method: "POST" });
+    const data = await res.json();
+    setLikes(data.likes);
+    setLoading(false);
+  }
 
-    try {
-      await fetch('/api/like', { method: 'POST' });
-    } catch (err) {
-      setLikes(previousLikes); // 2. Manual rollback on error!
-      alert("Failed to like post.");
-    }
-  };
+  return (
+    <button onClick={handleLike} disabled={loading}>
+      {loading ? "Saving..." : \`❤️ \${likes}\`}
+    </button>
+  );
 }`,
         explanation:
-          "In vanilla React, developers must manually save snapshots of previous state and write complex rollback logic in `catch` blocks.",
+          "Pessimistic UI assumes the worst: it makes the user wait for the network roundtrip before showing any feedback on screen.",
         drawbacks: [
-          "Prone to race conditions and synchronization bugs",
-          "High boilerplate code for simple state changes",
-          "Messy state management across multiple list items",
+          "Feels slow and clunky on mobile connections",
+          "Shows annoying loading spinners for simple button clicks",
+          "Users might double-click or get frustrated",
         ],
       },
       nextjsWay: {
-        title: "React 19 useOptimistic Hook",
-        code: `// Next.js & React 19: Built-in useOptimistic!
+        title: "Optimistic UI with React useOptimistic (0ms Instant Reaction!)",
+        code: `// Clean plain JavaScript with useOptimistic:
 "use client";
 
 import { useOptimistic } from "react";
-import { toggleTodoAction } from "@/actions/todos";
+import { likePostAction } from "@/actions/postActions";
 
-export function TodoItem({ todo }: { todo: { id: number; title: string; completed: boolean } }) {
-  // 1. Hook manages current server state vs temporary optimistic state:
-  const [optimisticTodo, setOptimisticTodo] = useOptimistic(
-    todo,
-    (current, update: boolean) => ({ ...current, completed: update })
+export function LikeButton({ initialLikes = 10 }) {
+  // useOptimistic takes (currentValue, updateFunction):
+  const [optimisticLikes, setOptimisticLikes] = useOptimistic(
+    initialLikes,
+    (current, amount) => current + amount
   );
 
-  const handleToggle = async () => {
-    // 2. Instantly updates the UI:
-    setOptimisticTodo(!optimisticTodo.completed);
-    // 3. Executes the Server Action in the background:
-    await toggleTodoAction(todo.id, !optimisticTodo.completed);
-  };
+  async function handleLike() {
+    // 1. Instantly flips the count to 11 in 0ms!
+    setOptimisticLikes(1);
+
+    // 2. Syncs with backend server in the background:
+    await likePostAction();
+    // If the server fails, React automatically rolls back to 10!
+  }
 
   return (
-    <div className="flex items-center gap-3">
-      <input
-        type="checkbox"
-        checked={optimisticTodo.completed}
-        onChange={handleToggle}
-      />
-      <span className={optimisticTodo.completed ? "line-through text-zinc-500" : "text-zinc-100"}>
-        {optimisticTodo.title}
-      </span>
-    </div>
+    <button onClick={handleLike} className="px-4 py-2 bg-zinc-900 rounded-xl">
+      ❤️ {optimisticLikes} Likes
+    </button>
   );
 }`,
         explanation:
-          "`useOptimistic` updates the UI instantly during the Server Action. If the Server Action rejects, React automatically discards the optimistic state and reverts to the real server data.",
+          "useOptimistic updates the screen in 0 milliseconds. If the server action throws an error or the network drops, React automatically discards the optimistic update and rolls back to the previous server state.",
         benefits: [
-          "Zero-latency 0ms instant UI response",
-          "Automatic rollback without manual catch blocks",
-          "Seamless coordination with Server Actions and `revalidatePath`",
+          "Instantaneous 0ms user feedback on clicks",
+          "Automatic rollback on failure (zero custom rollback logic)",
+          "Creates mobile-app-grade fluid user experience",
         ],
       },
       whyDifferent:
-        "`useOptimistic` is deeply integrated with React Transitions and Server Actions, providing declarative optimistic rendering with built-in rollback.",
+        "React integrates optimistic state directly into concurrent rendering transitions, ensuring seamless synchronization between client assumptions and server truth.",
       mentalShiftSummary:
-        "Pass real server state to `useOptimistic()`. Trigger the optimistic update right before `await serverAction()`.",
+        "Don't make users wait for the server on small toggles. Update the UI optimistically first with useOptimistic, then let the server catch up.",
     },
 
     basicExample: {
-      title: "Optimistic Todo Item Toggle",
-      description: "Toggling a todo item's completion status with 0ms visual feedback.",
-      language: "tsx",
-      filename: "src/components/OptimisticTodo.tsx",
-      code: `"use client";
+      title: "Optimistic Like Counter (10 -> 11 -> Server -> Rollback)",
+      description: "A complete Like counter demonstrating instant 0ms update and server synchronization in plain JavaScript.",
+      language: "jsx",
+      filename: "src/components/OptimisticLikeButton.js",
+      code: `// src/components/OptimisticLikeButton.js
+"use client";
 
-import { useOptimistic } from "react";
+import { useOptimistic, useTransition } from "react";
+import { toggleLikeAction } from "@/actions/likeActions";
 
-interface Todo {
-  id: number;
-  title: string;
-  completed: boolean;
-}
+export function OptimisticLikeButton({ postId, initialLikes = 10, initialLiked = false }) {
+  // useTransition coordinates the optimistic update with the server action:
+  const [isPending, startTransition] = useTransition();
 
-export function OptimisticTodo({
-  todo,
-  onToggleServer,
-}: {
-  todo: Todo;
-  onToggleServer: (id: number, nextStatus: boolean) => Promise<void>;
-}) {
-  const [optimisticTodo, setOptimisticTodo] = useOptimistic(
-    todo,
-    (state, nextStatus: boolean) => ({ ...state, completed: nextStatus })
+  // useOptimistic takes (currentServerState, updateFunction):
+  const [optimisticState, setOptimisticState] = useOptimistic(
+    { likes: initialLikes, liked: initialLiked },
+    (state, change) => ({
+      likes: state.liked ? state.likes - 1 : state.likes + 1,
+      liked: !state.liked,
+    })
   );
 
-  const handleToggle = async () => {
-    const nextVal = !optimisticTodo.completed;
-    setOptimisticTodo(nextVal); // 0ms Instant UI update
-    await onToggleServer(todo.id, nextVal); // Server sync
-  };
+  function handleToggleLike() {
+    // Wrap in startTransition for instant UI flip:
+    startTransition(async () => {
+      // 1. Instant 0ms local state flip:
+      setOptimisticState(!optimisticState.liked);
+
+      // 2. Background server call:
+      try {
+        await toggleLikeAction(postId, !optimisticState.liked);
+      } catch (err) {
+        console.error("Like failed on server, rolling back automatically!");
+        // React automatically reverts optimisticState back to server state!
+      }
+    });
+  }
 
   return (
-    <div
-      onClick={handleToggle}
-      className={\`flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-all \${
-        optimisticTodo.completed
-          ? "bg-zinc-950/60 border-zinc-800 text-zinc-500"
-          : "bg-zinc-900 border-zinc-700 text-zinc-100 hover:border-emerald-500/50"
+    <button
+      onClick={handleToggleLike}
+      className={\`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all \${
+        optimisticState.liked
+          ? "bg-rose-500/20 text-rose-400 border border-rose-500/30"
+          : "bg-zinc-900 text-zinc-300 border border-zinc-800 hover:border-zinc-700"
       }\`}
     >
-      <div className="flex items-center gap-3">
-        <div
-          className={\`w-5 h-5 rounded-md flex items-center justify-center border text-xs \${
-            optimisticTodo.completed
-              ? "bg-emerald-600 border-emerald-600 text-white"
-              : "border-zinc-600"
-          }\`}
-        >
-          {optimisticTodo.completed && "✓"}
-        </div>
-        <span className={optimisticTodo.completed ? "line-through" : ""}>
-          {optimisticTodo.title}
-        </span>
-      </div>
-      <span className="text-xs font-mono text-zinc-500">
-        {optimisticTodo.completed ? "Done" : "Pending"}
-      </span>
-    </div>
+      <span>{optimisticState.liked ? "❤️" : "🤍"}</span>
+      <span>{optimisticState.likes} Likes</span>
+    </button>
   );
 }`,
       explanation:
-        "The checkbox toggles the exact millisecond the student clicks, while the network request executes in the background.",
-      outputPreview: "Smooth interactive checklist that ticks instantly with green checkmark.",
+        "Line-by-line explanation:\n- Line 2: 'use client'; is needed because button clicks and React hooks run in the browser.\n- Line 4: import { useOptimistic, useTransition } from 'react'; imports React's optimistic update tools.\n- Line 8: const [isPending, startTransition] = useTransition(); allows us to trigger an asynchronous transition.\n- Line 11-17: useOptimistic creates an optimistic state. The second argument is a pure JavaScript function that calculates the new state (e.g. 10 -> 11).\n- Line 22: setOptimisticState(...) updates the screen IMMEDIATELY in 0 milliseconds.\n- Line 25: await toggleLikeAction(...) sends the update to the server in the background.\n- Line 27-29: If the server throws an error, React automatically cancels the optimistic change and restores the original value (10)!\n\nWhat happens in the browser?\n1. The button shows '🤍 10 Likes'.\n2. The student clicks the button.\n3. In 0 milliseconds (faster than the blink of an eye), the heart turns red and displays '❤️ 11 Likes'.\n4. The server finishes updating in the background without disturbing the user.\n5. If the user's internet was disconnected, React smoothly flips back to '🤍 10 Likes'!",
+      outputPreview: "A like button that flips instantly from 10 to 11 on click with zero delay.",
     },
 
     moreExamples: [
       {
-        title: "Optimistic Chat / Comment Stream",
-        description: "Displaying a newly sent message in a chat feed immediately while the server saves it.",
-        language: "tsx",
-        filename: "src/components/OptimisticChat.tsx",
-        code: `"use client";
+        title: "Optimistic Checklist Task Toggler in Plain JavaScript",
+        description: "Checking off a todo item instantly while syncing with the backend in the background.",
+        language: "jsx",
+        filename: "src/components/OptimisticTodoList.js",
+        code: `// src/components/OptimisticTodoList.js
+"use client";
 
-import { useOptimistic, useRef } from "react";
+import { useOptimistic, useTransition } from "react";
+import { toggleTodoAction } from "@/actions/todoActions";
 
-interface Message {
-  id: string;
-  text: string;
-  sending?: boolean;
-}
+export function OptimisticTodoList({ initialTodos }) {
+  const [, startTransition] = useTransition();
 
-export function OptimisticChat({
-  messages,
-  sendMessageAction,
-}: {
-  messages: Message[];
-  sendMessageAction: (text: string) => Promise<void>;
-}) {
-  const formRef = useRef<HTMLFormElement>(null);
-
-  const [optimisticMessages, addOptimisticMessage] = useOptimistic(
-    messages,
-    (state, newText: string) => [
-      ...state,
-      { id: "temp-" + Date.now(), text: newText, sending: true }
-    ]
+  const [optimisticTodos, setOptimisticTodos] = useOptimistic(
+    initialTodos,
+    (todos, { id, completed }) =>
+      todos.map((t) => (t.id === id ? { ...t, completed } : t))
   );
 
-  async function handleSubmit(formData: FormData) {
-    const text = formData.get("message") as string;
-    formRef.current?.reset();
-
-    // 1. Immediately append to chat:
-    addOptimisticMessage(text);
-    // 2. Server save:
-    await sendMessageAction(text);
+  function handleCheck(id, currentStatus) {
+    const nextStatus = !currentStatus;
+    startTransition(async () => {
+      // 0ms instant checkbox toggle:
+      setOptimisticTodos({ id, completed: nextStatus });
+      // Background server synchronization:
+      await toggleTodoAction(id, nextStatus);
+    });
   }
 
   return (
-    <div className="space-y-4 p-4 bg-zinc-900 border border-zinc-800 rounded-2xl">
-      <div className="space-y-2 max-h-60 overflow-y-auto">
-        {optimisticMessages.map((m) => (
-          <div
-            key={m.id}
-            className={\`p-3 rounded-lg text-sm max-w-[80%] \${
-              m.sending
-                ? "bg-zinc-800/60 text-zinc-400 italic border border-zinc-700/50 ml-auto"
-                : "bg-emerald-600/20 text-emerald-300 border border-emerald-500/30 ml-auto"
-            }\`}
-          >
-            <p>{m.text}</p>
-            {m.sending && <span className="text-[10px] text-amber-400">Sending...</span>}
-          </div>
-        ))}
-      </div>
-
-      <form ref={formRef} action={handleSubmit} className="flex gap-2">
-        <input name="message" required placeholder="Type a message..." className="flex-1 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg text-sm text-zinc-100" />
-        <button type="submit" className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium">Send</button>
-      </form>
-    </div>
+    <ul className="space-y-2">
+      {optimisticTodos.map((todo) => (
+        <li
+          key={todo.id}
+          onClick={() => handleCheck(todo.id, todo.completed)}
+          className="p-3 bg-zinc-900 border border-zinc-800 rounded-xl flex items-center gap-3 cursor-pointer select-none"
+        >
+          <span className={todo.completed ? "text-emerald-400" : "text-zinc-600"}>
+            {todo.completed ? "✅" : "⬜"}
+          </span>
+          <span className={todo.completed ? "line-through text-zinc-500" : "text-zinc-200"}>
+            {todo.title}
+          </span>
+        </li>
+      ))}
+    </ul>
   );
 }`,
         explanation:
-          "The sent message appears in the list with an italic 'Sending...' badge immediately, turning solid once the server finishes saving.",
+          "The checkbox flips checkmark state instantaneously. Even on high-latency mobile networks, the UI feels native and immediate.",
       },
     ],
 
     multipleWays: [
       {
         name: "useOptimistic Hook (Recommended)",
-        syntax: "const [optState, setOpt] = useOptimistic(state, updateFn)",
-        codeSnippet: `const [optLikes, addOptLike] = useOptimistic(likes, (c, val) => c + val);`,
-        howItWorks: "Temporary state that lasts only for the duration of the current async action.",
-        pros: ["Auto rollback on failure", "Zero custom state sync logic", "Works with Server Actions"],
-        cons: ["Requires 'use client'"],
-        whenToUse: "For all user actions requiring instant feedback: likes, upvotes, task toggles, chat messages.",
+        syntax: "const [optimisticState, setOptimisticState] = useOptimistic(state, updateFn)",
+        codeSnippet: "const [optLikes, setOptLikes] = useOptimistic(likes, (c, v) => c + v);",
+        howItWorks: "Native React 19 hook that handles temporary optimistic state and automatic rollback on failure.",
+        pros: ["0ms latency", "Automatic rollback on error", "Zero custom manual cache revert code"],
+        cons: ["Requires useTransition or Server Action context"],
+        whenToUse: "Like buttons, bookmark toggles, todo checkmarks, voting widgets.",
         isRecommended: true,
+      },
+      {
+        name: "Manual useState Optimistic Management",
+        syntax: "useState + try/catch rollback",
+        codeSnippet: "setLikes(likes + 1); try { await save(); } catch { setLikes(likes); }",
+        howItWorks: "Manually saving the old state and catching errors to restore it.",
+        pros: ["Familiar standard pattern"],
+        cons: ["Prone to race conditions and messy boilerplate code"],
+        whenToUse: "Legacy React 18 applications.",
       },
     ],
 
     decisionGuide: {
-      recommendationSummary: "Use `useOptimistic` for high-frequency user actions (likes, toggles, bookmarks, comments).",
+      recommendationSummary: "Use useOptimistic for rapid binary toggles (like, bookmark, complete) and fast message sending. Use standard Server Actions for heavy destructive operations (like deleting an entire account).",
       scenarios: [
         {
-          scenario: "Marking a syllabus lesson as 'Completed'",
-          recommendedApproach: "`useOptimistic` checklist toggle",
-          reason: "Students expect the checkbox to tick immediately without waiting for server response.",
+          scenario: "Toggling a course bookmark or upvoting a forum answer",
+          recommendedApproach: "useOptimistic",
+          reason: "Users expect immediate 0ms visual feedback on likes and bookmarks.",
         },
         {
-          scenario: "Submitting a payment transaction",
-          recommendedApproach: "Standard pending button (no optimistic state)",
-          reason: "Financial transactions must verify card funds before showing success.",
+          scenario: "Purchasing a course with credit card or deleting an account",
+          recommendedApproach: "Standard Server Action with loading spinner (Pessimistic)",
+          reason: "Financial transactions and irreversible deletions must be verified by the server first.",
         },
       ],
     },
 
     commonMistakes: [
       {
-        mistakeTitle: "Using useOptimistic outside of an async transition or Server Action",
-        badCode: `// ❌ BAD: Calling optimistic setter in a synchronous function
-function handleClick() {
-  setOptimisticValue(10); // Resets immediately because no pending action is active!
+        mistakeTitle: "Calling setOptimistic outside of a transition or Server Action",
+        badCode: `// ❌ BAD: Calling setOptimistic in a plain event handler without startTransition
+function handleLike() {
+  setOptimisticLikes(1); // 💥 Error: An optimistic update was performed outside a transition!
+  await likeAction();
 }`,
-        goodCode: `// ✅ GOOD: Call optimistic setter inside an async action or startTransition
-async function handleAction() {
-  setOptimisticValue(10);
-  await serverMutation();
+        goodCode: `// ✅ GOOD: Wrap inside startTransition or a form action!
+function handleLike() {
+  startTransition(async () => {
+    setOptimisticLikes(1);
+    await likeAction();
+  });
 }`,
-        whyItBreaks: "`useOptimistic` only retains its temporary value while an async action is pending.",
-        howToFix: "Always call the optimistic setter right before `await`ing your Server Action.",
+        whyItBreaks: "React requires optimistic updates to be registered within a concurrent transition so it knows how to rollback if the async task fails.",
+        howToFix: "Wrap the call inside startTransition(async () => { ... }).",
       },
     ],
 
     bestPractices: [
       {
-        title: "Clearly Indicate Pending Optimistic Items",
-        rule: "Add visual cues (e.g. lower opacity or a subtle 'Saving...' indicator) to items currently in optimistic state.",
-        explanation: "Helps users understand that the item is currently synchronizing with the cloud.",
+        title: "Use for Instant User Feedback",
+        rule: "Apply optimistic updates to user actions with high success probability (likes, stars, checkmarks).",
+        explanation: "Optimistic UI transforms web apps to feel as fast and responsive as native mobile apps.",
       },
     ],
 
     exercises: [
       {
         id: "u3-ex-4",
-        title: "Build an Optimistic Upvote Widget",
+        title: "Build an Optimistic Bookmark Star",
         difficulty: "medium",
         estimatedMinutes: 8,
         prompt:
-          "Create a Client Component `UpvoteButton` using `useOptimistic` that increments the upvote counter immediately when clicked.",
-        initialCode: `// TODO: Build Optimistic Upvote Button
+          "Write a Client Component in src/components/BookmarkStar.js in plain JavaScript using useOptimistic that toggles a boolean 'isBookmarked' state instantly from false to true when clicked.",
+        initialCode: `// src/components/BookmarkStar.js
 "use client";
-
-import { useOptimistic } from "react";
-
-export function UpvoteButton({ initialVotes }: { initialVotes: number }) {
-  // TODO: Implement useOptimistic
-  return (
-    <button>
-      ▲ 0
-    </button>
-  );
-}`,
-        expectedOutput: "A button incrementing its counter immediately on click.",
-        hints: ["`const [votes, addVote] = useOptimistic(initialVotes, (state, amount: number) => state + amount);`"],
-        solutionCode: `"use client";
 
 import { useOptimistic, useTransition } from "react";
 
-export function UpvoteButton({ initialVotes = 0 }: { initialVotes?: number }) {
-  const [isPending, startTransition] = useTransition();
-  const [votes, addVote] = useOptimistic(
-    initialVotes,
-    (current, amount: number) => current + amount
+export function BookmarkStar({ initialBookmarked = false }) {
+  // TODO: Implement useOptimistic star toggle
+  return <button>Bookmark</button>;
+}`,
+        expectedOutput: "A button that toggles between bookmarked star states with 0ms delay.",
+        hints: ["Use useOptimistic(initialBookmarked, (curr) => !curr) and startTransition"],
+        solutionCode: `// src/components/BookmarkStar.js
+"use client";
+
+import { useOptimistic, useTransition } from "react";
+
+export function BookmarkStar({ initialBookmarked = false }) {
+  const [, startTransition] = useTransition();
+  const [optimisticBookmarked, setOptimisticBookmarked] = useOptimistic(
+    initialBookmarked,
+    (current) => !current
   );
 
-  const handleUpvote = () => {
+  function handleToggle() {
     startTransition(async () => {
-      addVote(1); // 0ms Optimistic bump
-      // Simulated server delay:
-      await new Promise((r) => setTimeout(r, 800));
+      setOptimisticBookmarked(!optimisticBookmarked);
+      // Simulate server delay:
+      await new Promise((r) => setTimeout(r, 500));
     });
-  };
+  }
 
   return (
     <button
-      onClick={handleUpvote}
-      className="flex items-center gap-2 px-3.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 hover:border-emerald-500/50 text-zinc-100 rounded-lg text-sm font-medium transition-all active:scale-95"
+      onClick={handleToggle}
+      className="px-3 py-1.5 rounded-lg border border-zinc-800 bg-zinc-900 text-sm"
     >
-      <span className="text-emerald-400">▲</span>
-      <span>{votes}</span>
+      {optimisticBookmarked ? "★ Saved" : "☆ Save"}
     </button>
   );
 }`,
-        solutionExplanation:
-          "`useOptimistic` increments the vote count the exact millisecond the student clicks, creating a fluid native app feeling.",
+        solutionExplanation: "useOptimistic flips the star display in 0ms while the server sync runs in the background.",
       },
     ],
 
     quizzes: [
       {
         id: "u3-q4",
-        question: "What happens if a Server Action fails after useOptimistic has already updated the screen?",
-        syllabusTopic: "useOptimistic Error Rollback",
+        syllabusTopic: "Optimistic UI (useOptimistic)",
+        question: "What happens if a backend Server Action fails during an optimistic update?",
+        conceptualExplanation: "When an async transition fails or rejects, React automatically discards the optimistic update and reverts to the server state.",
         options: [
-          { id: "a", text: "The website crashes with a blue screen", isCorrect: false, explanation: "React catches the transition rejection." },
-          { id: "b", text: "React automatically reverts the UI back to the previous server state without extra code", isCorrect: true, explanation: "Correct! When the async transition fails, React automatically discards the optimistic update." },
-          { id: "c", text: "The student's browser is locked", isCorrect: false, explanation: "No." },
-          { id: "d", text: "The database is deleted", isCorrect: false, explanation: "No." },
+          { id: "a", text: "The website crashes with a blue screen", isCorrect: false, explanation: "React catches the rejection gracefully." },
+          { id: "b", text: "React automatically reverts the UI back to the previous server state without extra code", isCorrect: true, explanation: "Correct! When the async transition fails, React automatically rolls back the optimistic change." },
+          { id: "c", text: "The student's browser is permanently locked", isCorrect: false, explanation: "No." },
+          { id: "d", text: "The entire database is deleted", isCorrect: false, explanation: "No." },
         ],
-        conceptualExplanation:
-          "`useOptimistic` is built with automatic rollbacks. If the server throws an error, React immediately restores the real server state.",
       },
     ],
 
     realWorldExample: {
-      domain: "Collaborative Project Management Board",
-      description: "How tools like Linear, Jira, or Trello move tasks across columns instantly before the backend finishes updating.",
+      domain: "Interactive Kanban Board",
+      description: "How task management tools like Trello or Linear move cards between columns in 0ms.",
       code: {
-        title: "Kanban Card Status Changer",
-        description: "Optimistic column shifting.",
-        language: "tsx",
-        filename: "src/components/KanbanCard.tsx",
+        title: "Optimistic Kanban Card Mover",
+        description: "Moving a card from 'Todo' to 'Done' instantaneously in plain JavaScript.",
+        language: "jsx",
+        filename: "src/components/KanbanCard.js",
         code: `"use client";
 
-import { useOptimistic } from "react";
+import { useOptimistic, useTransition } from "react";
+import { moveCardAction } from "@/actions/kanbanActions";
 
-export function KanbanCard({ task, moveTaskAction }: any) {
-  const [optStatus, setOptStatus] = useOptimistic(task.status, (_, next) => next);
+export function KanbanCard({ card }) {
+  const [, startTransition] = useTransition();
+  const [optStatus, setOptStatus] = useOptimistic(card.status, (_, next) => next);
 
-  const moveToDone = async () => {
-    setOptStatus("done");
-    await moveTaskAction(task.id, "done");
-  };
+  function handleMove(nextStatus) {
+    startTransition(async () => {
+      setOptStatus(nextStatus);
+      await moveCardAction(card.id, nextStatus);
+    });
+  }
 
   return (
-    <div className="p-3 bg-zinc-900 border border-zinc-800 rounded-lg">
-      <p className="text-sm font-medium">{task.title}</p>
-      <button onClick={moveToDone} className="text-xs text-emerald-400 mt-2">
-        Status: {optStatus}
-      </button>
+    <div className="p-3 bg-zinc-900 rounded-xl border border-zinc-800">
+      <p>{card.title}</p>
+      <button onClick={() => handleMove("done")}>Mark Done ({optStatus})</button>
     </div>
   );
 }`,
       },
-      keyTakeaway: "Optimistic UI eliminates lag in interactive productivity applications.",
+      keyTakeaway: "Optimistic card movements give web apps the smooth 60fps fluidity of native desktop apps.",
     },
 
     combinedExample: {
-      combinedTopics: ["useOptimistic", "Server Actions", "revalidatePath"],
-      title: "Optimistic Task Completion with Cache Sync",
-      description: "Combining instant UI toggling with server-side database mutation.",
+      combinedTopics: ["Optimistic UI", "Server Actions", "Client Components"],
+      title: "Interactive Study Checklist",
+      description: "Checklist combining useOptimistic and Server Actions with auto-rollback.",
       code: {
-        title: "Complete Optimistic Checklist Component",
-        description: "Full optimistic component with Server Action.",
-        language: "tsx",
-        filename: "src/components/Checklist.tsx",
+        title: "Study Checklist Component",
+        description: "0ms checklist toggling in plain JavaScript.",
+        language: "jsx",
+        filename: "src/components/Checklist.js",
         code: `"use client";
 
-import { useOptimistic } from "react";
+import { useOptimistic, useTransition } from "react";
+import { toggleTopicAction } from "@/actions/studyActions";
 
-export function SyllabusChecklist({ items, toggleAction }: any) {
-  const [optItems, setOpt] = useOptimistic(items, (state: any[], { id, done }) =>
-    state.map(item => item.id === id ? { ...item, completed: done } : item)
+export function Checklist({ topics }) {
+  const [, startTransition] = useTransition();
+  const [optTopics, setOptTopics] = useOptimistic(
+    topics,
+    (list, { id, done }) => list.map(t => t.id === id ? { ...t, done } : t)
   );
+
+  function toggleTopic(id, done) {
+    startTransition(async () => {
+      setOptTopics({ id, done });
+      await toggleTopicAction(id, done);
+    });
+  }
 
   return (
     <div className="space-y-2">
-      {optItems.map(item => (
-        <div
-          key={item.id}
-          onClick={async () => {
-            setOpt({ id: item.id, done: !item.completed });
-            await toggleAction(item.id, !item.completed);
-          }}
-          className="p-3 bg-zinc-900 border border-zinc-800 rounded-xl cursor-pointer flex items-center justify-between"
-        >
-          <span className={item.completed ? "line-through text-zinc-500" : "text-zinc-200"}>{item.title}</span>
-          <span className="text-emerald-400">{item.completed ? "✓" : "○"}</span>
+      {optTopics.map(t => (
+        <div key={t.id} onClick={() => toggleTopic(t.id, !t.done)} className="cursor-pointer">
+          {t.done ? "✅" : "⬜"} {t.name}
         </div>
       ))}
     </div>
@@ -1549,10 +1611,10 @@ export function SyllabusChecklist({ items, toggleAction }: any) {
 }`,
       },
       stepByStepFlow: [
-        "User clicks task item",
-        "`setOpt` strikes through text in 0 milliseconds",
-        "`toggleAction` sends mutation to server in background",
-        "Server updates database and page cache",
+        "User clicks topic checkbox",
+        "0ms: checkmark flips to green tick",
+        "Background: Server Action saves completion to database",
+        "If connection fails: checkmark flips back automatically",
       ],
     },
   },

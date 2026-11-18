@@ -10,6 +10,7 @@ import {
 import { guidedProjects } from "@/data/projects";
 import { CodeBlock } from "@/components/ui/CodeBlock";
 import { CodeSandbox } from "@/components/classroom/CodeSandbox";
+import { WashiTape, StickerBadge, MildlinerText } from "@/components/ui/StudyStickers";
 
 interface ProjectDetailProps {
   params: Promise<{ projectId: string }>;
@@ -39,28 +40,30 @@ export default async function ProjectDetailPage({ params }: ProjectDetailProps) 
       {/* Top Back Navigation */}
       <Link
         href="/projects"
-        className="inline-flex items-center gap-1.5 text-xs font-mono text-zinc-600 hover:text-emerald-700 font-bold transition-colors"
+        className="inline-flex items-center gap-1.5 text-xs font-mono text-stone-600 hover:text-emerald-700 font-bold transition-colors"
       >
         <ChevronLeft className="h-4 w-4" />
         <span>Back to All Projects</span>
       </Link>
 
       {/* Project Banner Header */}
-      <div className="p-8 rounded-3xl bg-white border border-zinc-200 space-y-4 shadow-xs">
+      <div className="relative p-8 pt-9 rounded-3xl bg-white border border-[#e8e2d8] space-y-4 shadow-2xs">
+        <WashiTape color="matcha" width="w-32" tilt="-rotate-1" />
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
-            Project #{project.projectNumber}
-          </span>
-          <span className="text-xs font-mono uppercase px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold">
-            Level: {project.difficulty}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+              Project #{project.projectNumber}
+            </span>
+            <StickerBadge emoji="🚀" label={project.difficulty} color="sky" size="sm" />
+          </div>
+          <StickerBadge emoji="✨" label="Pure JavaScript" color="honey" size="sm" />
         </div>
 
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-zinc-900 tracking-tight">
-          {project.title}
+        <h1 className="text-3xl sm:text-4xl font-extrabold text-stone-900 tracking-tight">
+          <MildlinerText color="matcha">{project.title}</MildlinerText>
         </h1>
 
-        <p className="text-sm text-zinc-600 max-w-3xl leading-relaxed font-sans">
+        <p className="text-sm text-stone-600 max-w-3xl leading-relaxed font-sans">
           {project.description}
         </p>
 
@@ -112,28 +115,35 @@ export default async function ProjectDetailPage({ params }: ProjectDetailProps) 
         </div>
 
         <div className="space-y-8">
-          {project.steps.map((step) => (
-            <div key={step.stepNumber} className="p-6 sm:p-7 rounded-3xl bg-white border border-zinc-200 space-y-4 shadow-xs">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="w-7 h-7 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center font-mono shadow-xs">
-                    {step.stepNumber}
-                  </span>
-                  <h3 className="text-base font-bold text-zinc-900">{step.title}</h3>
+          {project.steps.map((step, idx) => {
+            const stepTapes: Array<"matcha" | "sky" | "honey" | "sakura" | "lavender" | "latte"> = [
+              "honey", "matcha", "sky", "lavender", "sakura"
+            ];
+            const tape = stepTapes[idx % stepTapes.length];
+            return (
+              <div key={step.stepNumber} className="relative p-6 sm:p-7 pt-7 rounded-3xl bg-white border border-[#e8e2d8] space-y-4 shadow-2xs hover:shadow-sm transition-shadow">
+                <WashiTape color={tape} width="w-24" tilt={idx % 2 === 0 ? "-rotate-1" : "rotate-1"} />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="w-7 h-7 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center font-mono shadow-xs">
+                      {step.stepNumber}
+                    </span>
+                    <h3 className="text-base font-bold text-stone-900">{step.title}</h3>
+                  </div>
+                  <span className="text-xs font-mono font-medium text-stone-500">{step.filename}</span>
                 </div>
-                <span className="text-xs font-mono font-medium text-zinc-500">{step.filename}</span>
-              </div>
 
               <p className="text-xs sm:text-sm text-zinc-700 font-sans">{step.description}</p>
 
-              <CodeBlock code={step.code} language="tsx" filename={step.filename} />
+              <CodeBlock code={step.code} language="jsx" filename={step.filename} />
 
               <p className="text-xs text-zinc-700 bg-emerald-50/50 p-4 rounded-2xl border border-emerald-200 leading-relaxed font-sans">
                 <strong>Why this works:</strong> {step.explanation}
               </p>
             </div>
-          ))}
-        </div>
+          );
+        })}
+      </div>
       </div>
 
       {/* Interactive Live Sandbox */}

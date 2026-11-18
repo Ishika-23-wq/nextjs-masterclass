@@ -30,35 +30,45 @@ export function TutorialSidebar({ currentUnitId, currentTopicId }: TutorialSideb
   };
 
   return (
-    <aside className="w-full lg:w-[280px] shrink-0 bg-white border border-zinc-200/90 rounded-3xl p-4 space-y-4 lg:sticky lg:top-20 lg:max-h-[calc(100vh-100px)] lg:overflow-y-auto shadow-xs">
+    <aside className="relative w-full lg:w-[280px] shrink-0 bg-white border border-[#e5ded6] rounded-3xl p-4 sm:p-5 space-y-4 lg:sticky lg:top-20 lg:max-h-[calc(100vh-100px)] lg:overflow-y-auto shadow-2xs">
+      {/* Top Decorative Washi Tape */}
+      <div
+        className="h-4 w-24 -rotate-1 absolute -top-2 left-1/2 -translate-x-1/2 pointer-events-none rounded-xs opacity-90 shadow-xs"
+        style={{
+          backgroundColor: "rgba(163, 214, 175, 0.7)",
+          backgroundImage: "repeating-linear-gradient(45deg, transparent, transparent 6px, rgba(255,255,255,0.4) 6px, rgba(255,255,255,0.4) 12px)",
+        }}
+        aria-hidden="true"
+      />
+
       {/* Sidebar Header */}
-      <div className="flex items-center justify-between border-b border-zinc-200 pb-3">
+      <div className="flex items-center justify-between border-b border-[#e8e2d8] pb-3 pt-1">
         <div className="flex items-center gap-2">
-          <BookOpen className="h-4 w-4 text-emerald-600" />
-          <span className="font-bold text-xs uppercase tracking-wider text-zinc-900 font-mono">
-            Syllabus Topics
+          <span className="text-base">📖</span>
+          <span className="font-bold text-xs uppercase tracking-wider text-stone-900 font-mono">
+            Study Planner
           </span>
         </div>
-        <span className="text-[11px] font-mono font-bold text-amber-700 px-1.5 py-0.5 rounded bg-amber-50 border border-amber-200">
+        <span className="text-[11px] font-mono font-bold text-[#7a5005] px-2 py-0.5 rounded-full bg-[#fef9e8] border border-[#fce29d] shadow-2xs">
           INT257
         </span>
       </div>
 
-      {/* Bootcamp Quick Link Banner */}
+      {/* Practice Quick Link Banner with Cute Lavender Study Journal Feel */}
       <Link
-        href="/bootcamp"
-        className="flex items-center justify-between p-2.5 rounded-2xl bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 text-purple-950 hover:border-purple-400 transition-all group shadow-2xs"
+        href="/practice"
+        className="flex items-center justify-between p-3 rounded-2xl bg-gradient-to-r from-[#f6f1fc] to-[#fdf0f4] border border-[#ddc8f6] text-stone-800 hover:border-[#8b65bc] transition-all group shadow-2xs hover:scale-[1.01]"
       >
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-xl bg-purple-600 text-white shadow-2xs">
-            <Mic className="h-3.5 w-3.5" />
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-[#8b65bc] text-white flex items-center justify-center shadow-2xs text-sm">
+            💻
           </div>
           <div>
-            <div className="text-[11px] font-extrabold text-purple-900 leading-tight">4-Hr Bootcamp Script</div>
-            <div className="text-[10px] text-purple-700 font-mono">JS &amp; ELI10 Edition</div>
+            <div className="text-[11px] font-extrabold text-stone-900 leading-tight">Practice Arena</div>
+            <div className="text-[10px] text-[#8b65bc] font-mono font-bold">Sample Problems &amp; Solutions</div>
           </div>
         </div>
-        <span className="text-xs text-purple-600 font-bold group-hover:translate-x-0.5 transition-transform">→</span>
+        <span className="text-xs text-[#8b65bc] font-bold group-hover:translate-x-0.5 transition-transform">→</span>
       </Link>
 
       {/* Quick Search */}

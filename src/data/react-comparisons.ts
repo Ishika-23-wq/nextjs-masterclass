@@ -50,9 +50,9 @@ export function App() {
     nextjsWay: {
       title: "Next.js App Router (File-System Routing)",
       code: `// In Next.js, folders determine the URL automatically:
-// src/app/page.tsx                  -> http://localhost:3000/
-// src/app/courses/page.tsx          -> http://localhost:3000/courses
-// src/app/courses/[id]/page.tsx     -> http://localhost:3000/courses/101
+// app/page.js                  -> http://localhost:3000/
+// app/courses/page.js          -> http://localhost:3000/courses
+// app/courses/[id]/page.js     -> http://localhost:3000/courses/101
 
 import Link from "next/link";
 
@@ -61,7 +61,7 @@ export default function Nav() {
   return <Link href="/courses">Courses</Link>;
 }`,
       description:
-        "Every folder containing `page.tsx` is automatically a route. Layouts (`layout.tsx`), loading skeletons (`loading.tsx`), and error boundaries (`error.tsx`) are colocated directly in the folder.",
+        "Every folder containing `page.js` is automatically a route. Layouts (`layout.js`), loading skeletons (`loading.js`), and error boundaries (`error.js`) are colocated directly in the folder.",
       advantages: [
         "Zero router configuration code",
         "HTML is rendered on the server for instant page delivery",
@@ -71,7 +71,7 @@ export default function Nav() {
     },
     whyDifferent:
       "Next.js connects the file system directly to the server rendering pipeline, turning directories into fast server-rendered routes without client router boilerplate.",
-    keyTakeaway: "Stop writing `<Route path='...'>`. Simply create a folder and add `page.tsx`.",
+    keyTakeaway: "Stop writing `<Route path='...'>`. Simply create a folder and add `page.js`.",
   },
 
   {
@@ -147,17 +147,17 @@ function CourseList() {
     },
     nextjsWay: {
       title: "Direct async/await in Server Components",
-      code: `// Next.js: Clean, direct async/await!
+      code: `// Next.js: Clean, direct async/await in plain JavaScript!
 export default async function CourseList() {
   // Runs on server before HTML is sent:
-  const res = await fetch("https://api.university.com/courses", {
+  const res = await fetch("https://jsonplaceholder.typicode.com/posts?_limit=5", {
     next: { revalidate: 60 } // Automatic ISR caching!
   });
   const courses = await res.json();
 
   return (
     <ul>
-      {courses.map((c: any) => (
+      {courses.map((c) => (
         <li key={c.id}>{c.title}</li>
       ))}
     </ul>
@@ -234,25 +234,25 @@ app.listen(5000);`,
       ],
     },
     nextjsWay: {
-      title: "Built-in Route Handlers (app/api/.../route.ts)",
-      code: `// src/app/api/students/route.ts
+      title: "Built-in Route Handlers (app/api/.../route.js)",
+      code: `// app/api/students/route.js (Pure JavaScript)
 // Runs on the exact same domain: http://localhost:3000/api/students
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
-export async function GET(request: NextRequest) {
-  return NextResponse.json([{ id: 1, name: "Ishika", course: "INT257" }]);
+export async function GET(request) {
+  return NextResponse.json([{ id: 1, name: "Rahul", course: "CSE" }]);
 }`,
       description:
-        "Route Handlers allow writing backend REST API endpoints in TypeScript directly inside the Next.js project.",
+        "Route Handlers allow writing backend REST API endpoints in plain JavaScript directly inside the Next.js project.",
       advantages: [
         "Zero CORS errors: frontend and backend share the exact same domain",
-        "Shared TypeScript interfaces across UI and APIs",
+        "Clean, simple JavaScript across UI and APIs",
         "Single-command unified deployment",
       ],
     },
     whyDifferent:
       "Next.js is a full-stack framework with built-in serverless and Edge API execution.",
-    keyTakeaway: "Write backend endpoints in `src/app/api/.../route.ts` with standard Web `NextResponse.json()`.",
+    keyTakeaway: "Write backend endpoints in `app/api/.../route.js` with standard Web `NextResponse.json()`.",
   },
 
   {
@@ -282,10 +282,10 @@ function Form() {
     },
     nextjsWay: {
       title: "Server Actions (<form action={myServerAction}>)",
-      code: `// Next.js: Direct Server Action!
+      code: `// Next.js: Direct Server Action in Pure JavaScript!
 import { revalidatePath } from "next/cache";
 
-async function addStudent(formData: FormData) {
+async function addStudent(formData) {
   "use server"; // Runs strictly on the server!
   const name = formData.get("name");
   await db.insert({ name });
@@ -309,7 +309,7 @@ export default function Form() {
       ],
     },
     whyDifferent:
-      "Next.js Server Actions act as type-safe RPCs connecting frontend DOM elements directly to backend database logic.",
+      "Next.js Server Actions act as direct RPCs connecting frontend DOM elements directly to backend database logic.",
     keyTakeaway: "Pass `'use server'` functions directly to `<form action={...}>`.",
   },
 
@@ -396,6 +396,6 @@ export async function generateMetadata({ params }) {
     },
     whyDifferent:
       "Next.js evaluates metadata on the server before transmitting the HTML document to the user or crawler.",
-    keyTakeaway: "Export `metadata` or `generateMetadata()` from `page.tsx` or `layout.tsx`.",
+    keyTakeaway: "Export `metadata` or `generateMetadata()` from `page.js` or `layout.js`.",
   },
 ];

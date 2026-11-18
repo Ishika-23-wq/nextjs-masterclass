@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Search, BookOpen } from "lucide-react";
 import { CodeBlock } from "@/components/ui/CodeBlock";
+import { WashiTape, StickerBadge, MildlinerText } from "@/components/ui/StudyStickers";
 
 interface ReferenceItem {
   id: string;
@@ -17,33 +18,33 @@ interface ReferenceItem {
 
 const REFERENCE_DATA: ReferenceItem[] = [
   {
-    id: "page-tsx",
-    name: "page.tsx",
+    id: "page-js",
+    name: "page.js",
     category: "Conventions",
     type: "Reserved File",
     summary: "Defines the unique user interface and publicly accessible route for a folder.",
     syntax: "export default function Page({ params, searchParams })",
-    example: `export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+    example: `export default async function Page({ params }) {
   const { id } = await params;
   return <h1>Product #{id}</h1>;
 }`,
     whenToUse: "Required in every folder you want to turn into a public URL.",
   },
   {
-    id: "layout-tsx",
-    name: "layout.tsx",
+    id: "layout-js",
+    name: "layout.js",
     category: "Conventions",
     type: "Reserved File",
     summary: "Shared UI shell (Navbars, Sidebars) that preserves state and does not re-render across route changes.",
     syntax: "export default function Layout({ children })",
-    example: `export default function Layout({ children }: { children: React.ReactNode }) {
+    example: `export default function Layout({ children }) {
   return <div className="shell"><Navbar />{children}<Footer /></div>;
 }`,
     whenToUse: "Use for shared wrappers, navigation bars, and persistent layout templates.",
   },
   {
-    id: "loading-tsx",
-    name: "loading.tsx",
+    id: "loading-js",
+    name: "loading.js",
     category: "Conventions",
     type: "Reserved File",
     summary: "Instant streaming skeleton fallback displayed while server data is preparing.",
@@ -51,17 +52,17 @@ const REFERENCE_DATA: ReferenceItem[] = [
     example: `export default function Loading() {
   return <div className="animate-pulse h-32 bg-zinc-800 rounded-xl" />;
 }`,
-    whenToUse: "Create alongside page.tsx to give instant visual feedback on mobile clicks.",
+    whenToUse: "Create alongside page.js to give instant visual feedback on mobile clicks.",
   },
   {
-    id: "error-tsx",
-    name: "error.tsx",
+    id: "error-js",
+    name: "error.js",
     category: "Conventions",
     type: "Reserved File ('use client')",
     summary: "React Error Boundary fallback that isolates crashes and provides retry actions.",
     syntax: "'use client'; export default function Error({ error, reset })",
     example: `"use client";
-export default function Error({ error, reset }: { error: Error; reset: () => void }) {
+export default function Error({ error, reset }) {
   return <div><p>{error.message}</p><button onClick={() => reset()}>Retry</button></div>;
 }`,
     whenToUse: "Must be a Client Component. Used for graceful error recovery.",
@@ -74,7 +75,7 @@ export default function Error({ error, reset }: { error: Error; reset: () => voi
     summary: "Marks an asynchronous function or entire file as a secure server-side RPC entry point (Server Action).",
     syntax: "'use server';",
     example: `"use server";
-export async function createStudentAction(formData: FormData) {
+export async function createStudentAction(formData) {
   const name = formData.get("name");
   await db.students.create({ name });
   revalidatePath("/students");
@@ -103,8 +104,8 @@ export function Toggle() {
     type: "React 19 Hook",
     summary: "Updates the user interface in 0ms before the server finishes responding, with auto-rollback on failure.",
     syntax: "const [optState, setOptState] = useOptimistic(state, updateFn)",
-    example: `const [optLikes, addOptLike] = useOptimistic(likes, (current, inc: number) => current + inc);
-const handleLike = () => {
+    example: `const [optLikes, addOptLike] = useOptimistic(likes, (current, inc) => current + inc);
+const handleLike = async () => {
   addOptLike(1); // 0ms instant!
   await serverLikeAction();
 };`,
@@ -162,7 +163,7 @@ const handleLike = () => {
     example: `"use server";
 import { revalidatePath } from "next/cache";
 
-export async function deletePost(id: number) {
+export async function deletePost(id) {
   await db.posts.delete(id);
   revalidatePath("/blog");
 }`,
@@ -201,16 +202,17 @@ export default function ReferencePage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 space-y-10">
-      {/* Header */}
-      <div className="space-y-3 max-w-2xl">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 border border-emerald-200 text-xs font-mono font-bold text-emerald-800">
-          <BookOpen className="h-3.5 w-3.5" />
-          <span>Quick Lookup Reference</span>
+      {/* Header with Cute Study Aesthetic */}
+      <div className="space-y-4 max-w-2xl">
+        <div className="flex flex-wrap items-center gap-2">
+          <StickerBadge emoji="📚" label="Quick Lookup" color="matcha" size="sm" tilt="rotate-[-1deg]" />
+          <StickerBadge emoji="✨" label="Cheat Sheet" color="honey" size="sm" tilt="rotate-[1deg]" />
+          <StickerBadge emoji="🧸" label="Pocket Reference" color="lavender" size="sm" tilt="rotate-[-2deg]" />
         </div>
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-zinc-900 tracking-tight">
-          Next.js & App Router API Reference
+        <h1 className="text-3xl sm:text-4xl font-black text-stone-900 tracking-tight">
+          Next.js &amp; App Router <span className="mildliner-green">API Reference</span>
         </h1>
-        <p className="text-sm text-zinc-600 leading-relaxed">
+        <p className="text-sm text-stone-600 leading-relaxed font-sans">
           Searchable reference dictionary for App Router special files, React 19 directives, hooks, components, caching functions, and Supabase queries.
         </p>
       </div>
@@ -223,7 +225,7 @@ export default function ReferencePage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search APIs (e.g. useOptimistic, page.tsx, revalidatePath)..."
+            placeholder="Search APIs (e.g. useOptimistic, page.js, revalidatePath)..."
             className="w-full pl-10 pr-4 py-2.5 bg-white border border-zinc-200 rounded-2xl text-xs sm:text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-emerald-500 shadow-2xs"
           />
         </div>
@@ -271,7 +273,7 @@ export default function ReferencePage() {
                 {item.syntax}
               </div>
 
-              <CodeBlock code={item.example} language="tsx" showLineNumbers={false} />
+              <CodeBlock code={item.example} language="jsx" showLineNumbers={false} />
             </div>
 
             <div className="pt-2 border-t border-zinc-100 text-xs text-zinc-500">

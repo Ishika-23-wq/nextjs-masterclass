@@ -32,11 +32,56 @@
 }
 
 body {
-  background-color: var(--background);
+  background-color: #FAF8F5;
+  background-image: radial-gradient(#dfd7cc 1.1px, transparent 1.1px);
+  background-size: 22px 22px;
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Zebra Mildliner Highlighter Underlines */
+.mildliner-yellow {
+  background: linear-gradient(104deg, rgba(254, 240, 138, 0.75) 0%, rgba(254, 240, 138, 0.25) 100%);
+  border-radius: 4px;
+  padding: 0 4px;
+}
+
+.mildliner-green {
+  background: linear-gradient(104deg, rgba(187, 247, 208, 0.75) 0%, rgba(187, 247, 208, 0.25) 100%);
+  border-radius: 4px;
+  padding: 0 4px;
+}
+
+.mildliner-pink {
+  background: linear-gradient(104deg, rgba(254, 205, 211, 0.75) 0%, rgba(254, 205, 211, 0.25) 100%);
+  border-radius: 4px;
+  padding: 0 4px;
+}
+
+.mildliner-blue {
+  background: linear-gradient(104deg, rgba(191, 219, 254, 0.75) 0%, rgba(191, 219, 254, 0.25) 100%);
+  border-radius: 4px;
+  padding: 0 4px;
+}
+
+.mildliner-purple {
+  background: linear-gradient(104deg, rgba(233, 213, 255, 0.75) 0%, rgba(233, 213, 255, 0.25) 100%);
+  border-radius: 4px;
+  padding: 0 4px;
+}
+
+/* Cute Cartoon Sticker Style */
+.cute-sticker {
+  border: 2px solid #ffffff;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+  user-select: none;
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.cute-sticker:hover {
+  transform: translateY(-2px) scale(1.04) rotate(0deg) !important;
 }
 
 /* Code Eyebrow Tags */
@@ -51,23 +96,44 @@ body {
   gap: 0.25rem;
 }
 
-/* Code Block & Inline Code #211F2E Background */
+/* Code Block & Inline Code Aesthetic Stationery Palette */
 pre {
-  background-color: #211F2E !important;
-  color: #f4f4f5 !important;
+  background-color: transparent !important;
+  color: inherit !important;
 }
 
 code:not(pre code) {
-  background-color: #211F2E;
-  color: #34d399;
+  background-color: #F4EFEA;
+  color: #7C2D12;
   font-family: var(--font-mono), monospace;
-  font-size: 0.8em;
-  padding: 0.15rem 0.4rem;
-  border-radius: 0.375rem;
-  border: 1px solid #3e3a54;
+  font-size: 0.82em;
+  font-weight: 600;
+  padding: 0.15rem 0.45rem;
+  border-radius: 0.45rem;
+  border: 1px solid #E2DCD2;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
 /* Custom Smooth Transitions */
 button, a {
   transition: all 0.15s ease-in-out;
+}
+
+/* Aesthetic Study Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #FAF8F5;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #dfd7cc;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #c9bea8;
 }

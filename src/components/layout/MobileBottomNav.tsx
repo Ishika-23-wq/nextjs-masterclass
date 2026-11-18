@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, Trophy, Award, Code2, FileText } from "lucide-react";
+import { BookOpen, Trophy, FolderGit2, Code2, FileText } from "lucide-react";
 
 export function MobileBottomNav() {
   const pathname = usePathname();
@@ -10,7 +10,7 @@ export function MobileBottomNav() {
   const bottomNavItems = [
     { href: "/units", label: "Tutorials", icon: BookOpen },
     { href: "/practice", label: "Practice", icon: Trophy },
-    { href: "/quiz-arena", label: "Quiz", icon: Award },
+    { href: "/projects", label: "Projects", icon: FolderGit2 },
     { href: "/playground", label: "Playground", icon: Code2 },
     { href: "/reference", label: "Reference", icon: FileText },
   ];

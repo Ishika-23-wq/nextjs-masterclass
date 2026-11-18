@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Layers, ArrowRight, CheckCircle2, XCircle } from "lucide-react";
 import { differentWaysMatrix } from "@/data/different-ways";
 import { CodeBlock } from "@/components/ui/CodeBlock";
+import { WashiTape, StickerBadge, MildlinerText } from "@/components/ui/StudyStickers";
 
 export const metadata = {
   title: "Different Ways Feature Matrix",
@@ -12,14 +13,15 @@ export default function DifferentWaysPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 space-y-12">
       {/* Header */}
-      <div className="space-y-3 max-w-2xl">
-        <span className="font-mono text-xs text-purple-800 font-bold px-2.5 py-1 rounded-full bg-purple-100 border border-purple-200">
-          &lt;architectural-matrix/&gt;
-        </span>
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-zinc-900 tracking-tight">
-          "Different Ways to Do It" Matrix
+      <div className="space-y-4 max-w-2xl relative">
+        <div className="flex flex-wrap items-center gap-2">
+          <StickerBadge emoji="🗂️" label="Comparison Grid" color="lavender" />
+          <StickerBadge emoji="✨" label="Architectural Matrix" color="matcha" />
+        </div>
+        <h1 className="text-3xl sm:text-4xl font-extrabold text-stone-900 tracking-tight">
+          "<MildlinerText color="lavender">Different Ways to Do It</MildlinerText>" Matrix
         </h1>
-        <p className="text-sm text-zinc-600 leading-relaxed">
+        <p className="text-sm text-stone-600 leading-relaxed font-sans">
           In modern Next.js, there are often multiple valid ways to solve the same problem (e.g. fetching data in Server Components vs Client Components vs Route Handlers vs Server Actions). Here is how they compare in advantages, disadvantages, and when to use each.
         </p>
       </div>
@@ -28,29 +30,37 @@ export default function DifferentWaysPage() {
       <div className="space-y-12">
         {differentWaysMatrix.map((category) => (
           <div key={category.id} className="space-y-6">
-            <div className="border-b border-zinc-200 pb-3">
-              <h2 className="text-2xl font-bold text-zinc-900">{category.taskTitle}</h2>
-              <p className="text-xs sm:text-sm text-zinc-600 mt-1">{category.shortDescription}</p>
+            <div className="border-b border-[#e8e2d8] pb-3 flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-stone-900">{category.taskTitle}</h2>
+                <p className="text-xs sm:text-sm text-stone-600 mt-1">{category.shortDescription}</p>
+              </div>
+              <StickerBadge emoji="💡" label="Alternative Ways" color="honey" size="sm" />
             </div>
 
             <div className="grid gap-6">
               {category.approaches.map((app, idx) => (
                 <div
                   key={idx}
-                  className="p-6 rounded-3xl bg-white border border-zinc-200 space-y-4 shadow-xs"
+                  className="relative p-6 pt-7 rounded-3xl bg-white border border-[#e8e2d8] space-y-4 shadow-2xs hover:shadow-sm transition-shadow"
                 >
+                  <WashiTape
+                    color={app.isRecommended ? "matcha" : idx % 2 === 0 ? "sky" : "latte"}
+                    width="w-28"
+                    tilt={idx % 2 === 0 ? "-rotate-1" : "rotate-1"}
+                  />
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <h3 className="text-base font-bold text-zinc-900">{app.name}</h3>
+                    <h3 className="text-base font-bold text-stone-900">{app.name}</h3>
                     <span className={`text-xs font-mono px-3 py-1 rounded-full font-bold ${
                       app.isRecommended
                         ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                        : "bg-zinc-100 text-zinc-700 border border-zinc-200"
+                        : "bg-stone-100 text-stone-700 border border-stone-200"
                     }`}>
                       {app.badge}
                     </span>
                   </div>
 
-                  <CodeBlock code={app.codeExample} language="tsx" />
+                  <CodeBlock code={app.codeExample} language="jsx" />
 
                   <p className="text-xs text-zinc-700 bg-zinc-50 p-3.5 rounded-2xl border border-zinc-200 leading-relaxed font-sans">
                     <strong>How it works: </strong>{app.howItWorks}

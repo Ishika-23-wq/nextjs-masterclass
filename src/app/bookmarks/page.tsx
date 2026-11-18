@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Bookmark, Trash2, ArrowRight, BookOpen, Star } from "lucide-react";
 import { getLocalBookmarks, saveLocalBookmark } from "@/lib/local-storage";
 import { BookmarkItem } from "@/types";
+import { WashiTape, StickerBadge, MildlinerText } from "@/components/ui/StudyStickers";
 
 export default function BookmarksPage() {
   const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
@@ -25,15 +26,17 @@ export default function BookmarksPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 space-y-10">
-      {/* Header */}
-      <div className="space-y-3 max-w-2xl">
-        <span className="font-mono text-xs text-amber-800 font-bold px-2.5 py-1 rounded-full bg-amber-100 border border-amber-200">
-          &lt;saved-resources/&gt;
-        </span>
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-zinc-900 tracking-tight">
-          Your Saved Topics & Notes
+      {/* Header with Cute Study Aesthetic */}
+      <div className="space-y-4 max-w-2xl">
+        <div className="flex flex-wrap items-center gap-2">
+          <StickerBadge emoji="🔖" label="Study Notes" color="sakura" size="sm" tilt="rotate-[-1deg]" />
+          <StickerBadge emoji="✨" label="Local Storage" color="matcha" size="sm" tilt="rotate-[1deg]" />
+          <StickerBadge emoji="🧸" label="Saved Flashcards" color="honey" size="sm" tilt="rotate-[-2deg]" />
+        </div>
+        <h1 className="text-3xl sm:text-4xl font-black text-stone-900 tracking-tight">
+          Your Saved <span className="mildliner-yellow">Topics &amp; Notes</span>
         </h1>
-        <p className="text-sm text-zinc-600 leading-relaxed">
+        <p className="text-sm text-stone-600 leading-relaxed font-sans">
           Lessons you bookmark and notes you write are stored 100% locally in your browser memory. No login or user account required.
         </p>
       </div>

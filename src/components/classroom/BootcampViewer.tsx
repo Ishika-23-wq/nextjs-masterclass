@@ -23,6 +23,7 @@ import {
   Lightbulb,
 } from "lucide-react";
 import { bootcampCurriculum, BootcampHour, BootcampSection } from "@/data/bootcamp-script";
+import { WashiTape, StickerBadge, MildlinerText } from "@/components/ui/StudyStickers";
 
 type FilterMode = "all" | "speaker" | "code" | "analogies" | "quizzes";
 
@@ -77,18 +78,20 @@ export function BootcampViewer() {
 
   return (
     <div className="space-y-8">
-      {/* Top Controls Bar */}
-      <div className="bg-white border border-zinc-200 rounded-3xl p-5 sm:p-6 shadow-xs space-y-5">
+      {/* Top Controls Bar with Washi Tape */}
+      <div className="relative bg-white border border-[#e5ded6] rounded-3xl p-5 sm:p-6 shadow-2xs space-y-5">
+        <WashiTape color="lavender" width="w-36" tilt="-rotate-1" />
+
         {/* Row 1: Search & Hour Navigation */}
-        <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center justify-between">
+        <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center justify-between pt-1">
           {/* Hour Tabs */}
-          <div className="flex flex-wrap items-center gap-1.5 p-1 bg-zinc-100 rounded-2xl border border-zinc-200/80">
+          <div className="flex flex-wrap items-center gap-1.5 p-1 bg-[#FAF8F5] rounded-2xl border border-[#e8e2d8]">
             <button
               onClick={() => setSelectedHour("all")}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
                 selectedHour === "all"
-                  ? "bg-white text-zinc-900 shadow-xs border border-zinc-200/80"
-                  : "text-zinc-600 hover:text-zinc-900"
+                  ? "bg-white text-stone-900 shadow-2xs border border-[#e5ded6]"
+                  : "text-stone-600 hover:text-stone-900"
               }`}
             >
               All 4 Hours
@@ -99,39 +102,41 @@ export function BootcampViewer() {
                 onClick={() => setSelectedHour(hour.hourNumber)}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
                   selectedHour === hour.hourNumber
-                    ? "bg-emerald-600 text-white shadow-xs"
-                    : "text-zinc-600 hover:text-zinc-900"
+                    ? "bg-[#5b9669] text-white shadow-xs border border-[#4a8057]"
+                    : "text-stone-600 hover:text-stone-900 hover:bg-white/50"
                 }`}
               >
                 <span>Hour {hour.hourNumber}</span>
-                <span className="text-[10px] opacity-75 font-mono">({hour.timeRange.split("–")[0].trim()})</span>
+                <span className="text-[10px] opacity-80 font-mono">({hour.timeRange.split("–")[0].trim()})</span>
               </button>
             ))}
           </div>
 
           {/* Search Input */}
           <div className="relative min-w-[240px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search concepts, analogies, or code..."
-              className="w-full pl-9 pr-4 py-2 bg-zinc-50 border border-zinc-200 rounded-xl text-xs text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-emerald-500 font-mono transition-colors"
+              className="w-full pl-9 pr-4 py-2 bg-[#FAF8F5] border border-[#e8e2d8] rounded-2xl text-xs text-stone-900 placeholder-stone-400 focus:outline-none focus:border-[#5b9669] font-mono transition-colors shadow-2xs"
             />
           </div>
         </div>
 
         {/* Row 2: Filter Mode Tabs */}
-        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-zinc-100">
-          <span className="text-[11px] font-mono uppercase text-zinc-400 font-bold mr-1">Focus Filter:</span>
+        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[#f2ede4]">
+          <span className="text-[11px] font-mono uppercase text-stone-400 font-bold mr-1 flex items-center gap-1">
+            <span>🏷️</span> Filter:
+          </span>
           
           <button
             onClick={() => setFilterMode("all")}
             className={`px-3 py-1 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
               filterMode === "all"
-                ? "bg-zinc-900 text-white"
-                : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200"
+                ? "bg-stone-900 text-white"
+                : "bg-[#FAF8F5] text-stone-700 hover:bg-[#f5efe6] border border-[#e8e2d8]"
             }`}
           >
             <Sparkles className="h-3.5 w-3.5 text-amber-400" />
@@ -287,23 +292,23 @@ export function BootcampViewer() {
                             return (
                               <div
                                 key={i}
-                                className="rounded-2xl border border-zinc-800 bg-zinc-950 text-zinc-100 overflow-hidden shadow-sm"
+                                className="rounded-2xl border border-[#e5ded4] bg-[#FAF8F5] text-stone-800 overflow-hidden shadow-xs"
                               >
-                                <div className="px-4 py-2.5 bg-zinc-900/90 border-b border-zinc-800 flex items-center justify-between">
+                                <div className="px-4 py-2.5 bg-[#F2ECE2] border-b border-[#e5ded4] flex items-center justify-between text-stone-600">
                                   <div className="flex items-center gap-2">
-                                    <FileCode2 className="h-3.5 w-3.5 text-emerald-400" />
-                                    <span className="text-xs font-mono text-zinc-300 font-semibold">
+                                    <FileCode2 className="h-3.5 w-3.5 text-emerald-600" />
+                                    <span className="text-xs font-mono text-stone-700 font-semibold">
                                       {block.filename || block.title}
                                     </span>
                                   </div>
                                   <button
                                     onClick={() => handleCopy(block.code, copyId)}
-                                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-[11px] font-mono text-zinc-300 transition-colors"
+                                    className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white hover:bg-[#FAF7F2] border border-[#dfd7cc] text-[11px] font-mono text-stone-700 transition-colors shadow-2xs"
                                   >
                                     {isCopied ? (
                                       <>
-                                        <Check className="h-3 w-3 text-emerald-400" />
-                                        <span className="text-emerald-400 font-bold">Copied!</span>
+                                        <Check className="h-3 w-3 text-emerald-600" />
+                                        <span className="text-emerald-700 font-bold">Copied!</span>
                                       </>
                                     ) : (
                                       <>
@@ -313,11 +318,11 @@ export function BootcampViewer() {
                                     )}
                                   </button>
                                 </div>
-                                <pre className="p-4 text-xs font-mono text-emerald-300 overflow-x-auto leading-relaxed">
+                                <pre className="p-4 text-xs font-mono text-stone-800 bg-[#FCFBF9] overflow-x-auto leading-relaxed">
                                   <code>{block.code}</code>
                                 </pre>
                                 {block.explanation && (
-                                  <div className="px-4 py-2.5 bg-zinc-900/50 border-t border-zinc-800/80 text-xs text-zinc-400 font-sans">
+                                  <div className="px-4 py-2.5 bg-[#FAF7F2] border-t border-[#e5ded4] text-xs text-stone-600 font-sans">
                                     💡 <strong>Note:</strong> {block.explanation}
                                   </div>
                                 )}
@@ -354,7 +359,7 @@ export function BootcampViewer() {
                                     </div>
                                     <button
                                       onClick={() => toggleAnswer(qKey)}
-                                      className="px-3 py-1 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shrink-0 shadow-2xs flex items-center gap-1"
+                                      className="px-3 py-1 rounded-xl bg-emerald-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shrink-0 shadow-2xs flex items-center gap-1"
                                     >
                                       <span>{isRevealed ? "Hide Answer" : "Reveal Answer ✨"}</span>
                                     </button>

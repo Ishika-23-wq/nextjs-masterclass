@@ -44,8 +44,8 @@ export const bootcampCurriculum: BootcampHour[] = [
   {
     hourNumber: 1,
     timeRange: "0:00 – 1:00",
-    title: "Foundations: React Refresher & Why Next.js?",
-    subtitle: "The 4 Lego Rules of React, The Blank Screen Problem, and Next.js Superpowers",
+    title: "Fundamentals of Next.js & App Router",
+    subtitle: "Introduction to Next.js, Features, Project Structure, and Development Workflow",
     badge: "Hour 1",
     sections: [
       {
@@ -54,36 +54,36 @@ export const bootcampCurriculum: BootcampHour[] = [
         title: "Welcome & Today's 4-Hour Roadmap",
         durationMinutes: 5,
         spokenScript:
-          "Good day everyone! Welcome to our 4-hour Next.js adventure. If you are brand new to React or still learning JavaScript, you are in the exact right place! In the first 20 minutes, I will give you the 4 simple Lego-brick rules of React. After that, we jump straight into Next.js: what it is, why every major tech company uses it, how folders become webpages, and how to build super fast apps in plain JavaScript!",
+          "Good day everyone! Welcome to our 4-hour Next.js adventure. If you are learning JavaScript, you are in the exact right place! In this bootcamp, we jump straight into Next.js: what it is, why every major tech company uses it, how folders become webpages, and how to build super fast apps in plain JavaScript!",
         analogies: [
           {
             title: "The Treehouse Blueprint",
             emoji: "🏡",
             description:
-              "Think of today like building a treehouse. First we inspect our hammer and nails (React), then we install pre-made walls and a roof (Next.js), and finally we paint all the rooms and connect secret staircases (Routing)!",
+              "Think of today like building a treehouse. First we inspect our architectural plans, then we install pre-made walls and a roof (Next.js App Router), and finally we paint all the rooms and connect secret staircases (Routing)!",
           },
         ],
         codeBlocks: [],
         checkInQuestions: [
           {
-            question: "Do I need to be a React master before learning Next.js?",
-            answer: "Nope! You only need 4 basic ideas: Components, Props, State, and Server vs Client.",
-            why: "Next.js builds on top of React, so learning them together is actually the easiest and fastest way to understand modern web development.",
+            question: "What prior knowledge do I need to learn Next.js?",
+            answer: "Only basic JavaScript! We explain everything from the ground up.",
+            why: "Next.js makes full-stack development accessible by organizing everything into simple files and folders.",
           },
         ],
         keyTakeaways: [
-          "Every Next.js page is secretly just a friendly React component.",
+          "Every Next.js page is a friendly JavaScript component.",
           "We will use plain JavaScript (JSX) so there are no confusing extra steps.",
           "By the end of Hour 4, you will build and connect multi-page web applications effortlessly.",
         ],
       },
       {
-        id: "react-just-enough",
+        id: "nextjs-building-blocks",
         timeRange: "0:05–0:25",
-        title: "React — The 4 Magic Lego Rules",
+        title: "Next.js UI — The 4 Core Building Blocks",
         durationMinutes: 20,
         spokenScript:
-          "Next.js is built on top of React. Every single page in Next.js is secretly a React component. So before we touch Next.js, let's make sure four foundational ideas are rock solid in your mind: 1. Components are cookie cutters, 2. Props are custom toppings, 3. State is a video game score counter, and 4. Server vs Client is the chef in the kitchen vs the dining table!",
+          "Every single page in Next.js is built from friendly UI components. Let's make sure four foundational ideas are rock solid in your mind: 1. Components are cookie cutters, 2. Props are custom toppings, 3. State is a video game score counter, and 4. Server vs Client is the chef in the kitchen vs the dining table!",
         analogies: [
           {
             title: "Rule 1: Component as a Cookie Cutter",
@@ -188,19 +188,19 @@ export function CoinCounter() {
         title: "Introduction to Next.js & Why It Exists",
         durationMinutes: 15,
         spokenScript:
-          "Now, what actually is Next.js? React is a UI library, but Next.js is a complete full-stack framework. If React is a bucket of loose Lego bricks where you have to build your own engine and wheels, Next.js is a complete Race Car Kit with everything built in. Let's see the big problem plain React had: the dreaded blank white screen!",
+          "Now, what actually is Next.js? Next.js is a complete full-stack web framework. Think of it like a complete Race Car Kit: it comes with the engine (server rendering), GPS navigation (folder routing), and headlights already connected. Instead of sending an empty page that leaves users waiting, Next.js pre-renders the full HTML page right on the server and delivers it instantly!",
         analogies: [
           {
-            title: "Loose Bricks vs Pre-Built Race Car",
+            title: "The Pre-Built Race Car Kit",
             emoji: "🏎️",
             description:
-              "In plain React (Vite / CRA), you have to wire up routing, SEO, and servers by hand. Next.js comes with the engine, GPS navigation, headlights, and sound system already connected!",
+              "Next.js comes with the engine, GPS navigation, and headlights already connected, so you can build blazing fast apps without assembling complex tooling from scratch!",
           },
           {
-            title: "The Blank White Screen Waiter",
-            emoji: "⏳",
+            title: "The Hot Kitchen Waiter",
+            emoji: "👨‍🍳",
             description:
-              "In old SPAs, the waiter brings an empty plate and a cookbook to your table and tells you to cook your own dinner. Next.js cooks the dinner in the kitchen and delivers hot food immediately!",
+              "Next.js cooks the meal directly in the server kitchen and delivers a steaming hot, fully plated meal (complete HTML) to the user's browser in under a second!",
           },
         ],
         codeBlocks: [

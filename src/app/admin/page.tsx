@@ -6,7 +6,7 @@ import {
   Plus,
   Save,
   BookOpen,
-  HelpCircle,
+
   Trash2,
   Database,
   Check,
@@ -17,12 +17,10 @@ import {
 } from "lucide-react";
 import { syllabusUnits } from "@/data/syllabus";
 import { allTopics } from "@/data/topics";
-import { QnAItem } from "@/data/qna-data";
 import {
   getCustomTopics,
   saveCustomTopic,
   deleteCustomTopic,
-  saveCustomQnAItem,
 } from "@/lib/content-store";
 import { TopicContent } from "@/types";
 import { CodeBlock } from "@/components/ui/CodeBlock";
@@ -36,7 +34,7 @@ export default function AdminContentStudio() {
   const [inputPasskey, setInputPasskey] = useState("");
   const [authError, setAuthError] = useState(false);
 
-  const [activeTab, setActiveTab] = useState<"create-topic" | "add-qna" | "manage-topics" | "supabase-sync">("create-topic");
+  const [activeTab, setActiveTab] = useState<"create-topic" | "manage-topics" | "supabase-sync">("create-topic");
   const [customTopicsList, setCustomTopicsList] = useState<TopicContent[]>([]);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
 
@@ -63,12 +61,7 @@ export default function AdminContentStudio() {
   const [exerciseInitialCode, setExerciseInitialCode] = useState("// Write your solution here\n");
   const [exerciseSolutionCode, setExerciseSolutionCode] = useState("// Solution\n");
 
-  // Q&A Creator State
-  const [qnaTargetTopicId, setQnaTargetTopicId] = useState(allTopics[0]?.id || "intro-and-project-structure");
-  const [qnaQuestion, setQnaQuestion] = useState("");
-  const [qnaAnswer, setQnaAnswer] = useState("");
-  const [qnaReactContrast, setQnaReactContrast] = useState("");
-  const [qnaTip, setQnaTip] = useState("");
+
 
   useEffect(() => {
     // Check if admin is already logged in for this browser session
@@ -146,8 +139,8 @@ export default function AdminContentStudio() {
         title: "Basic Implementation",
         description: "Standard Next.js implementation.",
         code: basicCode,
-        language: "tsx",
-        filename: "src/app/example/page.tsx",
+        language: "jsx",
+        filename: "app/example/page.js",
         explanation: "Simple and robust implementation.",
       },
       moreExamples: [],
@@ -193,14 +186,14 @@ export default function AdminContentStudio() {
       realWorldExample: {
         domain: "Full-Stack Web App",
         description: "Used in production SaaS applications for fast content delivery.",
-        code: { title: "Production Setup", description: "Real-world module", code: basicCode, language: "tsx", filename: "production-app.tsx" },
+        code: { title: "Production Setup", description: "Real-world module", code: basicCode, language: "jsx", filename: "production-app.js" },
         keyTakeaway: "Server-first architecture minimizes client-side complexity.",
       },
       combinedExample: {
         combinedTopics: ["App Router", "Server Actions"],
         title: "Combined Implementation",
         description: "Integrates with existing Next.js patterns.",
-        code: { title: "Combined Pipeline", description: "Multi-feature pipeline", code: basicCode, language: "tsx", filename: "combined.tsx" },
+        code: { title: "Combined Pipeline", description: "Multi-feature pipeline", code: basicCode, language: "jsx", filename: "combined.js" },
         stepByStepFlow: ["1. Fetch data on server", "2. Pass to UI component"],
       },
     };
@@ -217,28 +210,7 @@ export default function AdminContentStudio() {
     setWhyNeeded("");
   };
 
-  const handleSaveQnA = () => {
-    if (!qnaQuestion || !qnaAnswer) {
-      alert("Please enter both question and answer.");
-      return;
-    }
 
-    const item: QnAItem = {
-      question: qnaQuestion.trim(),
-      shortAnswer: qnaAnswer.trim(),
-      reactContrast: qnaReactContrast.trim() || undefined,
-      tip: qnaTip.trim() || undefined,
-    };
-
-    saveCustomQnAItem(qnaTargetTopicId, item);
-    setSaveStatus(`✓ Q&A added to topic "${qnaTargetTopicId}"!`);
-    setTimeout(() => setSaveStatus(null), 3000);
-
-    setQnaQuestion("");
-    setQnaAnswer("");
-    setQnaReactContrast("");
-    setQnaTip("");
-  };
 
   // RESTRICTED ACCESS SCREEN (If not authenticated as admin)
   if (!isAuthenticated) {
@@ -335,7 +307,6 @@ export default function AdminContentStudio() {
       <div className="flex flex-wrap gap-2 border-b border-zinc-200 pb-4">
         {[
           { id: "create-topic", label: "Create New Lesson", icon: Plus },
-          { id: "add-qna", label: "Add Q&A Question", icon: HelpCircle },
           { id: "manage-topics", label: `Manage Custom Lessons (${customTopicsList.length})`, icon: BookOpen },
           { id: "supabase-sync", label: "Supabase DB Schema", icon: Database },
         ].map((tab) => {
@@ -454,7 +425,7 @@ export default function AdminContentStudio() {
                 value={reactCode}
                 onChange={(e) => setReactCode(e.target.value)}
                 rows={5}
-                className="w-full p-3 bg-[#211F2E] border border-[#333045] rounded-2xl font-mono text-xs text-rose-300 leading-relaxed"
+                className="w-full p-3 bg-[#FCFBF9] border border-[#e5ded4] rounded-2xl font-mono text-xs text-rose-800 leading-relaxed focus:outline-none focus:ring-2 focus:ring-rose-400/30 selection:bg-rose-100"
               />
             </div>
 
@@ -464,7 +435,7 @@ export default function AdminContentStudio() {
                 value={nextCode}
                 onChange={(e) => setNextCode(e.target.value)}
                 rows={5}
-                className="w-full p-3 bg-[#211F2E] border border-[#333045] rounded-2xl font-mono text-xs text-emerald-300 leading-relaxed"
+                className="w-full p-3 bg-[#FCFBF9] border border-[#e5ded4] rounded-2xl font-mono text-xs text-emerald-900 leading-relaxed focus:outline-none focus:ring-2 focus:ring-emerald-400/30 selection:bg-emerald-100"
               />
             </div>
           </div>
@@ -475,7 +446,7 @@ export default function AdminContentStudio() {
               value={basicCode}
               onChange={(e) => setBasicCode(e.target.value)}
               rows={6}
-              className="w-full p-3 bg-[#211F2E] border border-[#333045] rounded-2xl font-mono text-xs text-emerald-300 leading-relaxed"
+              className="w-full p-3 bg-[#FCFBF9] border border-[#e5ded4] rounded-2xl font-mono text-xs text-stone-900 leading-relaxed focus:outline-none focus:ring-2 focus:ring-emerald-400/30 selection:bg-emerald-100"
             />
           </div>
 
@@ -489,82 +460,7 @@ export default function AdminContentStudio() {
         </div>
       )}
 
-      {/* TAB 2: ADD BITE-SIZED Q&A */}
-      {activeTab === "add-qna" && (
-        <div className="p-6 sm:p-8 rounded-3xl bg-white border border-zinc-200 space-y-6 shadow-xs">
-          <div className="border-b border-zinc-200 pb-3">
-            <h2 className="text-xl font-bold text-zinc-900">Add a Bite-Sized Q&A Question</h2>
-            <p className="text-xs text-zinc-500 mt-0.5">Enhance topic classrooms with instant, punchy Q&A cards.</p>
-          </div>
 
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-zinc-700 font-mono">Target Lesson Topic</label>
-            <select
-              value={qnaTargetTopicId}
-              onChange={(e) => setQnaTargetTopicId(e.target.value)}
-              className="w-full p-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-xs text-zinc-900 font-sans"
-            >
-              {allTopics.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.unitId.toUpperCase()}: {t.title}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-zinc-700 font-mono">Question Title</label>
-            <input
-              type="text"
-              value={qnaQuestion}
-              onChange={(e) => setQnaQuestion(e.target.value)}
-              placeholder="e.g. How do I pass data from Server Component to Client Component?"
-              className="w-full p-2.5 bg-zinc-50 border border-zinc-200 rounded-xl text-xs text-zinc-900"
-            />
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-zinc-700 font-mono">Short Punchy Answer (1-3 sentences)</label>
-            <textarea
-              value={qnaAnswer}
-              onChange={(e) => setQnaAnswer(e.target.value)}
-              placeholder="Pass the data as standard React props! Server Components can pass serializable props (objects, strings, arrays) directly to Client Components."
-              rows={3}
-              className="w-full p-3 bg-zinc-50 border border-zinc-200 rounded-2xl text-xs text-zinc-900 leading-relaxed font-sans"
-            />
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-amber-800 font-mono">React Contrast (Optional)</label>
-            <input
-              type="text"
-              value={qnaReactContrast}
-              onChange={(e) => setQnaReactContrast(e.target.value)}
-              placeholder="e.g. In React, you had to fetch via useEffect on the client."
-              className="w-full p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-zinc-900"
-            />
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-purple-800 font-mono">Pro-Tip / Key Rule (Optional)</label>
-            <input
-              type="text"
-              value={qnaTip}
-              onChange={(e) => setQnaTip(e.target.value)}
-              placeholder="e.g. Functions cannot be passed as props across the Server/Client boundary."
-              className="w-full p-2.5 bg-purple-50 border border-purple-200 rounded-xl text-xs text-zinc-900"
-            />
-          </div>
-
-          <button
-            onClick={handleSaveQnA}
-            className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xs font-bold shadow-xs flex items-center gap-2 transition-all"
-          >
-            <Save className="h-4 w-4" />
-            <span>Save Q&A to Lesson</span>
-          </button>
-        </div>
-      )}
 
       {/* TAB 3: MANAGE CUSTOM TOPICS */}
       {activeTab === "manage-topics" && (
